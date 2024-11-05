@@ -7,6 +7,7 @@
 #include <fstream> 
 #include <iostream> 
 #include "Pokemon.cpp"
+#include <map>
 
 using namespace std; 
 using namespace rapidjson; 
@@ -23,6 +24,13 @@ int main(){
     return -1;
 
 selectTeamAndOpponent();
+
+string pokemonName = "Clefable";
+    cout << pokemonName << " can use the following moves:" << endl;
+    for (const auto& move : pokemonMoveMapping[pokemonName]) {
+        cout << "- " << move << endl;
+    }
+    return 0;
 
 };
 
@@ -64,3 +72,7 @@ void selectTeamAndOpponent() {
     cout << "\nYou have selected: " << chosenOpponent << ".\n" << endl;
 
 }
+
+map<string, vector<string>> pokemonMoveMapping = {
+        {"Clefable", {"Sing", "Moonblast", "Metronome", "Cosmic Power"}}
+};
