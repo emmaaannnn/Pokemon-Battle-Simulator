@@ -3,7 +3,7 @@
 #include "json.hpp"
 
 using json = nlohmann::json;
-
+#include <format> 
 #include <cstdio>
 #include <fstream> 
 #include <iostream> 
@@ -51,29 +51,34 @@ void selectTeamAndOpponent() {
     cout << "\nYou have selected: " << chosenOpponent << ".\n" << endl;
 }
 
-map<string, vector<string>> pokemonMoveMapping = {
-        {"Clefable", {"Sing", "Moonblast", "Metronome", "Cosmic Power"}}
-};
+// map<string, vector<string>> pokemonMoveMapping = {
+//         {"Clefable", {"Sing", "Moonblast", "Metronome", "Cosmic Power"}}
+// };
 int main(){
-    std::string filePath = "Pokemon/1.json";
-    std::ifstream file(filePath);
-    json jsonData;
-    file >> jsonData;
-    file.close();
-    std::string name = jsonData["name"];
-    cout << name;
-    for (const auto& type : jsonData["types"]){
-        std::cout << type.get<std::string>();
+    for (int i = 1; i < 152; i++){
+        std::string iasString = std::to_string(i);
+        std::string filePath = ("Pokemon/" + iasString + ".json");
+        std::ifstream file(filePath);
+        json jsonData;
+        file >> jsonData;
+        file.close();
+        std::string name = jsonData["name"];
+        cout << name << endl;
+        for (const auto& typeInfo : jsonData["types"]) {
+            std::string typeName = typeInfo["type"]["name"];
+            std::cout << "Type Name: " << typeName << std::endl;
+            };
     };
-    selectTeamAndOpponent();
-  
-  
-  
-string pokemonName = "Clefable";
-    cout << pokemonName << " can use the following moves:" << endl;
-    for (const auto& move : pokemonMoveMapping[pokemonName]) {
-        cout << "- " << move << endl;
-    }
     return 0;
 };
+  
+  
+  
+// string pokemonName = "Clefable";
+//     cout << pokemonName << " can use the following moves:" << endl;
+//     for (const auto& move : pokemonMoveMapping[pokemonName]) {
+//         cout << "- " << move << endl;
+//     }
+//     return 0;
+// };
 
