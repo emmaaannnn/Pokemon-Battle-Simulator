@@ -8,8 +8,10 @@ using json = nlohmann::json;
 #include <fstream> 
 #include <iostream> 
 #include "Pokemon.cpp"
+#include <map>
 
 using namespace std; 
+
 
 void selectTeamAndOpponent() {
 
@@ -49,6 +51,12 @@ void selectTeamAndOpponent() {
     cout << "\nYou have selected: " << chosenOpponent << ".\n" << endl;
 }
 
+
+}
+
+map<string, vector<string>> pokemonMoveMapping = {
+        {"Clefable", {"Sing", "Moonblast", "Metronome", "Cosmic Power"}}
+};
 int main(){
     std::string filePath = "Pokemon/1.json";
     std::ifstream file(filePath);
@@ -61,5 +69,14 @@ int main(){
         std::cout << type.get<std::string>();
     };
     selectTeamAndOpponent();
+  
+  
+  
+string pokemonName = "Clefable";
+    cout << pokemonName << " can use the following moves:" << endl;
+    for (const auto& move : pokemonMoveMapping[pokemonName]) {
+        cout << "- " << move << endl;
+    }
     return 0;
 };
+
