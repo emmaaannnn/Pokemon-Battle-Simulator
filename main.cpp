@@ -51,9 +51,6 @@ void selectTeamAndOpponent() {
     cout << "\nYou have selected: " << chosenOpponent << ".\n" << endl;
 }
 
-
-}
-
 map<string, vector<string>> pokemonMoveMapping = {
         {"Clefable", {"Sing", "Moonblast", "Metronome", "Cosmic Power"}}
 };
