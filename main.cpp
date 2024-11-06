@@ -1,7 +1,8 @@
-#include <include/rapidjson/document.h>
-#include <include/rapidjson/prettywriter.h>
-#include <include/rapidjson/stringbuffer.h>
-#include "include/rapidjson/filereadstream.h"
+#include <iostream>
+#include <fstream>
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 #include <cstdio>
 #include <fstream> 
@@ -9,22 +10,6 @@
 #include "Pokemon.cpp"
 
 using namespace std; 
-using namespace rapidjson; 
-int main(){
-    FILE* file = fopen("1.json", "rb");
-    char readBuffer[65536];
-    rapidjson::FileReadStream data(file, readBuffer, 
-                                 sizeof(readBuffer)); 
-
-    rapidjson::Document doc;
-    doc.ParseStream(data);
-    fclose(file);
-    std::cout << doc["name"].GetString() << std::endl;
-    return -1;
-
-selectTeamAndOpponent();
-
-};
 
 void selectTeamAndOpponent() {
 
@@ -62,5 +47,19 @@ void selectTeamAndOpponent() {
     cin >> chosenOpponent;
 
     cout << "\nYou have selected: " << chosenOpponent << ".\n" << endl;
-
 }
+
+int main(){
+    std::string filePath = "Pokemon/1.json";
+    std::ifstream file(filePath);
+    json jsonData;
+    file >> jsonData;
+    file.close();
+    std::string name = jsonData["name"];
+    cout << name;
+    for (const auto& type : jsonData["types"]){
+        std::cout << type.get<std::string>();
+    };
+    selectTeamAndOpponent();
+    return 0;
+};
