@@ -57,7 +57,7 @@ void selectTeamAndOpponent() {
 int main(){
     for (int i = 1; i < 152; i++){
         std::string iasString = std::to_string(i);
-        std::string filePath = ("Pokemon/" + iasString + ".json");
+        std::string filePath = ("Pokemon1/" + iasString + ".json");
         std::ifstream file(filePath);
         json jsonData;
         file >> jsonData;
