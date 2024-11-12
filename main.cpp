@@ -2,6 +2,7 @@
 #include <fstream>
 #include "json.hpp"
 
+
 using json = nlohmann::json;
 #include <thread>  
 #include <chrono>  
@@ -10,7 +11,9 @@ using json = nlohmann::json;
 #include <cstdio>
 #include <fstream> 
 #include <iostream> 
+
 #include "Pokemon.cpp"
+
 #include <map>
 #include <unordered_map>
 
@@ -40,10 +43,10 @@ std::unordered_map<string, vector<string>> selectTeamAndOpponent() {
     int chosenTeamNum;
     cout << "Enter the number of the team you want to select: ";
     cin >> chosenTeamNum;
-    if(chosenTeamNum > 8 || chosenTeamNum < 1){
+    if(chosenTeamNum > 3 || chosenTeamNum < 1){
         cout << "invalid selection - try again.";
         //Need to make another function to re-call the selection menu
-    }
+    };
     vector<string> chosenTeam = Available_teams[chosenTeamNum];
 
     cout << "\nYou have selected Team " << chosenTeamNum << ".\n" << endl;
@@ -76,11 +79,16 @@ std::unordered_map<string, vector<string>> selectTeamAndOpponent() {
     int chosenOpponentNum;
     cout << "Enter your chosen opponent: ";
     cin >> chosenOpponentNum;
+    if(chosenOpponentNum > 8 || chosenOpponentNum < 1){
+        cout << "invalid selection - try again.";
+    };
+
     vector<string> chosenOpponent = opponent[chosenOpponentNum];
     cout << "\nYou have selected Opponent: " << chosenOpponentNum << ".\n" << endl;
     selection["Team"] = chosenTeam;
     selection["opp"] = chosenOpponent;
     cout << selection["opp"][0];
+    cout << "\n\n\n";
     return selection;
 }
 
@@ -91,21 +99,28 @@ int main(){
     std::unordered_map<string, vector<string>> selections = selectTeamAndOpponent();
     vector<string> team = selections["Team"];
     vector<string> Opponent = selections["opp"];
-    // for (int i = 1; i < 152; i++){
-    //     std::string iasString = std::to_string(i);
-    //     std::string filePath = ("Pokemon/" + iasString + ".json");
-    //     std::ifstream file(filePath);
-    //     json jsonData;
-    //     file >> jsonData;
-    //     file.close();
-    //     std::string name = jsonData["name"];
-    //     cout << name << endl;
-        
-        // for (const auto& typeInfo : jsonData["types"]) {
-        //     std::string typeName = typeInfo["type"]["name"];
-        //     std::cout << "Type Name: " << typeName << std::endl;
-        //     };
-    // };
+
+    //  for (const auto& pokemon : team) {
+    std::string filePath = ("Pokemon/" + team[0] + ".json");
+    std::ifstream file(filePath);
+    json jsonFile;
+    file >> jsonFile;
+    file.close();
+    std::string name = jsonFile["name"];
+    int id = jsonFile["id"];
+    vector<string> types;
+    for (const auto& typeInfo : jsonFile["types"]) {
+        std::string typeName = typeInfo["type"]["name"];
+        types.insert(types.end(),typeName);
+    };
+    //This needs to be of Move Type not string, but the Move class isn't ready yet
+    vector<string> move; 
+    Pokemon activeFriendlyPokemon(name, id, types, NULL);
+    cout << activeFriendlyPokemon.Name + "\n";
+    cout << activeFriendlyPokemon.id;
+    cout << "\n";
+    cout << activeFriendlyPokemon.Type[0];
+    // cout << activeFriendlyPokemon.Type[1];
     return 0;
 };
   
