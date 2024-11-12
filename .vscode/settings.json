@@ -73,6 +73,8 @@
         "valarray": "cpp",
         "vector": "cpp",
         "xhash": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "stop_token": "cpp",
+        "thread": "cpp"
     }
 }
