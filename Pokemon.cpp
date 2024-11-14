@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "json.hpp" // Include the JSON library
+#include "Move.cpp" // Include the Move class
 
 using json = nlohmann::json;
 
@@ -23,7 +24,7 @@ public:
     int speed;
 
     //------------------ FOR FUTURE USE, I WANT TO STORE POKEMON MOVES IN Team.cpp FILE INTO EACH POKEMON --------------------
-    //std::vector<Move> moves; 
+    std::vector<Move> moves; 
 
     // Constructor to initialize from a JSON file
     Pokemon(const std::string& pokemonName) {
