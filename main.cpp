@@ -24,12 +24,25 @@ int main() {
     };
 
     unordered_map<string, unordered_map<string, vector<string>>> selectedMoves = {
-        {"Team 1", {{"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}}},
-        {"Team 2", {{"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}}},
-        {"Team 3", {{"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}}},
-        {"Opponent Team 1", {{"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}}},
-        {"Opponent Team 2", {{"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}}},
-        {"Opponent Team 3", {{"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}}}
+        {"Team 1", {
+            {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}},
+            }},
+        {"Team 2", {
+            {"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}
+            }},
+        {"Team 3", {
+            {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
+            }},
+        
+        {"Opponent Team 1", {
+            {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}
+            }},
+        {"Opponent Team 2", {
+            {"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}
+            }},
+        {"Opponent Team 3", {
+            {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
+            }}
     };
 
     // Show available teams for player selection
@@ -85,4 +98,22 @@ int main() {
     // Load the selected teams and moves using Team class
     Team team;
     team.loadTeams(selectedTeams, selectedMoves);
+
+
+
+    int gameState = 0;
+    //Pokemon battle
+    if (gameState == 0) {
+
+    }
+
+    //Defeated the opponent
+    if (gameState == 1) {
+        cout << "YOU WIN!" << endl;
+    }
+
+    //Lost to the opponent
+    if (gameState == 2) {
+        cout << "YOU LOSE!" << endl;
+    }
 }
