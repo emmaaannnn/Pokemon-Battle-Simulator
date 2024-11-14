@@ -32,29 +32,45 @@ class Move{
         int min_turns;
         int stat_chance;
 
-    Move(const json& move) {
+
+    Move(const std::string& moveName) {
+        loadFromJson("Moves/" + moveName + ".json");
+    }
+
+    void loadFromJson(const std::string& file_path) {
+        std::ifstream file(file_path);
+        if (!file.is_open()) {
+            std::cerr << "Error opening file: " << file_path << std::endl;
+            return;
+        }
+
+        json move_json;
+        file >> move_json;
+
         // Basic move attributes
-        name = move["name"];
-        accuracy = move["accuracy"];
-        effect_chance = move["effect_chance"];
-        pp = move["pp"];
-        priority = move["priority"];
-        power = move["power"];
+        name = move_json.value("name", "");
+        accuracy = move_json.value("accuracy", 0);
+        effect_chance = move_json.value("effect_chance", 0);
+        pp = move_json.value("pp", 0);
+        priority = move_json.value("priority", 0);
+        power = move_json.value("power", 0);
         
         // Damage class (extract only the name field)
-        damage_class = move["damage_class"]["name"];
-
+        const auto& damage_class_data = move_json["damage_class"];
+        damage_class = damage_class_data.value ("name", "");
+       
         // Info section (ailment and category)
-        ailment_chance = move["Info"]["ailment_chance"];
-        category = move["Info"]["category"]["name"];
-        crit_rate = move["Info"]["crit_rate"];
-        drain = move["Info"]["drain"];
-        flinch_chance = move["Info"]["flinch_chance"];
-        healing = move["Info"]["healing"];
-        max_hits = move["Info"]["max_hits"];
-        max_turns = move["Info"]["max_turns"];
-        min_hits = move["Info"]["min_hits"];
-        min_turns = move["Info"]["min_turns"];
-        stat_chance = move["Info"]["stat_chance"];
+        const auto& info = move_json["Info"];
+        ailment_chance = info.value("ailment_chance", 0);
+        category = info["category"].value("name", "" );
+        crit_rate = info.value("crit_rate`", 0);
+        drain = info.value("drain", 0);
+        flinch_chance = info.value("flinch_chance", 0);
+        healing = info.value("healing", 0);
+        max_hits = info.value("max_hits", 0);
+        max_turns = info.value("max_turns", 0);
+        min_hits = info.value("min_hits", 0);
+        min_turns = info.value("min_turns", 0);
+        stat_chance = info.value("stat_chance", 0);
     }
 };
