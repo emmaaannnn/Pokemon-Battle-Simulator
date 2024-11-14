@@ -128,21 +128,58 @@ int main(){
         types.insert(types.end(),typeName);
     };
     //This needs to be of Move Type not string, but the Move class isn't ready yet
-    vector<string> move; 
-    Pokemon activeFriendlyPokemon(name, id, types, NULL);
-    cout << activeFriendlyPokemon.Name + "\n";
-    cout << activeFriendlyPokemon.id;
-    cout << "\n";
-    cout << activeFriendlyPokemon.Type[0];
+    // vector<string> move; 
+    // Pokemon activeFriendlyPokemon(name, id, types, NULL);
+    // cout << activeFriendlyPokemon.Name + "\n";
+    // cout << activeFriendlyPokemon.id;
+    // cout << "\n";
+    // cout << activeFriendlyPokemon.Type[0];
     // cout << activeFriendlyPokemon.Type[1];
+
+
+
+    //----------------------------------------------------------------------------------------
+    // trying to use Team.cpp so we can set up pokemon moves but it isnt working
+
+    // string userName;
+    // cout << "Enter your name: ";
+    // cin >> userName;
+
+    // unordered_map<string, vector<string>> selectedTeams = {
+    //     {"Team 1", {"venusaur"}},
+    //     {"Team 2", {"charizard"}},
+    //     {"Team 3", {"blastoise"}},
+    //     {"opp 1", {"venusaur"}},
+    //     {"opp 2", {"charizard"}},
+    //     {"opp 3", {"blastoise"}},
+    // };
+
+    // unordered_map<string, unordered_map<string, vector<string>>> selectedMoves = {
+    //     {"Team 1", {
+    //         {"Venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}},
+    //     }},
+    //     {"Team 2", {
+    //         {"Charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}},
+    //     }},
+    //     {"Team 3", {
+    //         {"Blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}},
+    //     }},
+    //     {"opp 1", {{"Venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}},
+    //     }},
+    //     {"opp 2", {
+    //         {"Charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}},
+    //     }},
+    //     {"opp 3", {
+    //         {"Blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}},
+    //     }}
+    // };
+
+    // // Create team and load data
+    // Team team;
+    // team.loadTeams(selectedTeams, selectedMoves);
+
+
     return 0;
 };
 
-// string pokemonName = "Clefable";
-//     cout << pokemonName << " can use the following moves:" << endl;
-//     for (const auto& move : pokemonMoveMapping[pokemonName]) {
-//         cout << "- " << move << endl;
-//     }
-//     return 0;
-// };
 
