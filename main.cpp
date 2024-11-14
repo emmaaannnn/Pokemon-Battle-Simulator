@@ -123,9 +123,7 @@ int main(){
     // cout << activeFriendlyPokemon.Type[1];
     return 0;
 };
-  
-  
-  
+
 // string pokemonName = "Clefable";
 //     cout << pokemonName << " can use the following moves:" << endl;
 //     for (const auto& move : pokemonMoveMapping[pokemonName]) {
