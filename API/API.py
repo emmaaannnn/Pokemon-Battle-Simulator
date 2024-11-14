@@ -4,11 +4,27 @@ import json
 
 
 def main():
+    #used this to fetch the data for each pokemon's list of move We are using Generation 1 moves
     print("starting fetch")
     for i in range(1, 152):
         url = f"https://pokeapi.co/api/v2/pokemon/{i}/"
         response = requests.get(url)
         data = response.json()
+        moves = data["moves"]
+        filteredMoves = []
+        for item in moves:
+            for i in range(0, len(item["version_group_details"])):
+                if item["version_group_details"][i]["version_group"]["url"] == "https://pokeapi.co/api/v2/version-group/1/" and item["version_group_details"][i]["move_learn_method"]["name"] == "level-up":
+                    filteredMoves.append({"move":{
+                        "name": item["move"]["name"],
+                        "url": item["move"]["url"],
+                        "Generation-level-up-data": item["version_group_details"][i]
+                            }
+                        })
+
+                    pprint(filteredMoves)
+        with open("Moves/" + data["forms"][0]["name"] +".json", 'w') as f:
+            json.dump(filteredMoves,f)
 
         # simplified_data = {
         #     "name": data["name"],
@@ -18,9 +34,11 @@ def main():
         # }
         # pprint(simplified_data)
 
-        with open("Pokemon/" + data["forms"][0]["name"] +".json", 'w') as f:
-            json.dump(data,f)
+        # with open("Pokemon/" + data["forms"][0]["name"] +".json", 'w') as f:
+        #     json.dump(data,f)
 
+
+# Use this for the more simplified json file, but use the whole file during development (use this when when done)
 # def main():
 #     for i in range(1, 152):
 #         moves = []
