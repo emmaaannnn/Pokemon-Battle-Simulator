@@ -3,7 +3,8 @@
 #include <vector>
 #include <thread>
 #include <chrono>
-#include "Team.cpp"  // Assuming your Team class is in a separate file
+
+#include "Team.cpp"  
 
 using namespace std;
 
@@ -15,15 +16,19 @@ int main() {
 
     // Available teams and moves pre-defined
     unordered_map<string, vector<string>> selectedTeams = {
+        // Player Pokemon
         {"Team 1", {"venusaur"}},
         {"Team 2", {"charizard"}},
         {"Team 3", {"blastoise"}},
+
+        // Opponent Team Pokemon
         {"Opponent Team 1", {"venusaur"}},
         {"Opponent Team 2", {"charizard"}},
         {"Opponent Team 3", {"blastoise"}}
     };
 
     unordered_map<string, unordered_map<string, vector<string>>> selectedMoves = {
+        // Player Pokemon Moves
         {"Team 1", {
             {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}},
             }},
@@ -34,6 +39,7 @@ int main() {
             {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
             }},
         
+        // Opponent Team Pokemon with moves
         {"Opponent Team 1", {
             {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}
             }},
@@ -102,17 +108,17 @@ int main() {
 
 
     int gameState = 0;
-    //Pokemon battle
+    // Pokemon battle
     if (gameState == 0) {
 
     }
 
-    //Defeated the opponent
+    // Defeated the opponent
     if (gameState == 1) {
         cout << "YOU WIN!" << endl;
     }
 
-    //Lost to the opponent
+    // Lost to the opponent
     if (gameState == 2) {
         cout << "YOU LOSE!" << endl;
     }
