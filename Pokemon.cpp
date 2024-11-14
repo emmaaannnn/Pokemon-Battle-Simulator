@@ -2,8 +2,9 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include "json.hpp" // Include the JSON library
-#include "Move.cpp" // Include the Move class
+
+#include "json.hpp"
+#include "Move.cpp"
 
 using json = nlohmann::json;
 

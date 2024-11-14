@@ -3,7 +3,8 @@
 #include <vector>
 #include <thread>
 #include <chrono>
-#include "Team.cpp"  // Assuming your Team class is in a separate file
+
+#include "Team.cpp"  
 
 using namespace std;
 
@@ -15,21 +16,39 @@ int main() {
 
     // Available teams and moves pre-defined
     unordered_map<string, vector<string>> selectedTeams = {
+        // Player Pokemon
         {"Team 1", {"venusaur"}},
         {"Team 2", {"charizard"}},
         {"Team 3", {"blastoise"}},
+
+        // Opponent Team Pokemon
         {"Opponent Team 1", {"venusaur"}},
         {"Opponent Team 2", {"charizard"}},
         {"Opponent Team 3", {"blastoise"}}
     };
 
     unordered_map<string, unordered_map<string, vector<string>>> selectedMoves = {
-        {"Team 1", {{"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}}},
-        {"Team 2", {{"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}}},
-        {"Team 3", {{"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}}},
-        {"Opponent Team 1", {{"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}}},
-        {"Opponent Team 2", {{"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}}},
-        {"Opponent Team 3", {{"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}}}
+        // Player Pokemon Moves
+        {"Team 1", {
+            {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}},
+            }},
+        {"Team 2", {
+            {"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}
+            }},
+        {"Team 3", {
+            {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
+            }},
+        
+        // Opponent Team Pokemon with moves
+        {"Opponent Team 1", {
+            {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}
+            }},
+        {"Opponent Team 2", {
+            {"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}
+            }},
+        {"Opponent Team 3", {
+            {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
+            }}
     };
 
     // Show available teams for player selection
@@ -85,4 +104,22 @@ int main() {
     // Load the selected teams and moves using Team class
     Team team;
     team.loadTeams(selectedTeams, selectedMoves);
+
+
+
+    int gameState = 0;
+    // Pokemon battle
+    if (gameState == 0) {
+
+    }
+
+    // Defeated the opponent
+    if (gameState == 1) {
+        cout << "YOU WIN!" << endl;
+    }
+
+    // Lost to the opponent
+    if (gameState == 2) {
+        cout << "YOU LOSE!" << endl;
+    }
 }
