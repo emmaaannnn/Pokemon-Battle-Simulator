@@ -128,12 +128,12 @@ int main(){
         types.insert(types.end(),typeName);
     };
     //This needs to be of Move Type not string, but the Move class isn't ready yet
-    vector<string> move; 
-    Pokemon activeFriendlyPokemon(name, id, types, NULL);
-    cout << activeFriendlyPokemon.Name + "\n";
-    cout << activeFriendlyPokemon.id;
-    cout << "\n";
-    cout << activeFriendlyPokemon.Type[0];
+    // vector<string> move; 
+    // Pokemon activeFriendlyPokemon(name, id, types, NULL);
+    // cout << activeFriendlyPokemon.Name + "\n";
+    // cout << activeFriendlyPokemon.id;
+    // cout << "\n";
+    // cout << activeFriendlyPokemon.Type[0];
     // cout << activeFriendlyPokemon.Type[1];
 
 
