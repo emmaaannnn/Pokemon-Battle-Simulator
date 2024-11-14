@@ -18,5 +18,5 @@ simplified_data = {
 }
 pprint(simplified_data)
 
-with open(str(data["name"]) +".json", 'w') as f:
+with open("Moves/" + str(data["name"]) +".json", 'w') as f:
     json.dump(simplified_data,f)
