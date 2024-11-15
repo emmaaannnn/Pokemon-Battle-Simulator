@@ -1,0 +1,42 @@
+{
+    "name": "leech-seed",
+    "accuracy": 90,
+    "effect_chance": null,
+    "pp": 10,
+    "priority": 0,
+    "power": null,
+    "damage_class": {
+        "name": "status",
+        "url": "https://pokeapi.co/api/v2/move-damage-class/1/"
+    },
+    "effect_entries": [
+        {
+            "effect": "Plants a seed on the target that drains 1/8 of its max HP at the end of every turn and heals the user for the amount taken.  Has no effect on grass Pok\u00e9mon.  The seed remains until the target leaves the field.\n\nThe user takes damage instead of being healed if the target has liquid ooze.\n\nrapid spin will remove this effect.\n\nThis effect is passed on by baton pass.",
+            "language": {
+                "name": "en",
+                "url": "https://pokeapi.co/api/v2/language/9/"
+            },
+            "short_effect": "Seeds the target, stealing HP from it every turn."
+        }
+    ],
+    "Info": {
+        "ailment": {
+            "name": "leech-seed",
+            "url": "https://pokeapi.co/api/v2/move-ailment/18/"
+        },
+        "ailment_chance": 0,
+        "category": {
+            "name": "ailment",
+            "url": "https://pokeapi.co/api/v2/move-category/1/"
+        },
+        "crit_rate": 0,
+        "drain": 0,
+        "flinch_chance": 0,
+        "healing": 0,
+        "max_hits": null,
+        "max_turns": null,
+        "min_hits": null,
+        "min_turns": null,
+        "stat_chance": 0
+    }
+}

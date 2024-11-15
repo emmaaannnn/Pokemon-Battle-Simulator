@@ -2,7 +2,7 @@ import requests
 from pprint import pprint
 import json
 
-url = f"https://pokeapi.co/api/v2/move/252"
+url = f"https://pokeapi.co/api/v2/move/fake-out"
 response = requests.get(url)
 data = response.json()
 simplified_data = {
@@ -18,5 +18,5 @@ simplified_data = {
 }
 pprint(simplified_data)
 
-with open(str(data["name"]) +".json", 'w') as f:
+with open("Moves/" + str(data["name"]) +".json", 'w') as f:
     json.dump(simplified_data,f)
