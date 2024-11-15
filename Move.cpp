@@ -67,10 +67,10 @@ class Move{
         drain = info.value("drain", 0);
         flinch_chance = info.value("flinch_chance", 0);
         healing = info.value("healing", 0);
-        max_hits = info.value("max_hits", 0);
-        max_turns = info.value("max_turns", 0);
-        min_hits = info.value("min_hits", 0);
-        min_turns = info.value("min_turns", 0);
+        max_hits = info.value("max_hits", 1);
+        max_turns = info.value("max_turns", 1);
+        min_hits = info.value("min_hits", 1);
+        min_turns = info.value("min_turns", 1);
         stat_chance = info.value("stat_chance", 0);
     }
 };
