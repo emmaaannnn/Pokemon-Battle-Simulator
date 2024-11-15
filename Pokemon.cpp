@@ -24,7 +24,7 @@ public:
     int special_defense;
     int speed;
 
-    //------------------ FOR FUTURE USE, I WANT TO STORE POKEMON MOVES IN Team.cpp FILE INTO EACH POKEMON --------------------
+    
     std::vector<Move> moves; 
 
     // Constructor to initialize from a JSON file
