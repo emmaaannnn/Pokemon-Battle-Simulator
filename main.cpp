@@ -1,134 +1,141 @@
 #include <iostream>
-#include <fstream>
-#include "json.hpp"
-
-
-using json = nlohmann::json;
-#include <thread>  
-#include <chrono>  
-#include <vector>
-#include <format> 
-#include <cstdio>
-#include <fstream> 
-#include <iostream> 
-
-#include "Pokemon.cpp"
-
-#include <map>
 #include <unordered_map>
+#include <vector>
+#include <thread>
+#include <chrono>
 
-using namespace std; 
+#include "Team.cpp"  
 
+using namespace std;
 
-std::unordered_map<string, vector<string>> selectTeamAndOpponent() {
-    unordered_map<string, vector<string>> selection;
+int main() {
+    // Get user's name
     string userName;
     cout << "Enter your name: ";
     cin >> userName;
 
-    // Print available teams
-    unordered_map<int, vector<string>> Available_teams;
+    // Available teams
+    unordered_map<string, vector<string>> selectedTeams = {
+        // Player Pokemon
+        {"Team 1", {"venusaur"}},
+        // {"Team 1", {"venusaur", "charmander", "geodude", "pikachu", "pidgey"}},
+        {"Team 2", {"charizard"}},
+        {"Team 3", {"blastoise"}},
 
-    Available_teams[1] = {"Clefable", "Gengar", "Kangaskhan", "Victreebel", "Ninetales", "Blastoise"};
-    Available_teams[2] = {"Pikachu", "Machamp", "Arcanine", "Lapras", "Snorlax", "Venusaur"};
-    Available_teams[3] = {"Tauros", "Gyarados", "Aerodactyl", "Alakazam", "Exeggutor", "Charizard"};
-    cout << "Available teams:" << endl;
-    cout << "[1] - Clefable, Gengar, Kangaskhan, Victreebel, Ninetales, Blastoise" << endl;
-    cout << "[2] - Pikachu, Machamp, Arcanine, Lapras, Snorlax, Venusaur" << endl;
-    cout << "[3] - Tauros, Gyarados, Aerodactyl, Alakazam, Exeggutor, Charizard" << endl;
-    cout << "" << endl;
-
-
-    // Prompt user to select team
-    int chosenTeamNum;
-    cout << "Enter the number of the team you want to select: ";
-    cin >> chosenTeamNum;
-    if(chosenTeamNum > 3 || chosenTeamNum < 1){
-        cout << "invalid selection - try again.";
-        //Need to make another function to re-call the selection menu
+        // Opponent Team Pokemon
+        {"Opponent Team 1", {"venusaur"}},
+        {"Opponent Team 2", {"charizard"}},
+        {"Opponent Team 3", {"blastoise"}}
     };
-    vector<string> chosenTeam = Available_teams[chosenTeamNum];
 
-    cout << "\nYou have selected Team " << chosenTeamNum << ".\n" << endl;
-    for (const auto& pokemon : Available_teams[chosenTeamNum- 1]) {
-        std::cout << "- " << pokemon << std::endl;
+    unordered_map<string, unordered_map<string, vector<string>>> selectedMoves = {
+        // Player Pokemon Moves
+        {"Team 1", {
+            {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}},
+            }},
+        {"Team 2", {
+            {"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}
+            }},
+        {"Team 3", {
+            {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
+            }},
+        
+        // Opponent Team Pokemon with moves
+        {"Opponent Team 1", {
+            {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}
+            }},
+        {"Opponent Team 2", {
+            {"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}
+            }},
+        {"Opponent Team 3", {
+            {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
+            }}
+    };
+
+    // Show available teams for player selection
+    cout << "\nAvailable Teams:" << endl;
+    cout << "[1] - Team 1 (Venusaur)" << endl;
+    cout << "[2] - Team 2 (Charizard)" << endl;
+    cout << "[3] - Team 3 (Blastoise)" << endl;
+
+    // Prompt for team selection
+    int chosenTeamNum;
+    cout << "\n Enter the number of the team you want to select: ";
+    cin >> chosenTeamNum;
+
+    // Validate input
+    if (chosenTeamNum < 1 || chosenTeamNum > 3) {
+        cout << "Invalid selection - try again." << endl;
+        return 1;
+    }
+
+    string chosenTeamKey = "Team " + to_string(chosenTeamNum);
+    vector<string> chosenTeam = selectedTeams[chosenTeamKey];
+    cout << "\nYou have selected " << chosenTeamKey << " with the Pokémon: ";
+    for (const auto& pokemon : chosenTeam) {
+        cout << pokemon << " ";
     }
     cout << "\n\n";
-    std::this_thread::sleep_for(std::chrono::seconds(1));
 
-    // Prompt user to select opponent
-    unordered_map<int,vector<string>> opponent;
-    opponent[1] = {"Gym Leader Brock"};
-    opponent[2] = {"Gym Leader Misty"};
-    opponent[3] = {"Gym Leader Lt. Surge"};
-    opponent[4] = {"Gym Leader Erika"};
-    opponent[5] = {"Gym Leader Koga"};
-    opponent[6] = {"Gym Leader Sabrina"};
-    opponent[7] = {"Gym Leader Blaine"};
-    opponent[8] = {"Gym Leader Giovanni"};
-    cout << "Select your opponent:" << endl;
-    cout << "[1] - Gym Leader Brock" << endl;
-    cout << "[2] - Gym Leader Misty" << endl;
-    cout << "[3] - Gym Leader Lt. Surge" << endl;
-    cout << "[4] - Gym Leader Erika" << endl;
-    cout << "[5] - Gym Leader Koga" << endl;
-    cout << "[6] - Gym Leader Sabrina" << endl;
-    cout << "[7] - Gym Leader Blaine" << endl;
-    cout << "[8] - Gym Leader Giovanni" << endl;
+    // Show available opponent teams
+    cout << "Available Opponents:" << endl;
+    cout << "[1] - Opponent Team 1 (Venusaur)" << endl;
+    cout << "[2] - Opponent Team 2 (Charizard)" << endl;
+    cout << "[3] - Opponent Team 3 (Blastoise)" << endl;
 
+    // Prompt for opponent selection
     int chosenOpponentNum;
-    cout << "Enter your chosen opponent: ";
+    cout << "\n Enter the number of your chosen opponent: ";
     cin >> chosenOpponentNum;
-    if(chosenOpponentNum > 8 || chosenOpponentNum < 1){
-        cout << "invalid selection - try again.";
-    };
 
-    vector<string> chosenOpponent = opponent[chosenOpponentNum];
-    cout << "\nYou have selected Opponent: " << chosenOpponentNum << ".\n" << endl;
-    selection["Team"] = chosenTeam;
-    selection["opp"] = chosenOpponent;
-    cout << selection["opp"][0];
-    cout << "\n\n\n";
-    return selection;
+    // Validate input
+    if (chosenOpponentNum < 1 || chosenOpponentNum > 3) {
+        cout << "Invalid selection - try again." << endl;
+        return 1;
+    }
+
+    string chosenOpponentKey = "Opponent Team " + to_string(chosenOpponentNum);
+    vector<string> chosenOpponent = selectedTeams[chosenOpponentKey];
+    cout << "\nYou have selected " << chosenOpponentKey << " with the Pokémon: ";
+    for (const auto& pokemon : chosenOpponent) {
+        cout << pokemon << " ";
+    }
+    cout << "\n\n";
+
+    // Load the selected teams and moves using Team class
+    Team team;
+    team.loadTeams(selectedTeams, selectedMoves);
+
+
+   // Print out selected player's team
+    cout << "\nYour selected team includes: ";
+    for (const auto& pokemon : chosenTeam) {
+        cout << pokemon << " ";
+    }
+    cout << endl;
+
+    // Print out selected opponent's team
+    cout << "\nOpponent's selected team includes: ";
+    for (const auto& pokemon : chosenOpponent) {
+        cout << pokemon << " ";
+    }
+    cout << endl;
+
+
+
+    int gameState = 0;
+    // Pokemon battle
+    if (gameState == 0) {
+
+    }
+
+    // Defeated the opponent
+    if (gameState == 1) {
+        cout << "YOU WIN!" << endl;
+    }
+
+    // Lost to the opponent
+    if (gameState == 2) {
+        cout << "YOU LOSE!" << endl;
+    }
 }
-
-// map<string, vector<string>> pokemonMoveMapping = {
-//         {"Clefable", {"Sing", "Moonblast", "Metronome", "Cosmic Power"}}
-// };
-int main(){
-    std::unordered_map<string, vector<string>> selections = selectTeamAndOpponent();
-    vector<string> team = selections["Team"];
-    vector<string> Opponent = selections["opp"];
-
-    //  for (const auto& pokemon : team) {
-    std::string filePath = ("Pokemon/" + team[0] + ".json");
-    std::ifstream file(filePath);
-    json jsonFile;
-    file >> jsonFile;
-    file.close();
-    std::string name = jsonFile["name"];
-    int id = jsonFile["id"];
-    vector<string> types;
-    for (const auto& typeInfo : jsonFile["types"]) {
-        std::string typeName = typeInfo["type"]["name"];
-        types.insert(types.end(),typeName);
-    };
-    //This needs to be of Move Type not string, but the Move class isn't ready yet
-    vector<string> move; 
-    Pokemon activeFriendlyPokemon(name, id, types, NULL);
-    cout << activeFriendlyPokemon.Name + "\n";
-    cout << activeFriendlyPokemon.id;
-    cout << "\n";
-    cout << activeFriendlyPokemon.Type[0];
-    // cout << activeFriendlyPokemon.Type[1];
-    return 0;
-};
-
-// string pokemonName = "Clefable";
-//     cout << pokemonName << " can use the following moves:" << endl;
-//     for (const auto& move : pokemonMoveMapping[pokemonName]) {
-//         cout << "- " << move << endl;
-//     }
-//     return 0;
-// };
-
