@@ -49,11 +49,29 @@ class Move{
 
         // Basic move attributes
         name = move_json.value("name", "");
-        accuracy = move_json.value("accuracy", 0);
-        effect_chance = move_json.value("effect_chance", 0);
+        if (move_json["accuracy"].is_null()) {
+            accuracy = -1;
+            std :: cout << "stored accuracy" << std::endl;
+        } else {
+            accuracy = move_json["accuracy"];
+            std :: cout << "stored accuracy" << std::endl;
+        }
+        if (move_json["effect_chance"].is_null()) {
+            effect_chance = -1;
+            std::cout << "stored effect chance" << std::endl;
+        } else {
+            effect_chance = move_json["effect_chance"];
+            std::cout << "stored effect chance" << std::endl;
+        }
         pp = move_json.value("pp", 0);
         priority = move_json.value("priority", 0);
-        power = move_json.value("power", 0);
+        if (move_json["power"].is_null()) {
+            power = -1;
+            std::cout << "stored power" << std::endl;
+        } else {
+            power = move_json["power"];
+            std::cout << "stored power" << std::endl;
+        }
         
         // Damage class (extract only the name field)
         const auto& damage_class_data = move_json["damage_class"];
@@ -67,10 +85,38 @@ class Move{
         drain = info.value("drain", 0);
         flinch_chance = info.value("flinch_chance", 0);
         healing = info.value("healing", 0);
-        max_hits = info.value("max_hits", 1);
-        max_turns = info.value("max_turns", 1);
-        min_hits = info.value("min_hits", 1);
-        min_turns = info.value("min_turns", 1);
+
+        // NULL CHECKS FOR HITS AND TURNS
+        if (move_json["max_hits"].is_null()) {
+            max_hits = 1;
+            std::cout << "here" << std::endl;
+        } else {
+            max_hits = info["max_hits"]; // NULL - RELY ON ISNULL CHECK
+        }
+
+        if (move_json["max_turns"].is_null()) {
+            max_turns = 1;
+            std::cout << "here2" << std::endl;
+        } else {
+            max_turns = info["max_turns"]; // NULL - RELY ON ISNULL CHECK
+        }
+
+        if (move_json["min_hits"].is_null()) {
+            min_hits = 1;
+            std::cout << "here3" << std::endl;
+        } else {
+            min_hits = info["min_hits"]; // NULL - RELY ON ISNULL CHECK
+        }
+
+
+        if (move_json["min_turns"].is_null()) {
+            min_turns = 1;
+            std::cout << "here4" << std::endl;
+        } else {
+            min_turns = info["min_turns"]; // NULL - RELY ON ISNULL CHECK
+        }
+
         stat_chance = info.value("stat_chance", 0);
+
     }
 };
