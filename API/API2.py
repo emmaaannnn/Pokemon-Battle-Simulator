@@ -2,7 +2,7 @@ import requests
 from pprint import pprint
 import json
 
-url = f"https://pokeapi.co/api/v2/move/fake-out"
+url = f"https://pokeapi.co/api/v2/move/fury-swipes"
 response = requests.get(url)
 data = response.json()
 simplified_data = {
