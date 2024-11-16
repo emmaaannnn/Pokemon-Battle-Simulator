@@ -44,17 +44,17 @@ public:
         file >> pokemon_json;
 
         // Map JSON data to class members
-        name = pokemon_json.value("name", "");
-        id = pokemon_json.value("id", 0);
-        types = pokemon_json.value("types", std::vector<std::string>{});
+        name = pokemon_json["name"];
+        id = pokemon_json["id"];
+        types = pokemon_json["types"];
 
         // Base stats mapping
         const auto& base_stats = pokemon_json["base_stats"];
-        hp = base_stats.value("hp", 0);
-        attack = base_stats.value("attack", 0);
-        defense = base_stats.value("defense", 0);
-        special_attack = base_stats.value("special-attack", 0);
-        special_defense = base_stats.value("special-defense", 0);
-        speed = base_stats.value("speed", 0);
+        hp = base_stats["hp"];
+        attack = base_stats["attack"];
+        defense = base_stats["defense"];
+        special_attack = base_stats["special-attack"];
+        special_defense = base_stats["special-defense"];
+        speed = base_stats["speed"];
     }
 };
