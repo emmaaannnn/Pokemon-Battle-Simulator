@@ -49,28 +49,64 @@ class Move{
 
         // Basic move attributes
         name = move_json.value("name", "");
-        accuracy = move_json.value("accuracy", 0);
-        effect_chance = move_json.value("effect_chance", 0);
+        if (move_json["accuracy"].is_null()) {
+            accuracy = -1;
+        } else {
+            accuracy = move_json["accuracy"];
+        }
+        if (move_json["effect_chance"].is_null()) {
+            effect_chance = -1;
+        } else {
+            effect_chance = move_json["effect_chance"];
+        }
         pp = move_json.value("pp", 0);
         priority = move_json.value("priority", 0);
-        power = move_json.value("power", 0);
+        if (move_json["power"].is_null()) {
+            power = -1;
+        } else {
+            power = move_json["power"];
+        }
         
         // Damage class (extract only the name field)
         const auto& damage_class_data = move_json["damage_class"];
-        damage_class = damage_class_data.value ("name", "");
+        damage_class = damage_class_data["name"];
        
         // Info section (ailment and category)
         const auto& info = move_json["Info"];
-        ailment_chance = info.value("ailment_chance", 0);
-        category = info["category"].value("name", "" );
-        crit_rate = info.value("crit_rate`", 0);
-        drain = info.value("drain", 0);
-        flinch_chance = info.value("flinch_chance", 0);
-        healing = info.value("healing", 0);
-        max_hits = info.value("max_hits", 1);
-        max_turns = info.value("max_turns", 1);
-        min_hits = info.value("min_hits", 1);
-        min_turns = info.value("min_turns", 1);
-        stat_chance = info.value("stat_chance", 0);
+        ailment_chance = info["ailment_chance"];
+        category = info["category"]["name"];
+        crit_rate = info["crit_rate"];
+        drain = info["drain"];
+        flinch_chance = info["flinch_chance"];
+        healing = info["healing"];
+
+        // NULL CHECKS FOR HITS AND TURNS
+        if (move_json["max_hits"].is_null()) {
+            max_hits = 1;
+        } else {
+            max_hits = info["max_hits"]; // NULL - RELY ON ISNULL CHECK
+        }
+
+        if (move_json["max_turns"].is_null()) {
+            max_turns = 1;
+        } else {
+            max_turns = info["max_turns"]; // NULL - RELY ON ISNULL CHECK
+        }
+
+        if (move_json["min_hits"].is_null()) {
+            min_hits = 1;
+        } else {
+            min_hits = info["min_hits"]; // NULL - RELY ON ISNULL CHECK
+        }
+
+
+        if (move_json["min_turns"].is_null()) {
+            min_turns = 1;
+        } else {
+            min_turns = info["min_turns"]; // NULL - RELY ON ISNULL CHECK
+        }
+
+        stat_chance = info["stat_chance"];
+
     }
 };
