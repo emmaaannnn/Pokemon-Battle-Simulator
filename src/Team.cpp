@@ -83,10 +83,11 @@ void loadOpponentTeam(const std::vector<std::string>& selectedOpponent,
 
 // Load moves into a Pokémon
 void loadMoves(Pokemon& pokemon, const std::vector<std::string>& moveNames) {
-    // for (const auto& moveName : moveNames) {
-    //     // Create a Move object add it to the Pokémon's moves
-    //     Move move(moveName);
-    //     pokemon.moves.push_back(move);
-    //     }
+    for (const auto& moveName : moveNames) {
+        // Create a Move object add it to the Pokémon's moves
+        Move move(moveName);
+        pokemon.moves.push_back(move);
+        
+        }
     }
 };
