@@ -17,7 +17,12 @@ int main() {
     // Available teams
     unordered_map<string, vector<string>> selectedTeams = {
         // Player Pokemon
+<<<<<<< HEAD:src/main.cpp
         {"Team 1", {"venusaur", "charmander", "geodude", "pikachu", "pidgey"}},
+=======
+        //{"Team 1", {"venusaur"}},
+        {"Team 1", {"venusaur"}},
+>>>>>>> 21c32a6950c4bf7fcd8112bf0ad55ab5b4d09207:main.cpp
         {"Team 2", {"charizard"}},
         {"Team 3", {"blastoise"}},
 
@@ -105,7 +110,6 @@ int main() {
     Team team;
     team.loadTeams(chosenTeam);
 
-
    // Print out selected player's team
     cout << "\nYour selected team includes: ";
     for (const auto& pokemon : chosenTeam) {
@@ -119,6 +123,17 @@ int main() {
         cout << pokemon << " ";
     }
     cout << endl;
+
+
+
+
+
+
+
+
+
+
+
 
 
 
