@@ -17,45 +17,16 @@ int main() {
     // Available teams
     unordered_map<string, vector<string>> selectedTeams = {
         // Player Pokemon
-<<<<<<< HEAD:src/main.cpp
         {"Team 1", {"venusaur", "charmander", "geodude", "pikachu", "pidgey"}},
-=======
-        //{"Team 1", {"venusaur"}},
-        {"Team 1", {"venusaur"}},
->>>>>>> 21c32a6950c4bf7fcd8112bf0ad55ab5b4d09207:main.cpp
         {"Team 2", {"charizard"}},
         {"Team 3", {"blastoise"}},
 
         // Opponent Team Pokemon
         {"Opponent Team 1", {"venusaur"}},
-        {"Opponent Team 2", {"charizard"}},
+        {"Opponent Team 2", {"charizard", "oddish", "kangaskhan", "jigglypuff", "dratini"}},
         {"Opponent Team 3", {"blastoise"}}
     };
-
-    // unordered_map<string, unordered_map<string, vector<string>>> selectedMoves = {
-    //     // Player Pokemon Moves
-    //     {"Team 1", {
-    //         {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}},
-    //         }},
-    //     {"Team 2", {
-    //         {"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}
-    //         }},
-    //     {"Team 3", {
-    //         {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
-    //         }},
-        
-    //     // Opponent Team Pokemon with moves
-    //     {"Opponent Team 1", {
-    //         {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}
-    //         }},
-    //     {"Opponent Team 2", {
-    //         {"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}
-    //         }},
-    //     {"Opponent Team 3", {
-    //         {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
-    //         }}
-    // };
-
+    
     // Show available teams for player selection
     cout << "\nAvailable Teams:" << endl;
     cout << "[1] - Team 1 (Venusaur)" << endl;
@@ -74,7 +45,7 @@ int main() {
     }
 
     string chosenTeamKey = "Team " + to_string(chosenTeamNum);
-    vector<string> chosenTeam = selectedTeams[chosenTeamKey];
+    const vector<string> chosenTeam = selectedTeams[chosenTeamKey];
     cout << "\nYou have selected " << chosenTeamKey << " with the Pokémon: ";
     for (const auto& pokemon : chosenTeam) {
         cout << pokemon << " ";
@@ -99,16 +70,27 @@ int main() {
     }
 
     string chosenOpponentKey = "Opponent Team " + to_string(chosenOpponentNum);
-    vector<string> chosenOpponent = selectedTeams[chosenOpponentKey];
+    const vector<string> chosenOpponent = selectedTeams[chosenOpponentKey];
     cout << "\nYou have selected " << chosenOpponentKey << " with the Pokémon: ";
     for (const auto& pokemon : chosenOpponent) {
         cout << pokemon << " ";
     }
     cout << "\n\n";
+    
 
-    // Load the selected teams and moves using Team class
-    Team team;
-    team.loadTeams(chosenTeam);
+    std::cout << "" << endl;
+    std::cout << "========================================================== My Team ==========================================================" << std::endl;
+    std::cout << "" << endl;
+    //init Player Team and load Pokemon & Moves
+    Team PlayerTeam;
+    PlayerTeam.loadTeams(chosenTeam);
+
+    std::cout << "" << endl;
+    std::cout << "========================================================== Oppenent Team ==========================================================" << std::endl;
+    std::cout << "" << endl;
+    //init Opp Team and load Pokemon & Moves
+    Team OppTeam;
+    OppTeam.loadTeams(chosenOpponent);
 
    // Print out selected player's team
     cout << "\nYour selected team includes: ";
