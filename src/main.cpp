@@ -4,6 +4,7 @@
 #include <thread>
 #include <chrono>
 
+#include "Battle.cpp"
 #include "Team.cpp"  
 
 using namespace std;
@@ -107,11 +108,8 @@ int main() {
     cout << endl;
 
 
-
-
-
-
-
+    // Battle battle(PlayerTeam, OppTeam);
+    // battle.initiateBattle();
 
 
 
