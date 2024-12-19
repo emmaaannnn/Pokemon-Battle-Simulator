@@ -34,7 +34,7 @@ class Move{
 
 
     Move(const std::string& moveName) {
-        loadFromJson("D:\\PersonalProjects\\Pokemon\\Pokemon-Battle-Simulator\\Moves_Data\\" + moveName + ".json");
+        loadFromJson("Moves_Data/" + moveName + ".json");
     }
 
     void loadFromJson(const std::string& file_path) {
@@ -65,20 +65,8 @@ class Move{
             effect_chance = move_json["effect_chance"];
         }
         
-        if (move_json["pp"].is_null()) {
-            pp = 0;
-        }else{
-            pp = move_json["pp"];
-        }
-
-        
-        
-        if(move_json["priority"].is_null()){
-            priority = 0;
-        }else{
-            priority = move_json["priority"];
-        }
-
+        pp = move_json.value("pp", 0);
+        priority = move_json.value("priority", 0);
 
         if (move_json["power"].is_null()) {
             power = -1;
@@ -107,16 +95,12 @@ class Move{
             max_turns = move_json["Info"]["max_turns"]; // NULL - RELY ON ISNULL CHECK
         }
         
-
-
         if (move_json["Info"]["min_hits"].is_null()) {
             min_hits = 1;
         } else {
             min_hits = move_json["Info"]["min_hits"]; // NULL - RELY ON ISNULL CHECK
         }
     
-
-
         if (move_json["Info"]["min_turns"].is_null()) {
             min_turns = 1;
         } else {
@@ -124,11 +108,7 @@ class Move{
         }
 
 
-        if (move_json["Info"]["stat_chance"].is_null()) {
-            stat_chance = 1;
-        }else{
-            stat_chance = move_json["Info"]["stat_chance"]; // NULL - RELY ON ISNULL CHECK
-        };
+        stat_chance = move_json["Info"]["stat_chance"];
 
         std::cout << "loading Move: " + moveName << std::endl;
         std::cout << "accuracy: " + std::to_string(accuracy) << std::endl;
