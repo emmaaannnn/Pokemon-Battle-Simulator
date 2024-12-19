@@ -31,7 +31,7 @@ public:
     }
     // Constructor to initialize from a JSON file
     Pokemon(const std::string& pokemonName) {
-        loadFromJson("D:\\PersonalProjects\\Pokemon\\Pokemon-Battle-Simulator\\Pokemon\\" + pokemonName + ".json");
+        loadFromJson("Pokemon2/" + pokemonName + ".json");
     }
 
     void loadFromJson(const std::string& file_path) {
@@ -45,7 +45,7 @@ public:
         file >> pokemon_json;
 
         // Map JSON data to class members
-        name = pokemon_json["forms"][0]["name"];
+        name = pokemon_json["name"];
         id = pokemon_json["id"];
         for (const auto& type : pokemon_json["types"]){
             types.push_back(type["type"]["name"]);
@@ -69,6 +69,10 @@ public:
             if(stats["stat"]["name"] == "speed"){
                 speed = stats["base_stat"];
             };   
+
+
+        
+            
         };
         std::cout << "------------------------------------------------------------------"<< std::endl;
         std::cout << "name: ";
@@ -103,9 +107,9 @@ public:
 
     // Load moves into a Pokémon
     void loadMoves() {
-        std::ifstream file("D:\\PersonalProjects\\Pokemon\\Pokemon-Battle-Simulator\\Moves\\" + this->name + ".json");
+        std::ifstream file("Moves_Data/" + this->name + ".json");
         if (!file.is_open()) {
-            std::cerr << "Error opening file: " << "D:\\PersonalProjects\\Pokemon\\Pokemon-Battle-Simulator\\Moves\\" + this->name + ".json"<< std::endl;
+            std::cerr << "Error opening file: " << "Moves_Data/" + this->name + ".json"<< std::endl;
             return;
         }
         json move_json;

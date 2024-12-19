@@ -18,16 +18,26 @@ int main() {
     // Available teams
     unordered_map<string, vector<string>> selectedTeams = {
         // Player Pokemon
-        {"Team 1", {"venusaur", "charmander", "geodude", "pikachu", "pidgey"}},
+        {"Team 1", {"venusaur"}},
         {"Team 2", {"charizard"}},
         {"Team 3", {"blastoise"}},
 
         // Opponent Team Pokemon
         {"Opponent Team 1", {"venusaur"}},
-        {"Opponent Team 2", {"charizard", "oddish", "kangaskhan", "jigglypuff", "dratini"}},
+        {"Opponent Team 2", {"charizard"}},
         {"Opponent Team 3", {"blastoise"}}
     };
     
+    // Select moves
+    unordered_map<string, vector<pair<string, vector<string>>>> selectedMoves = {
+        {"Team 1", {{"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}}},
+        {"Team 2", {{"charizard", {"flamethrower", "air-slash", "dragon-pulse", "hyper-beam"}}}},
+        {"Team 3", {{"blastoise", {"hydro-pump", "ice-beam", "surf", "protect"}}}},
+        {"Opponent Team 1", {{"venusaur", {"solar-beam", "growth", "razor-leaf", "toxic"}}}},
+        {"Opponent Team 2", {{"charizard", {"heat-wave", "fly", "flare-blitz", "roost"}}}},
+        {"Opponent Team 3", {{"blastoise", {"waterfall", "iron-defense", "aqua-jet", "scald"}}}}
+    };
+
     // Show available teams for player selection
     cout << "\nAvailable Teams:" << endl;
     cout << "[1] - Team 1 (Venusaur)" << endl;
@@ -82,16 +92,18 @@ int main() {
     std::cout << "" << endl;
     std::cout << "========================================================== My Team ==========================================================" << std::endl;
     std::cout << "" << endl;
+    
     //init Player Team and load Pokemon & Moves
     Team PlayerTeam;
-    PlayerTeam.loadTeams(chosenTeam);
+    PlayerTeam.loadTeams(selectedTeams, selectedMoves, chosenTeamKey);
 
     std::cout << "" << endl;
     std::cout << "========================================================== Oppenent Team ==========================================================" << std::endl;
     std::cout << "" << endl;
+    
     //init Opp Team and load Pokemon & Moves
     Team OppTeam;
-    OppTeam.loadTeams(chosenOpponent);
+    OppTeam.loadTeams(selectedTeams, selectedMoves, chosenOpponentKey);
 
    // Print out selected player's team
     cout << "\nYour selected team includes: ";
