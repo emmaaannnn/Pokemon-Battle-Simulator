@@ -109,22 +109,21 @@ class Move{
 
         stat_chance = move_json["Info"]["stat_chance"];
 
-        // std::cout << "loading Move: " + moveName << std::endl;
-        // std::cout << "accuracy: " + std::to_string(accuracy) << std::endl;
-        // std::cout << "effect Chance: " + std::to_string(effect_chance) << std::endl;
-        // std::cout << "priority: " + std::to_string(priority) << std::endl;
-        // std::cout << "damage_class: " + damage_class << std::endl;
-        // std::cout << "ailment_chance: " + std::to_string(ailment_chance) << std::endl;
-        // std::cout << "category: " + category << std::endl;
-        // std::cout << "crit_rate: " + std::to_string(crit_rate) << std::endl;
-        // std::cout << "drain: " + std::to_string(drain) << std::endl;
-        // std::cout << "flinch_chance: " + std::to_string(flinch_chance) << std::endl;
-        // std::cout << "healing: " + std::to_string(healing) << std::endl;
-        // std::cout << "max_hits: " + std::to_string(max_hits) << std::endl;
-        // std::cout << "max_turns: " + std::to_string(max_turns) << std::endl;
-        // std::cout << "min_hits: " + std::to_string(min_hits) << std::endl;
-        // std::cout << "min_turns: " + std::to_string(min_turns) << std::endl;
-        // std::cout << "stat_chance: " + std::to_string(stat_chance) << std::endl;
-
+        std::cout << "loading Move: " + moveName << std::endl;
+        std::cout << "accuracy: " + std::to_string(accuracy) << std::endl;
+        std::cout << "effect Chance: " + std::to_string(effect_chance) << std::endl;
+        std::cout << "priority: " + std::to_string(priority) << std::endl;
+        std::cout << "damage_class: " + damage_class << std::endl;
+        std::cout << "ailment_chance: " + std::to_string(ailment_chance) << std::endl;
+        std::cout << "category: " + category << std::endl;
+        std::cout << "crit_rate: " + std::to_string(crit_rate) << std::endl;
+        std::cout << "drain: " + std::to_string(drain) << std::endl;
+        std::cout << "flinch_chance: " + std::to_string(flinch_chance) << std::endl;
+        std::cout << "healing: " + std::to_string(healing) << std::endl;
+        std::cout << "max_hits: " + std::to_string(max_hits) << std::endl;
+        std::cout << "max_turns: " + std::to_string(max_turns) << std::endl;
+        std::cout << "min_hits: " + std::to_string(min_hits) << std::endl;
+        std::cout << "min_turns: " + std::to_string(min_turns) << std::endl;
+        std::cout << "stat_chance: " + std::to_string(stat_chance) << std::endl;
     };
 };
