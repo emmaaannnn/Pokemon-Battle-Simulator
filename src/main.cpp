@@ -18,7 +18,7 @@ int main() {
     // Available teams
     unordered_map<string, vector<string>> selectedTeams = {
         // Player Pokemon
-        {"Team 1", {"venusaur"}},
+        {"Team 1", {"venusaur", "pikachu", "machamp", "arcanine", "lapras", "snorlax"}},
         {"Team 2", {"charizard"}},
         {"Team 3", {"blastoise"}},
 
@@ -30,12 +30,25 @@ int main() {
     
     // Select moves
     unordered_map<string, vector<pair<string, vector<string>>>> selectedMoves = {
-        {"Team 1", {{"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}}},
-        {"Team 2", {{"charizard", {"flamethrower", "air-slash", "dragon-pulse", "hyper-beam"}}}},
-        {"Team 3", {{"blastoise", {"hydro-pump", "ice-beam", "surf", "protect"}}}},
-        {"Opponent Team 1", {{"venusaur", {"solar-beam", "growth", "razor-leaf", "toxic"}}}},
-        {"Opponent Team 2", {{"charizard", {"heat-wave", "fly", "flare-blitz", "roost"}}}},
-        {"Opponent Team 3", {{"blastoise", {"waterfall", "iron-defense", "aqua-jet", "scald"}}}}
+        {"Team 1", {
+            {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}},
+            {"pikachu", {"thunderbolt", "brick-break", "iron-tail", "reflect"}},
+            {"machamp", {"superpower", "fire-blast", "earthquake", "hyper-beam"}},
+            {"arcanine", {"heat-wave", "crunch", "will-o-wisp", "roar"}},
+            {"lapras", {"ice-shard", "waterfall", "body-slam", "megahorn"}},
+            {"snorlax", {"toxic", "protect", "rest", "body-slam"}}
+            }
+        },
+        {"Team 2", {
+            {"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}}},
+        {"Team 3", {
+            {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}}},
+        {"Opponent Team 1", {
+            {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}}},
+        {"Opponent Team 2", {
+            {"charizard", {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}}},
+        {"Opponent Team 3", {
+            {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}}}
     };
 
     // Show available teams for player selection
@@ -119,15 +132,36 @@ int main() {
     }
     cout << endl;
 
+    cout << "Select the Pokémon you want to send out first:" << endl;
+    for (int i = 0; i < chosenTeam.size(); ++i) {
+        cout << "[" << i + 1 << "] - " << chosenTeam[i] << endl;
+    }
 
-    // Battle battle(PlayerTeam, OppTeam);
-    // battle.initiateBattle();
+    int chosenPokemonNum;
+    cout << "\nEnter the number of the Pokémon you want to send out first: ";
+    cin >> chosenPokemonNum;
 
+     // Validate the Pokémon selection
+    if (chosenPokemonNum < 1 || chosenPokemonNum > chosenTeam.size()) {
+        cout << "Invalid selection - try again." << endl;
+        return 1;
+    }
 
+    string chosenPokemon = chosenTeam[chosenPokemonNum - 1];
+    cout << "\nYou have selected " << chosenPokemon << " to send out first!" << endl;
 
+    // Create a Pokemon object using the selected Pokémon
+    string selectedPokemonName = chosenTeam[chosenPokemonNum - 1];
+    Pokemon selectedPokemon(selectedPokemonName);
 
-
-
+    // Print selected Pokémon stats
+    cout << "\nStats of " << selectedPokemon.name << ":" << endl;
+    cout << "HP: " << selectedPokemon.hp << endl;
+    cout << "Attack: " << selectedPokemon.attack << endl;
+    cout << "Defense: " << selectedPokemon.defense << endl;
+    cout << "Special Attack: " << selectedPokemon.special_attack << endl;
+    cout << "Special Defense: " << selectedPokemon.special_defense << endl;
+    cout << "Speed: " << selectedPokemon.speed << endl;
 
     int gameState = 0;
     // Pokemon battle

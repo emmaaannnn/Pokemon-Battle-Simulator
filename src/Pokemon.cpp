@@ -29,6 +29,7 @@ public:
     Pokemon() : name(""), id(0), hp(0), attack(0), defense(0), special_attack(0),
                 special_defense(0), speed(0) {
     }
+    
     // Constructor to initialize from a JSON file
     Pokemon(const std::string& pokemonName) {
         loadFromJson("Pokemon2/" + pokemonName + ".json");
