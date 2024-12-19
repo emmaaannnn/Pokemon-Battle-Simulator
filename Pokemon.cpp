@@ -64,36 +64,6 @@ public:
         special_attack = base_stats["special-attack"];
         special_defense = base_stats["special-defense"];
         speed = base_stats["speed"];  
-
-        // std::cout << "------------------------------------------------------------------"<< std::endl;
-        // std::cout << "name: ";
-        // std::cout << name << std::endl;
-
-        // std::cout << "id: ";
-        // std::cout << id << std::endl;
-
-        // std::cout << "types: "; 
-        // for (const auto& type : types){
-        //     std::cout << type << std::endl;
-        //  }
-        // std::cout << "HP: ";
-        // std::cout << hp << std::endl;
-
-        // std::cout << "attack: ";
-        // std::cout << attack << std::endl;
-
-        // std::cout << "defense: ";
-        // std::cout << defense << std::endl;
-
-        // std::cout << "special_attack: ";
-        // std::cout << special_attack << std::endl;
-
-        // std::cout << "special_defense: ";
-        // std::cout << special_defense << std::endl;
-
-        // std::cout << "speed: ";
-        // std::cout << speed << std::endl;
-        // std::cout << "------------------------------------------------------------------" << std::endl;
     }
 
     // Load moves into a Pokémon
