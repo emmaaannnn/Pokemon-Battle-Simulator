@@ -5,7 +5,6 @@
 #include <chrono>
 
 #include "Battle.cpp"
-#include "Team.cpp"  
 
 using namespace std;
 
@@ -80,11 +79,25 @@ int main() {
 
     string chosenTeamKey = "Team " + to_string(chosenTeamNum);
     const vector<string> chosenTeam = selectedTeams[chosenTeamKey];
-    cout << "\nYou have selected " << chosenTeamKey << " with the Pokémon: ";
-    for (const auto& pokemon : chosenTeam) {
-        cout << pokemon << " ";
+    
+    std::cout << "" << endl;
+    std::cout << "========================================================== My Team ==========================================================" << std::endl;
+    std::cout << "" << endl;
+    
+    //init Player Team and load Pokemon & Moves
+    Team PlayerTeam;
+    PlayerTeam.loadTeams(selectedTeams, selectedMoves, chosenTeamKey);
+
+   // Print out Player's team with moves
+    std::cout << "Your selected team includes:\n";
+    for (const auto& [index, pokemon] : PlayerTeam.PokemonTeam) {
+        std::cout << "- " << pokemon.name << "\n  Moves:\n";
+        for (const auto& move : pokemon.moves) {
+            std::cout << "    * " << move.name << " (Power: " << move.power << ", Accuracy: " << move.accuracy 
+                    << ", Class: " << move.damage_class << ")\n";
+        }
     }
-    cout << "\n\n";
+    std::cout << std::endl;
 
     // Show available opponent teams
     cout << "Available Opponents:" << endl;
@@ -110,15 +123,6 @@ int main() {
         cout << pokemon << " ";
     }
     cout << "\n\n";
-    
-
-    std::cout << "" << endl;
-    std::cout << "========================================================== My Team ==========================================================" << std::endl;
-    std::cout << "" << endl;
-    
-    //init Player Team and load Pokemon & Moves
-    Team PlayerTeam;
-    PlayerTeam.loadTeams(selectedTeams, selectedMoves, chosenTeamKey);
 
     std::cout << "" << endl;
     std::cout << "========================================================== Oppenent Team ==========================================================" << std::endl;
@@ -128,57 +132,20 @@ int main() {
     Team OppTeam;
     OppTeam.loadTeams(selectedTeams, selectedMoves, chosenOpponentKey);
 
-    // Print out selected player's team
-    cout << "\nYour selected team includes: ";
-    for (const auto& pokemon : chosenTeam) {
-        cout << pokemon << " ";
+
+    // Print out Opponent's team with moves
+    std::cout << "Opponent's selected team includes:\n";
+    for (const auto& [index, pokemon] : OppTeam.PokemonTeam) {
+        std::cout << "- " << pokemon.name << "\n";
     }
-    cout << endl;
+    std::cout << std::endl;
 
-    // Print out selected opponent's team
-    cout << "\nOpponent's selected team includes: ";
-    for (const auto& pokemon : chosenOpponent) {
-        cout << pokemon << " ";
-    }
-    cout << endl;
+    // BATTLE PART
+    Battle battle(PlayerTeam, OppTeam);
+    battle.startBattle();
 
-    cout << "Select the Pokémon you want to send out first:" << endl;
-    for (int i = 0; i < chosenTeam.size(); ++i) {
-        cout << "[" << i + 1 << "] - " << chosenTeam[i] << endl;
-    }
-
-    int chosenPokemonNum;
-    cout << "\nEnter the number of the Pokémon you want to send out first: ";
-    cin >> chosenPokemonNum;
-
-     // Validate the Pokémon selection
-    if (chosenPokemonNum < 1 || chosenPokemonNum > chosenTeam.size()) {
-        cout << "Invalid selection - try again." << endl;
-        return 1;
-    }
-
-    string chosenPokemon = chosenTeam[chosenPokemonNum - 1];
-    cout << "\nYou have selected " << chosenPokemon << " to send out first!" << endl;
-
-    // Create a Pokemon object using the selected Pokémon
-    string selectedPokemonName = chosenTeam[chosenPokemonNum - 1];
-    Pokemon selectedPokemon(selectedPokemonName);
-
-    // Print selected Pokémon stats
-    cout << "\nStats of " << selectedPokemon.name << ":" << endl;
-    cout << "HP: " << selectedPokemon.hp << endl;
-    cout << "Attack: " << selectedPokemon.attack << endl;
-    cout << "Defense: " << selectedPokemon.defense << endl;
-    cout << "Special Attack: " << selectedPokemon.special_attack << endl;
-    cout << "Special Defense: " << selectedPokemon.special_defense << endl;
-    cout << "Speed: " << selectedPokemon.speed << endl;
-
+    // GAMESTATE
     int gameState = 0;
-    // Pokemon battle
-    if (gameState == 0) {
-
-    }
-
     // Defeated the opponent
     if (gameState == 1) {
         cout << "YOU WIN!" << endl;

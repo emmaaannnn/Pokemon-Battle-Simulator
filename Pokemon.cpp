@@ -17,6 +17,7 @@ public:
 
     // Base stats
     int hp;
+    int current_hp;
     int attack;
     int defense;
     int special_attack;
@@ -59,6 +60,7 @@ public:
         // Accessing base_stats which is an object
         const auto& base_stats = pokemon_json["base_stats"];
         hp = base_stats["hp"];
+        current_hp = hp;
         attack = base_stats["attack"];
         defense = base_stats["defense"];
         special_attack = base_stats["special-attack"];
