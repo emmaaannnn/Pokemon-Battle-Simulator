@@ -11,6 +11,7 @@ class Battle {
 private:
     Team playerTeam;
     Team opponentTeam;
+    Pokemon selectedPokemon; // To store the current player's Pokémon
 
     // Helper to display Pokémon stats
     void displayHealth(const Pokemon& pokemon) {
@@ -25,8 +26,8 @@ public:
     void selectPokemon() {
         // Display player's team
         cout << "Select the Pokémon you want to send out first:" << endl;
-        for (const auto& [index, pokemon] : playerTeam.PokemonTeam) {
-            cout << "[" << index + 1 << "] - " << pokemon.name << endl;
+        for (int i = 0; i < playerTeam.PokemonTeam.size(); ++i) {
+            cout << "[" << i + 1 << "] - " << playerTeam.PokemonTeam[i].name << endl;
         }
 
         // Prompt for selection
@@ -40,12 +41,9 @@ public:
             return;
         }
 
-        // Get selected Pokémon
-        const Pokemon& selectedPokemon = playerTeam.PokemonTeam.at(chosenPokemonNum - 1);
+        // Get selected Pokémon and store it as the class member
+        selectedPokemon = playerTeam.PokemonTeam.at(chosenPokemonNum - 1); // Assign selected Pokémon
         cout << "\nYou have selected " << selectedPokemon.name << " to send out first!" << endl;
-
-        // Display stats
-        displayHealth(selectedPokemon);
     }
 
     void startBattle() {
@@ -54,11 +52,31 @@ public:
         // For now, only selecting the first Pokémon
         selectPokemon();
 
-        // show moves
-        // for (const auto& move : pokemon.moves) {
-        //     std::cout << "    * " << move.name << " (Power: " << move.power << ", Accuracy: " << move.accuracy 
-        //             << ", Class: " << move.damage_class << ")\n";
-        // }
+        // Opponent selects their pokemon
+
+        // Player Pokemon
+        displayHealth(selectedPokemon);
+        //show moves
+        int moveIndex = 1; // To display move options starting from 1
+        for (const auto& move : selectedPokemon.moves) {
+            cout << "    " << moveIndex++ << ". " << move.name
+                << " (Power: " << move.power << ", Accuracy: " << move.accuracy
+                << ", Class: " << move.damage_class << ")\n";
+        }
+
+        int chosenMoveIndex = 0;
+        while (true) {
+            cout << "\nSelect a move (1-" << selectedPokemon.moves.size() << "): ";
+            cin >> chosenMoveIndex;
+
+            // Validate the input
+            if (chosenMoveIndex >= 1 && chosenMoveIndex <= selectedPokemon.moves.size()) {
+                break; // Valid choice
+            } else {
+                cout << "Invalid choice. Please select a valid move.\n";
+            }
+        }
+
 
         cout << "\nBattle logic can be implemented here." << endl;
 
