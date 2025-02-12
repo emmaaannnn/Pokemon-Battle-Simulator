@@ -52,7 +52,7 @@ class Move{
         name = move_json["name"];
 
         if (move_json["accuracy"].is_null()) {
-            accuracy = -1;
+            accuracy = 0;
         } else {
             accuracy = move_json["accuracy"];
         }

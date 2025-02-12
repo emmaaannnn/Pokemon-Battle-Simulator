@@ -161,16 +161,4 @@ int main() {
     // BATTLE PART
     Battle battle(PlayerTeam, OppTeam);
     battle.startBattle();
-
-    // GAMESTATE
-    int gameState = 0;
-    // Defeated the opponent
-    if (gameState == 1) {
-        cout << "YOU WIN!" << endl;
-    }
-
-    // Lost to the opponent
-    if (gameState == 2) {
-        cout << "YOU LOSE!" << endl;
-    }
 }
