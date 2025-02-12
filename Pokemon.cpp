@@ -23,6 +23,7 @@ public:
     int special_attack;
     int special_defense;
     int speed;
+    bool feinted;
 
     //Array of Move objects for Move
     std::vector<Move> moves; 
@@ -65,7 +66,8 @@ public:
         defense = base_stats["defense"];
         special_attack = base_stats["special-attack"];
         special_defense = base_stats["special-defense"];
-        speed = base_stats["speed"];  
+        speed = base_stats["speed"];
+        feinted = false;  
     }
 
     // Load moves into a Pokémon

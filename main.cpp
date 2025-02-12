@@ -22,9 +22,14 @@ int main() {
         {"Team 3", {"blastoise"}},
 
         // Opponent Team Pokemon
-        {"Opponent Team 1", {"venusaur"}},
-        {"Opponent Team 2", {"charizard"}},
-        {"Opponent Team 3", {"blastoise"}}
+        {"Opponent Team 1", {"aerodactyl", "kabutops", "golem", "onix", "omastar", "rhyhorn"}},
+        {"Opponent Team 2", {"starmie", "gyarados", "lapras", "golduck", "vaporeon", "seaking"}},
+        {"Opponent Team 3", {"raichu", "magneton", "electrode", "electabuzz", "joltean", "pikachu"}},
+        {"Opponent Team 4", {"victreebel", "exeggutor", "parasect", "tangela", "vileplume", "venusaur"}},
+        {"Opponent Team 5", {"arbok", "tentacruel", "muk", "gengar", "weezing", "venomoth"}},
+        {"Opponent Team 6", {"alakazam", "slowbro", "mr-mime", "jynx", "hypno", "exeggutor"}},
+        {"Opponent Team 7", {"ninetails", "arcanine", "rapidash", "magmar", "flareon", "charizard"}},
+        {"Opponent Team 8", {"nidoking", "nidoqueen", "dugtrio", "rhydon", "marowak", "sandslash"}},
     };
     
     // Select moves
@@ -46,8 +51,15 @@ int main() {
             {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
             }
         },
+
+        //Opponent Teams
         {"Opponent Team 1", {
-            {"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}}
+            {"aerodactyl", {"tackle", "scratch", "protect", "amnesia"}},
+            {"kabutops", {"tackle", "scratch", "protect", "amnesia"} },
+            {"golem", {"tackle", "scratch", "protect", "amnesia"} },
+            {"onix", {"tackle", "scratch", "protect", "amnesia"} },
+            {"omastar", {"tackle", "scratch", "protect", "amnesia"} },
+            {"rhyhorn", {"tackle", "scratch", "protect", "amnesia"} },
             }
         },
         {"Opponent Team 2", {
@@ -57,7 +69,8 @@ int main() {
         {"Opponent Team 3", {
             {"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}
             }
-        }
+        },
+
     };
 
     // Show available teams for player selection
@@ -101,9 +114,14 @@ int main() {
 
     // Show available opponent teams
     cout << "Available Opponents:" << endl;
-    cout << "[1] - Opponent Team 1 (Venusaur)" << endl;
-    cout << "[2] - Opponent Team 2 (Charizard)" << endl;
-    cout << "[3] - Opponent Team 3 (Blastoise)" << endl;
+    cout << "[1] - Brock (Rock Gym Leader)" << endl;
+    cout << "[2] - Misty (Water Gym Leader)" << endl;
+    cout << "[3] - Surge (Electric Gym Leader)" << endl;
+    cout << "[4] - Erika (Grass Gym Leader)" << endl;
+    cout << "[5] - Koga (Poison Gym Leader)" << endl;
+    cout << "[6] - Sabrina (Psychic Gym Leader)" << endl;
+    cout << "[7] - Blaine (Fire Gym Leader)" << endl;
+    cout << "[8] - Giovanni (Ground Gym Leader)" << endl;
 
     // Prompt for opponent selection
     int chosenOpponentNum;
@@ -111,7 +129,7 @@ int main() {
     cin >> chosenOpponentNum;
 
     // Validate input
-    if (chosenOpponentNum < 1 || chosenOpponentNum > 3) {
+    if (chosenOpponentNum < 1 || chosenOpponentNum > 8) {
         cout << "Invalid selection - try again." << endl;
         return 1;
     }
@@ -143,16 +161,4 @@ int main() {
     // BATTLE PART
     Battle battle(PlayerTeam, OppTeam);
     battle.startBattle();
-
-    // GAMESTATE
-    int gameState = 0;
-    // Defeated the opponent
-    if (gameState == 1) {
-        cout << "YOU WIN!" << endl;
-    }
-
-    // Lost to the opponent
-    if (gameState == 2) {
-        cout << "YOU LOSE!" << endl;
-    }
 }
