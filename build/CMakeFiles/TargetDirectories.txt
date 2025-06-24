@@ -1,3 +1,0 @@
-/Users/benking/Desktop/Projects/Pokemon-Battle-Sim/build/CMakeFiles/pokemon_battle.dir
-/Users/benking/Desktop/Projects/Pokemon-Battle-Sim/build/CMakeFiles/edit_cache.dir
-/Users/benking/Desktop/Projects/Pokemon-Battle-Sim/build/CMakeFiles/rebuild_cache.dir
