@@ -1,54 +1,82 @@
-#include <vector>
-#include <string>
-#include <unordered_map>
-#include <fstream>
-#include <string> 
-
-#include "json.hpp"
-#include "Pokemon.cpp" 
+#include "Team.h"
 
 using json = nlohmann::json;
-using namespace std;
 
-class Team {
-public:
-    std::unordered_map <int, Pokemon> PokemonTeam;
-    
-    
-    // Loading BOTH opponent and player team
-    void loadTeams(const unordered_map<string, vector<string>>& selectedTeams, 
-                const unordered_map<string, vector<pair<string, vector<string>>>>& selectedMoves, 
-                const string& selectedTeamName) {
-        int PokemonCount = 0;
+void Team::loadTeams(
+    const std::unordered_map<std::string, std::vector<std::string>>
+        &selectedTeams,
+    const std::unordered_map<
+        std::string,
+        std::vector<std::pair<std::string, std::vector<std::string>>>>
+        &selectedMoves,
+    const std::string &selectedTeamName) {
+  int PokemonCount = 0;
 
-        // Get the selected Pokémon names for the chosen team
-        auto teamIt = selectedTeams.find(selectedTeamName);
-        if (teamIt != selectedTeams.end()) {
-            const vector<string>& teamPokemons = teamIt->second;
+  // Get the selected Pokémon names for the chosen team
+  auto teamIt = selectedTeams.find(selectedTeamName);
+  if (teamIt != selectedTeams.end()) {
+    const std::vector<std::string> &teamPokemons = teamIt->second;
 
-            // Loop over each Pokémon in the selected team
-            for (const string& PokemonName : teamPokemons) {
-                // Create a Pokémon object and load its details from JSON
-                Pokemon PokeObj = Pokemon(PokemonName);
+    // Loop over each Pokémon in the selected team
+    for (const std::string &pokemonName : teamPokemons) {
+      // Create a Pokémon object and load its details from JSON
+      Pokemon pokeObj = Pokemon(pokemonName);
 
-                // Check if moves for this Pokémon exist in selectedMoves
-                auto movesIt = selectedMoves.find(selectedTeamName);
-                if (movesIt != selectedMoves.end()) {
-                    for (const auto& movePair : movesIt->second) {
-                        if (movePair.first == PokemonName) {
-                            for (const auto& move : movePair.second) {
-                                // Load moves for this Pokémon
-                                Move moveObj(move);
-                                PokeObj.moves.push_back(moveObj);
-                            };
-                        };
-                    };
-                };
+      // Check if moves for this Pokémon exist in selectedMoves
+      auto movesIt = selectedMoves.find(selectedTeamName);
+      if (movesIt != selectedMoves.end()) {
+        for (const auto &movePair : movesIt->second) {
+          if (movePair.first == pokemonName) {
+            for (const auto &move : movePair.second) {
+              // Load moves for this Pokémon
+              Move moveObj(move);
+              pokeObj.moves.push_back(moveObj);
+            }
+          }
+        }
+      }
 
-                // Add the Pokémon to the team
-                PokemonTeam[PokemonCount] = PokeObj;
-                PokemonCount++;
-            };
-        };
-    };
-};
+      // Add the Pokémon to the team
+      pokemonTeam[PokemonCount] = pokeObj;
+      PokemonCount++;
+    }
+  }
+}
+
+Pokemon *Team::getPokemon(int index) {
+  auto it = pokemonTeam.find(index);
+  return (it != pokemonTeam.end()) ? &it->second : nullptr;
+}
+
+const Pokemon *Team::getPokemon(int index) const {
+  auto it = pokemonTeam.find(index);
+  return (it != pokemonTeam.end()) ? &it->second : nullptr;
+}
+
+bool Team::hasAlivePokemon() const {
+  for (const auto &pair : pokemonTeam) {
+    if (pair.second.isAlive()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+std::vector<Pokemon *> Team::getAlivePokemon() {
+  std::vector<Pokemon *> alivePokemon;
+  for (auto &pair : pokemonTeam) {
+    if (pair.second.isAlive()) {
+      alivePokemon.push_back(&pair.second);
+    }
+  }
+  return alivePokemon;
+}
+
+Pokemon *Team::getFirstAlivePokemon() {
+  for (auto &pair : pokemonTeam) {
+    if (pair.second.isAlive()) {
+      return &pair.second;
+    }
+  }
+  return nullptr;
+}
