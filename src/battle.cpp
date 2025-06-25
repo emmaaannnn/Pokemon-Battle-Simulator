@@ -1,4 +1,4 @@
-#include "Battle.h"
+#include "battle.h"
 #include <algorithm>
 #include <cstdlib>
 #include <ctime>

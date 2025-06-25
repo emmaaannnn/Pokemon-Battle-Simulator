@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "Battle.h"
+#include "battle.h"
 
 using namespace std;
 

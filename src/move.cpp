@@ -1,9 +1,9 @@
-#include "Move.h"
+#include "move.h"
 
 using json = nlohmann::json;
 
 Move::Move(const std::string &moveName) {
-  loadFromJson("Moves_Data/" + moveName + ".json");
+  loadFromJson("data/moves/" + moveName + ".json");
 }
 
 void Move::loadFromJson(const std::string &file_path) {

@@ -1,4 +1,4 @@
-#include "Pokemon.h"
+#include "pokemon.h"
 
 using json = nlohmann::json;
 
@@ -7,7 +7,7 @@ Pokemon::Pokemon()
       special_defense(0), speed(0), fainted(false) {}
 
 Pokemon::Pokemon(const std::string &pokemonName) {
-  loadFromJson("Pokemon2/" + pokemonName + ".json");
+  loadFromJson("data/pokemon/" + pokemonName + ".json");
 }
 
 void Pokemon::loadFromJson(const std::string &file_path) {
@@ -43,9 +43,9 @@ void Pokemon::loadFromJson(const std::string &file_path) {
 }
 
 void Pokemon::loadMoves() {
-  std::ifstream file("Moves_Data/" + name + ".json");
+  std::ifstream file("data/moves/" + name + ".json");
   if (!file.is_open()) {
-    std::cerr << "Error opening file: " << "Moves_Data/" + name + ".json"
+    std::cerr << "Error opening file: " << "data/moves/" + name + ".json"
               << std::endl;
     return;
   }

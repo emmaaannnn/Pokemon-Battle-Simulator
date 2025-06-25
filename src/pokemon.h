@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Move.h"
 #include "json.hpp"
+#include "move.h"
 #include <fstream>
 #include <iostream>
 #include <string>

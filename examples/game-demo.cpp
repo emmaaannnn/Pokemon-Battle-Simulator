@@ -1,4 +1,4 @@
-#include "Team.h"
+#include "team.h"
 #include <iostream>
 #include <string>
 
