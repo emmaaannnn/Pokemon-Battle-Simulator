@@ -18,6 +18,8 @@ set(MAIN_SOURCES
     src/pokemon.cpp
     src/team.cpp
     src/battle.cpp
+    src/type_effectiveness.cpp
+    src/move_type_mapping.cpp
     src/main.cpp
 )
 
@@ -27,6 +29,8 @@ set(CORE_SOURCES
     src/pokemon.cpp
     src/team.cpp
     src/battle.cpp
+    src/type_effectiveness.cpp
+    src/move_type_mapping.cpp
 )
 
 # Header files
@@ -35,6 +39,8 @@ set(HEADERS
     src/pokemon.h
     src/team.h
     src/battle.h
+    src/type_effectiveness.h
+    src/move_type_mapping.h
 )
 
 # Create main executable
@@ -43,13 +49,11 @@ add_executable(pokemon_battle ${MAIN_SOURCES} ${HEADERS})
 # Create example executables
 add_executable(game-demo examples/game-demo.cpp ${CORE_SOURCES} ${HEADERS})
 add_executable(debug-test examples/debug-test.cpp ${CORE_SOURCES} ${HEADERS})
-add_executable(working-battle examples/working-battle.cpp ${CORE_SOURCES} ${HEADERS})
 
 # Set include directories for all targets
 target_include_directories(pokemon_battle PRIVATE src include)
 target_include_directories(game-demo PRIVATE src include)
 target_include_directories(debug-test PRIVATE src include)
-target_include_directories(working-battle PRIVATE src include)
 
 # Find and link required libraries if needed
 # For JSON library, we're using the header-only nlohmann/json
@@ -58,7 +62,7 @@ target_include_directories(working-battle PRIVATE src include)
 # target_link_libraries(pokemon_battle nlohmann_json::nlohmann_json)
 
 # Set output directory for all executables
-set_target_properties(pokemon_battle game-demo debug-test working-battle PROPERTIES
+set_target_properties(pokemon_battle game-demo debug-test PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
 )
 
@@ -73,7 +77,6 @@ add_custom_target(copy_data_files ALL
 add_dependencies(pokemon_battle copy_data_files)
 add_dependencies(game-demo copy_data_files)
 add_dependencies(debug-test copy_data_files)
-add_dependencies(working-battle copy_data_files)
 
 # Enable testing
 enable_testing()
@@ -84,7 +87,7 @@ if(EXISTS ${CMAKE_SOURCE_DIR}/tests AND EXISTS ${CMAKE_SOURCE_DIR}/tests/CMakeLi
 endif()
 
 # Installation rules
-install(TARGETS pokemon_battle game-demo debug-test working-battle
+install(TARGETS pokemon_battle game-demo debug-test
     RUNTIME DESTINATION bin
 )
 

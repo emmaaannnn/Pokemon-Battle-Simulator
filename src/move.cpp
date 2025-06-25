@@ -1,4 +1,5 @@
 #include "move.h"
+#include "move_type_mapping.h"
 
 using json = nlohmann::json;
 
@@ -41,6 +42,10 @@ void Move::loadFromJson(const std::string &file_path) {
   }
 
   damage_class = move_json["damage_class"]["name"];
+  
+  // Get move type from mapping
+  type = MoveTypeMapping::getMoveType(name);
+  
   ailment_chance = move_json["Info"]["ailment_chance"];
   category = move_json["Info"]["category"]["name"];
   crit_rate = move_json["Info"]["crit_rate"];
