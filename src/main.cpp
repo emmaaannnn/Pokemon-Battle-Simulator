@@ -19,8 +19,10 @@ int main() {
       // Player Pokemon
       {"Team 1",
        {"venusaur", "pikachu", "machamp", "arcanine", "lapras", "snorlax"}},
-      {"Team 2", {"charizard"}},
-      {"Team 3", {"blastoise"}},
+      {"Team 2",
+       {"charizard", "starmie", "snorlax", "alakazam", "rhydon", "jolteon"}},
+      {"Team 3",
+       {"venusaur", "zapdos", "nidoking", "gengar", "lapras", "tauros"}},
 
       // Opponent Team Pokemon
       {"Opponent Team 1",
@@ -28,7 +30,7 @@ int main() {
       {"Opponent Team 2",
        {"starmie", "gyarados", "lapras", "golduck", "vaporeon", "seaking"}},
       {"Opponent Team 3",
-       {"raichu", "magneton", "electrode", "electabuzz", "joltean", "pikachu"}},
+       {"raichu", "magneton", "electrode", "electabuzz", "jolteon", "pikachu"}},
       {"Opponent Team 4",
        {"victreebel", "exeggutor", "parasect", "tangela", "vileplume",
         "venusaur"}},
@@ -52,10 +54,20 @@ int main() {
         {"lapras", {"ice-shard", "waterfall", "body-slam", "megahorn"}},
         {"snorlax", {"toxic", "protect", "rest", "body-slam"}}}},
       {"Team 2",
-       {{"charizard",
-         {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}}},
+       {{"charizard", {"flamethrower", "slash", "earthquake", "fire-spin"}},
+        {"starmie", {"hydro-pump", "psychic", "ice-beam", "recover"}},
+        {"snorlax", {"body-slam", "hyper-beam", "earthquake", "rest"}},
+        {"alakazam", {"psychic", "recover", "thunder-wave", "reflect"}},
+        {"rhydon", {"earthquake", "rock-slide", "body-slam", "substitute"}},
+        {"jolteon",
+         {"thunderbolt", "thunder-wave", "pin-missile", "double-kick"}}}},
       {"Team 3",
-       {{"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}}},
+       {{"venusaur", {"razor-leaf", "sleep-powder", "body-slam", "leech-seed"}},
+        {"zapdos", {"thunderbolt", "drill-peck", "thunder-wave", "agility"}},
+        {"nidoking", {"earthquake", "ice-beam", "thunderbolt", "rock-slide"}},
+        {"gengar", {"psychic", "night-shade", "hypnosis", "explosion"}},
+        {"lapras", {"hydro-pump", "blizzard", "psychic", "body-slam"}},
+        {"tauros", {"body-slam", "hyper-beam", "blizzard", "earthquake"}}}},
 
       // Opponent Teams
       {"Opponent Team 1",
@@ -85,7 +97,7 @@ int main() {
             {"thunderbolt", "thunder", "self-destruct", "light-screen"}},
            {"electabuzz",
             {"thunderbolt", "thunder-punch", "seismic-toss", "light-screen"}},
-           {"joltean",
+           {"jolteon",
             {"thunderbolt", "thunder", "double-kick", "sand-attack"}},
            {"pikachu",
             {"thunderbolt", "thunder", "seismic-toss", "double-team"}},
@@ -147,11 +159,17 @@ int main() {
   };
 
   // Show available teams for player selection
-  cout << "\nAvailable Teams:" << endl;
-  cout << "[1] - Team 1 (Venusaur, Pikachu, Machamp, Arcanine, Lapras, Snorlax)"
-       << endl;
-  cout << "[2] - Team 2 (Charizard)" << endl;
-  cout << "[3] - Team 3 (Blastoise)" << endl;
+  std::cout << "\n=== Pokemon Battle Simulator ===" << std::endl;
+  std::cout << "Choose your team:" << std::endl;
+  std::cout << "1. Team 1 - Balanced Team (Venusaur, Pikachu, Machamp, "
+               "Arcanine, Lapras, Snorlax)"
+            << std::endl;
+  std::cout << "2. Team 2 - Competitive Team (Charizard, Starmie, Snorlax, "
+               "Alakazam, Rhydon, Jolteon)"
+            << std::endl;
+  std::cout << "3. Team 3 - Mixed Team (Venusaur, Zapdos, Nidoking, Gengar, "
+               "Lapras, Tauros)"
+            << std::endl;
 
   // Prompt for team selection
   int chosenTeamNum;

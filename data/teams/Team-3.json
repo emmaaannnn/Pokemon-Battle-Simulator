@@ -1,0 +1,53 @@
+{
+    "Team 3": {
+        "name": "Player Team 3",
+        "Pokemon": {
+            "pokemon": [
+                "venusaur",
+                "zapdos",
+                "nidoking",
+                "gengar",
+                "lapras",
+                "tauros"
+            ],
+            "moves": {
+                "venusaur": [
+                    "razor-leaf",
+                    "sleep-powder",
+                    "body-slam",
+                    "leech-seed"
+                ],
+                "zapdos": [
+                    "thunderbolt",
+                    "drill-peck",
+                    "thunder-wave",
+                    "agility"
+                ],
+                "nidoking": [
+                    "earthquake",
+                    "ice-beam",
+                    "thunderbolt",
+                    "rock-slide"
+                ],
+                "gengar": [
+                    "psychic",
+                    "night-shade",
+                    "hypnosis",
+                    "explosion"
+                ],
+                "lapras": [
+                    "hydro-pump",
+                    "blizzard",
+                    "psychic",
+                    "body-slam"
+                ],
+                "tauros": [
+                    "body-slam",
+                    "hyper-beam",
+                    "blizzard",
+                    "earthquake"
+                ]
+            }
+        }
+    }
+}
