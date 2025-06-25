@@ -1,0 +1,65 @@
+# Build directories and artifacts
+build/
+bin/
+lib/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Compiled executables
+pokemon_battle
+game_demo
+debug_test
+working_battle
+*.exe
+*.out
+
+# Object files and libraries
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Debug files
+*.dSYM/
+*.pdb
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# OS-specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Coverage reports
+*.gcno
+*.gcda
+*.gcov
+coverage.info
+
+# Memory check outputs
+*.memcheck
+valgrind-out.txt 

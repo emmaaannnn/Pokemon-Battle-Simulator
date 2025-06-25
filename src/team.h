@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Pokemon.h"
+#include "pokemon.h"
 #include <string>
 #include <unordered_map>
 #include <vector>

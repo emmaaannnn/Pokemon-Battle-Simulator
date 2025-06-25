@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Move.h"
-#include "Pokemon.h"
-#include "Team.h"
+#include "move.h"
+#include "pokemon.h"
+#include "team.h"
 #include <iostream>
 #include <memory>
 
