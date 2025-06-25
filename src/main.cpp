@@ -19,8 +19,10 @@ int main() {
       // Player Pokemon
       {"Team 1",
        {"venusaur", "pikachu", "machamp", "arcanine", "lapras", "snorlax"}},
-      {"Team 2", {"charizard"}},
-      {"Team 3", {"blastoise"}},
+      {"Team 2",
+       {"charizard", "starmie", "snorlax", "alakazam", "rhydon", "jolteon"}},
+      {"Team 3",
+       {"venusaur", "zapdos", "nidoking", "gengar", "lapras", "tauros"}},
 
       // Opponent Team Pokemon
       {"Opponent Team 1",
@@ -28,7 +30,7 @@ int main() {
       {"Opponent Team 2",
        {"starmie", "gyarados", "lapras", "golduck", "vaporeon", "seaking"}},
       {"Opponent Team 3",
-       {"raichu", "magneton", "electrode", "electabuzz", "joltean", "pikachu"}},
+       {"raichu", "magneton", "electrode", "electabuzz", "jolteon", "pikachu"}},
       {"Opponent Team 4",
        {"victreebel", "exeggutor", "parasect", "tangela", "vileplume",
         "venusaur"}},
@@ -52,10 +54,20 @@ int main() {
         {"lapras", {"ice-shard", "waterfall", "body-slam", "megahorn"}},
         {"snorlax", {"toxic", "protect", "rest", "body-slam"}}}},
       {"Team 2",
-       {{"charizard",
-         {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}}},
+       {{"charizard", {"flamethrower", "slash", "earthquake", "fire-spin"}},
+        {"starmie", {"hydro-pump", "psychic", "ice-beam", "recover"}},
+        {"snorlax", {"body-slam", "hyper-beam", "earthquake", "rest"}},
+        {"alakazam", {"psychic", "recover", "thunder-wave", "reflect"}},
+        {"rhydon", {"earthquake", "rock-slide", "body-slam", "substitute"}},
+        {"jolteon",
+         {"thunderbolt", "thunder-wave", "pin-missile", "double-kick"}}}},
       {"Team 3",
-       {{"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}}},
+       {{"venusaur", {"razor-leaf", "sleep-powder", "body-slam", "leech-seed"}},
+        {"zapdos", {"thunderbolt", "drill-peck", "thunder-wave", "agility"}},
+        {"nidoking", {"earthquake", "ice-beam", "thunderbolt", "rock-slide"}},
+        {"gengar", {"psychic", "night-shade", "hypnosis", "explosion"}},
+        {"lapras", {"hydro-pump", "blizzard", "psychic", "body-slam"}},
+        {"tauros", {"body-slam", "hyper-beam", "blizzard", "earthquake"}}}},
 
       // Opponent Teams
       {"Opponent Team 1",
@@ -68,19 +80,73 @@ int main() {
            {"rhyhorn", {"tackle", "scratch", "protect", "amnesia"}},
        }},
       {"Opponent Team 2",
-       {{"charizard",
-         {"flamethrower", "hyper-beam", "air-slash", "dragon-pulse"}}}},
+       {{"starmie", {"hydro-pump", "psychic", "ice-beam", "recover"}},
+        {"gyarados", {"hydro-pump", "crunch", "earthquake", "ice-beam"}},
+        {"lapras", {"hydro-pump", "ice-beam", "psychic", "body-slam"}},
+        {"golduck", {"hydro-pump", "psychic", "ice-beam", "confusion"}},
+        {"vaporeon", {"hydro-pump", "ice-beam", "tackle", "water-pulse"}},
+        {"seaking", {"hydro-pump", "drill-peck", "tackle", "waterfall"}}}},
       {"Opponent Team 3",
-       {{"blastoise", {"hydro-pump", "flash-cannon", "ice-beam", "fake-out"}}}},
+       {{"raichu", {"thunderbolt", "thunder-wave", "tackle", "thunder-punch"}},
+        {"magneton", {"thunderbolt", "thunder-wave", "tackle", "spark"}},
+        {"electrode", {"thunderbolt", "thunder-wave", "tackle", "explosion"}},
+        {"electabuzz",
+         {"thunderbolt", "thunder-punch", "tackle", "thunder-wave"}},
+        {"jolteon", {"thunderbolt", "thunder-wave", "tackle", "pin-missile"}},
+        {"pikachu", {"thunderbolt", "thunder-wave", "tackle", "iron-tail"}}}},
+
+      // Missing Opponent Teams 4-8
+      {"Opponent Team 4",
+       {{"victreebel", {"razor-leaf", "sleep-powder", "sludge-bomb", "tackle"}},
+        {"exeggutor", {"psychic", "confusion", "tackle", "barrage"}},
+        {"parasect", {"leech-life", "spore", "slash", "tackle"}},
+        {"tangela", {"vine-whip", "sleep-powder", "constrict", "tackle"}},
+        {"vileplume",
+         {"petal-dance", "sleep-powder", "poison-powder", "tackle"}},
+        {"venusaur", {"razor-leaf", "sleep-powder", "sludge-bomb", "tackle"}}}},
+      {"Opponent Team 5",
+       {{"arbok", {"poison-sting", "bite", "glare", "tackle"}},
+        {"tentacruel", {"poison-sting", "hydro-pump", "constrict", "tackle"}},
+        {"muk", {"sludge", "poison-gas", "harden", "tackle"}},
+        {"gengar", {"lick", "hypnosis", "night-shade", "tackle"}},
+        {"weezing", {"poison-gas", "smog", "self-destruct", "tackle"}},
+        {"venomoth", {"poison-powder", "psybeam", "confusion", "tackle"}}}},
+      {"Opponent Team 6",
+       {{"alakazam", {"psychic", "confusion", "teleport", "tackle"}},
+        {"slowbro", {"psychic", "confusion", "water-gun", "tackle"}},
+        {"mr-mime", {"psychic", "confusion", "barrier", "tackle"}},
+        {"jynx", {"psychic", "confusion", "ice-punch", "tackle"}},
+        {"hypno", {"psychic", "confusion", "hypnosis", "tackle"}},
+        {"exeggutor", {"psychic", "confusion", "barrage", "tackle"}}}},
+      {"Opponent Team 7",
+       {{"ninetails", {"flamethrower", "fire-spin", "confuse-ray", "tackle"}},
+        {"arcanine", {"flamethrower", "fire-blast", "bite", "tackle"}},
+        {"rapidash", {"fire-spin", "agility", "stomp", "tackle"}},
+        {"magmar", {"fire-punch", "confuse-ray", "smog", "tackle"}},
+        {"flareon", {"flamethrower", "fire-spin", "bite", "tackle"}},
+        {"charizard", {"flamethrower", "fire-spin", "slash", "tackle"}}}},
+      {"Opponent Team 8",
+       {{"nidoking", {"earthquake", "poison-sting", "thrash", "tackle"}},
+        {"nidoqueen", {"earthquake", "poison-sting", "body-slam", "tackle"}},
+        {"dugtrio", {"earthquake", "dig", "slash", "tackle"}},
+        {"rhydon", {"earthquake", "horn-attack", "stomp", "tackle"}},
+        {"marowak", {"bone-club", "bonemerang", "thrash", "tackle"}},
+        {"sandslash", {"earthquake", "slash", "sand-attack", "tackle"}}}},
 
   };
 
   // Show available teams for player selection
-  cout << "\nAvailable Teams:" << endl;
-  cout << "[1] - Team 1 (Venusaur, Pikachu, Machamp, Arcanine, Lapras, Snorlax)"
-       << endl;
-  cout << "[2] - Team 2 (Charizard)" << endl;
-  cout << "[3] - Team 3 (Blastoise)" << endl;
+  std::cout << "\n=== Pokemon Battle Simulator ===" << std::endl;
+  std::cout << "Choose your team:" << std::endl;
+  std::cout << "1. Team 1 - Balanced Team (Venusaur, Pikachu, Machamp, "
+               "Arcanine, Lapras, Snorlax)"
+            << std::endl;
+  std::cout << "2. Team 2 - Competitive Team (Charizard, Starmie, Snorlax, "
+               "Alakazam, Rhydon, Jolteon)"
+            << std::endl;
+  std::cout << "3. Team 3 - Mixed Team (Venusaur, Zapdos, Nidoking, Gengar, "
+               "Lapras, Tauros)"
+            << std::endl;
 
   // Prompt for team selection
   int chosenTeamNum;
