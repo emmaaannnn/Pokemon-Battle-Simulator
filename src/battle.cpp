@@ -79,6 +79,11 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
 
 int Battle::calculateDamage(const Pokemon &attacker, const Pokemon &defender,
                             const Move &move) const {
+  // Status moves don't deal damage
+  if (move.power <= 0) {
+    return 0;
+  }
+
   int damage = 0;
   if (move.damage_class == "physical") {
     damage = (attacker.attack - defender.defense) + move.power;
