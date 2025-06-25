@@ -18,6 +18,7 @@ public:
 
   // Type of move
   std::string damage_class;
+  std::string type;
 
   // Move effects
   int ailment_chance;
