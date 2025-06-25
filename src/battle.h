@@ -3,6 +3,7 @@
 #include "move.h"
 #include "pokemon.h"
 #include "team.h"
+#include "type_effectiveness.h"
 #include <iostream>
 #include <memory>
 
