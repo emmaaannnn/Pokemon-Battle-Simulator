@@ -1,0 +1,53 @@
+{
+    "Team 2": {
+        "name": "Player Team 2",
+        "Pokemon": {
+            "pokemon": [
+                "charizard",
+                "starmie",
+                "snorlax",
+                "alakazam",
+                "rhydon",
+                "jolteon"
+            ],
+            "moves": {
+                "charizard": [
+                    "flamethrower",
+                    "slash",
+                    "earthquake",
+                    "fire-spin"
+                ],
+                "starmie": [
+                    "hydro-pump",
+                    "psychic",
+                    "ice-beam",
+                    "recover"
+                ],
+                "snorlax": [
+                    "body-slam",
+                    "hyper-beam",
+                    "earthquake",
+                    "rest"
+                ],
+                "alakazam": [
+                    "psychic",
+                    "recover",
+                    "thunder-wave",
+                    "reflect"
+                ],
+                "rhydon": [
+                    "earthquake",
+                    "rock-slide",
+                    "body-slam",
+                    "substitute"
+                ],
+                "jolteon": [
+                    "thunderbolt",
+                    "thunder-wave",
+                    "pin-missile",
+                    "double-kick"
+                ]
+            }
+        }
+    }
+}
