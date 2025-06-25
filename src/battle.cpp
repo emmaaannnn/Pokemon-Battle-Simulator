@@ -72,9 +72,25 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
   }
 
   int damage = calculateDamage(attacker, defender, move);
+
+  // Calculate and display type effectiveness
+  double typeMultiplier =
+      TypeEffectiveness::getEffectivenessMultiplier(move.type, defender.types);
+
   defender.takeDamage(damage);
 
-  std::cout << "It dealt " << damage << " damage!\n";
+  std::cout << "It dealt " << damage << " damage!";
+
+  // Display type effectiveness message
+  if (typeMultiplier > 1.0) {
+    std::cout << " It's super effective!";
+  } else if (typeMultiplier < 1.0 && typeMultiplier > 0.0) {
+    std::cout << " It's not very effective...";
+  } else if (typeMultiplier == 0.0) {
+    std::cout << " It had no effect!";
+  }
+
+  std::cout << "\n";
 }
 
 int Battle::calculateDamage(const Pokemon &attacker, const Pokemon &defender,
@@ -84,13 +100,26 @@ int Battle::calculateDamage(const Pokemon &attacker, const Pokemon &defender,
     return 0;
   }
 
-  int damage = 0;
+  // Base damage calculation
+  int baseDamage = 0;
   if (move.damage_class == "physical") {
-    damage = (attacker.attack - defender.defense) + move.power;
+    baseDamage = (attacker.attack - defender.defense) + move.power;
   } else if (move.damage_class == "special") {
-    damage = (attacker.special_attack - defender.special_defense) + move.power;
+    baseDamage =
+        (attacker.special_attack - defender.special_defense) + move.power;
   }
-  return std::max(1, damage); // Ensure minimum damage is 1
+
+  // Ensure minimum base damage
+  baseDamage = std::max(1, baseDamage);
+
+  // Apply type effectiveness
+  double typeMultiplier =
+      TypeEffectiveness::getEffectivenessMultiplier(move.type, defender.types);
+
+  // Calculate final damage with type effectiveness
+  int finalDamage = static_cast<int>(baseDamage * typeMultiplier);
+
+  return std::max(1, finalDamage); // Ensure minimum damage is 1
 }
 
 bool Battle::playerFirst(const Move &playerMove,
@@ -109,7 +138,8 @@ int Battle::getMoveChoice() const {
   for (size_t i = 0; i < selectedPokemon->moves.size(); ++i) {
     const Move &move = selectedPokemon->moves[i];
     std::cout << "    " << (i + 1) << ". " << move.name
-              << " (Power: " << move.power << ", Accuracy: " << move.accuracy
+              << " (Type: " << move.type << ", Power: " << move.power
+              << ", Accuracy: " << move.accuracy
               << ", Class: " << move.damage_class << ")\n";
   }
 

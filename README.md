@@ -29,8 +29,7 @@ Pokemon-Battle-Sim/
 │   └── teams/            # Pre-built team configurations
 ├── examples/             # Example implementations
 │   ├── game-demo.cpp     # Interactive battle demo
-│   ├── debug-test.cpp    # Testing and debugging
-│   └── working-battle.cpp # Alternative battle implementation
+│   └── debug-test.cpp    # Testing and debugging
 ├── tests/                # Unit tests (future implementation)
 ├── docs/                 # Documentation
 │   └── IMPROVEMENTS.md   # Development roadmap
@@ -120,10 +119,19 @@ customPokemon.learnMove(Move("thunderbolt"));
 
 ## 🔧 Game Mechanics
 
+### Type Effectiveness System ⚡
+**NEW**: Full type effectiveness implementation with authentic Pokémon type chart:
+- **Super effective** (2x damage) - "It's super effective!"
+- **Not very effective** (0.5x damage) - "It's not very effective..."
+- **No effect** (0x damage) - "It had no effect!"
+- Supports dual-type Pokémon with proper multiplier stacking
+- Real-time effectiveness messages during battle
+- Move types displayed in battle menus
+
 ### Battle System
 - **Turn Order**: Determined by Pokémon speed and move priority
 - **Damage Calculation**: Includes attack/defense stats, move power, and type effectiveness
-- **Status Effects**: Poison, paralysis, sleep, and other conditions
+- **Status Effects**: Poison, paralysis, sleep, and other conditions  
 - **Critical Hits**: Random chance for increased damage
 
 ### Move System
@@ -131,12 +139,7 @@ customPokemon.learnMove(Move("thunderbolt"));
 - **Status Moves**: Non-damaging moves that affect stats or conditions
 - **Priority System**: Some moves always go first regardless of speed
 - **PP (Power Points)**: Limited uses per move
-
-### Type Effectiveness
-Full type chart implementation with:
-- Super effective (2x damage)
-- Not very effective (0.5x damage)
-- No effect (0x damage)
+- **Type Classification**: Over 400 moves mapped to their correct types
 
 ## 📊 Data Format
 
