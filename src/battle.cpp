@@ -5,7 +5,8 @@
 
 Battle::Battle(const Team &playerTeam, const Team &opponentTeam)
     : playerTeam(playerTeam), opponentTeam(opponentTeam),
-      selectedPokemon(nullptr), opponentSelectedPokemon(nullptr) {
+      selectedPokemon(nullptr), opponentSelectedPokemon(nullptr),
+      rng(std::random_device{}()), criticalDistribution(0.0, 1.0) {
   srand(time(0)); // Seed random number generator once
 }
 
@@ -71,15 +72,26 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
     return;
   }
 
-  int damage = calculateDamage(attacker, defender, move);
+  // Calculate damage with all effects
+  DamageResult damageResult =
+      calculateDamageWithEffects(attacker, defender, move);
 
-  // Calculate and display type effectiveness
+  // Calculate type effectiveness for display purposes
   double typeMultiplier =
       TypeEffectiveness::getEffectivenessMultiplier(move.type, defender.types);
 
-  defender.takeDamage(damage);
+  defender.takeDamage(damageResult.damage);
 
-  std::cout << "It dealt " << damage << " damage!";
+  std::cout << "It dealt " << damageResult.damage << " damage!";
+
+  // Display special effect messages
+  if (damageResult.wasCritical) {
+    std::cout << " A critical hit!";
+  }
+
+  if (damageResult.hadSTAB) {
+    std::cout << " " << attacker.name << " gets STAB!";
+  }
 
   // Display type effectiveness message
   if (typeMultiplier > 1.0) {
@@ -91,6 +103,47 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
   }
 
   std::cout << "\n";
+}
+
+Battle::DamageResult Battle::calculateDamageWithEffects(
+    const Pokemon &attacker, const Pokemon &defender, const Move &move) const {
+  // Status moves don't deal damage
+  if (move.power <= 0) {
+    return {0, false, false};
+  }
+
+  // Base damage calculation
+  int baseDamage = 0;
+  if (move.damage_class == "physical") {
+    baseDamage = (attacker.attack - defender.defense) + move.power;
+  } else if (move.damage_class == "special") {
+    baseDamage =
+        (attacker.special_attack - defender.special_defense) + move.power;
+  }
+
+  // Ensure minimum base damage
+  baseDamage = std::max(1, baseDamage);
+
+  // Apply type effectiveness
+  double typeMultiplier =
+      TypeEffectiveness::getEffectivenessMultiplier(move.type, defender.types);
+
+  // Check for STAB and critical hit
+  bool hasStab = hasSTAB(attacker, move);
+  bool isCrit = isCriticalHit(move);
+
+  // Apply STAB (Same Type Attack Bonus) - 1.5x damage if move type matches
+  // attacker type
+  double stabMultiplier = hasStab ? 1.5 : 1.0;
+
+  // Apply critical hit multiplier - 2x damage on critical hit
+  double criticalMultiplier = isCrit ? 2.0 : 1.0;
+
+  // Calculate final damage with all multipliers
+  double finalDamage =
+      baseDamage * typeMultiplier * stabMultiplier * criticalMultiplier;
+
+  return {std::max(1, static_cast<int>(finalDamage)), isCrit, hasStab};
 }
 
 int Battle::calculateDamage(const Pokemon &attacker, const Pokemon &defender,
@@ -116,10 +169,19 @@ int Battle::calculateDamage(const Pokemon &attacker, const Pokemon &defender,
   double typeMultiplier =
       TypeEffectiveness::getEffectivenessMultiplier(move.type, defender.types);
 
-  // Calculate final damage with type effectiveness
-  int finalDamage = static_cast<int>(baseDamage * typeMultiplier);
+  // Apply STAB (Same Type Attack Bonus) - 1.5x damage if move type matches
+  // attacker type
+  double stabMultiplier = calculateSTABMultiplier(attacker, move);
 
-  return std::max(1, finalDamage); // Ensure minimum damage is 1
+  // Apply critical hit multiplier - 2x damage on critical hit
+  double criticalMultiplier = calculateCriticalMultiplier(move);
+
+  // Calculate final damage with all multipliers
+  double finalDamage =
+      baseDamage * typeMultiplier * stabMultiplier * criticalMultiplier;
+
+  return std::max(1,
+                  static_cast<int>(finalDamage)); // Ensure minimum damage is 1
 }
 
 bool Battle::playerFirst(const Move &playerMove,
@@ -251,4 +313,40 @@ void Battle::startBattle() {
   default:
     break;
   }
+}
+
+// STAB (Same Type Attack Bonus) implementation
+bool Battle::hasSTAB(const Pokemon &attacker, const Move &move) const {
+  // Check if the move type matches any of the attacker's types
+  for (const std::string &type : attacker.types) {
+    if (type == move.type) {
+      return true;
+    }
+  }
+  return false;
+}
+
+double Battle::calculateSTABMultiplier(const Pokemon &attacker,
+                                       const Move &move) const {
+  return hasSTAB(attacker, move) ? 1.5 : 1.0;
+}
+
+// Critical Hit implementation
+bool Battle::isCriticalHit(const Move &move) const {
+  // Base critical hit ratio is 1/16 (6.25%)
+  double criticalRatio = 1.0 / 16.0;
+
+  // Some moves have higher critical hit ratios
+  if (move.crit_rate > 0) {
+    // Moves with high critical hit ratio (like Slash, Razor Leaf) have 1/8
+    // chance
+    criticalRatio = 1.0 / 8.0;
+  }
+
+  // Generate random number and check if it's a critical hit
+  return criticalDistribution(rng) < criticalRatio;
+}
+
+double Battle::calculateCriticalMultiplier(const Move &move) const {
+  return isCriticalHit(move) ? 2.0 : 1.0;
 }
