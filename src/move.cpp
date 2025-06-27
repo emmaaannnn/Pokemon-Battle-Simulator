@@ -1,5 +1,6 @@
 #include "move.h"
 #include "move_type_mapping.h"
+#include "pokemon.h"
 
 using json = nlohmann::json;
 
@@ -8,15 +9,15 @@ Move::Move(const std::string &moveName) {
 }
 
 void Move::loadFromJson(const std::string &file_path) {
-  std::ifstream file(file_path);
+  auto file = std::ifstream(file_path);
   if (!file.is_open()) {
     std::cerr << "Error opening file: " << file_path << std::endl;
     return;
   }
-  json move_json;
+  auto move_json = json{};
   file >> move_json;
 
-  std::string moveName = move_json["name"];
+  auto moveName = move_json["name"].get<std::string>();
   // Basic move attributes
   name = move_json["name"];
 
@@ -42,10 +43,12 @@ void Move::loadFromJson(const std::string &file_path) {
   }
 
   damage_class = move_json["damage_class"]["name"];
-  
+
   // Get move type from mapping
   type = MoveTypeMapping::getMoveType(name);
-  
+
+  // Load ailment information
+  ailment_name = move_json["Info"]["ailment"]["name"];
   ailment_chance = move_json["Info"]["ailment_chance"];
   category = move_json["Info"]["category"]["name"];
   crit_rate = move_json["Info"]["crit_rate"];
@@ -79,4 +82,19 @@ void Move::loadFromJson(const std::string &file_path) {
   }
 
   stat_chance = move_json["Info"]["stat_chance"];
+}
+
+// Helper function to convert ailment name to StatusCondition enum
+StatusCondition Move::getStatusCondition() const {
+  if (ailment_name == "poison")
+    return StatusCondition::POISON;
+  if (ailment_name == "burn")
+    return StatusCondition::BURN;
+  if (ailment_name == "paralysis")
+    return StatusCondition::PARALYSIS;
+  if (ailment_name == "sleep")
+    return StatusCondition::SLEEP;
+  if (ailment_name == "freeze")
+    return StatusCondition::FREEZE;
+  return StatusCondition::NONE;
 }

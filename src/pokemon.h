@@ -7,6 +7,9 @@
 #include <string>
 #include <vector>
 
+// Status conditions enum
+enum class StatusCondition { NONE, POISON, BURN, PARALYSIS, SLEEP, FREEZE };
+
 class Pokemon {
 public:
   // Basic info
@@ -24,6 +27,10 @@ public:
   int speed;
   bool fainted;
 
+  // Status condition state
+  StatusCondition status;
+  int status_turns_remaining;
+
   // Array of Move objects
   std::vector<Move> moves;
 
@@ -37,6 +44,21 @@ public:
   double getHealthPercentage() const;
   void takeDamage(int damage);
   void heal(int amount);
+
+  // Status condition methods
+  void applyStatusCondition(StatusCondition newStatus);
+  void processStatusCondition();
+  bool canAct() const;
+  std::string getStatusConditionName() const;
+  bool hasStatusCondition() const { return status != StatusCondition::NONE; }
+  void clearStatusCondition() {
+    status = StatusCondition::NONE;
+    status_turns_remaining = 0;
+  }
+
+  // Stat modification for status effects
+  int getEffectiveAttack() const;
+  int getEffectiveSpeed() const;
 
 private:
   void loadFromJson(const std::string &file_path);

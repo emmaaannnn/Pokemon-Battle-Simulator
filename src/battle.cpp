@@ -1,7 +1,10 @@
 #include "battle.h"
+#include "move_type_mapping.h"
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <iostream>
 
 Battle::Battle(const Team &playerTeam, const Team &opponentTeam)
     : playerTeam(playerTeam), opponentTeam(opponentTeam),
@@ -11,9 +14,28 @@ Battle::Battle(const Team &playerTeam, const Team &opponentTeam)
 }
 
 void Battle::displayHealth(const Pokemon &pokemon) const {
-  double healthPercentage = pokemon.getHealthPercentage();
-  std::cout << "\n"
-            << pokemon.name << " HP: " << healthPercentage << "%" << std::endl;
+  std::cout << pokemon.name << " HP: ";
+
+  int barLength = 20;
+  double healthPercent = pokemon.getHealthPercentage();
+  int filledBars = static_cast<int>(healthPercent * barLength / 100);
+
+  std::cout << "[";
+  for (int i = 0; i < barLength; ++i) {
+    if (i < filledBars) {
+      std::cout << "█";
+    } else {
+      std::cout << "░";
+    }
+  }
+  std::cout << "] " << static_cast<int>(healthPercent) << "%";
+
+  // Show status condition
+  if (pokemon.hasStatusCondition()) {
+    std::cout << " (" << pokemon.getStatusConditionName() << ")";
+  }
+
+  std::cout << std::endl;
 }
 
 void Battle::selectPokemon() {
@@ -58,50 +80,88 @@ void Battle::selectOpponentPokemon() {
 
 void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
                          const Move &move) {
-  std::cout << attacker.name << " used " << move.name << "!\n";
-
-  if (move.damage_class == "status") {
-    std::cout << "The move applies a status effect!\n";
+  // Check if attacker can act (not asleep, frozen, or fully paralyzed)
+  if (!attacker.canAct()) {
+    if (attacker.status == StatusCondition::PARALYSIS) {
+      std::cout << attacker.name << " is paralyzed and can't move!"
+                << std::endl;
+    }
     return;
   }
 
-  // Check for accuracy
-  int hitChance = rand() % 100 + 1;
-  if (hitChance > move.accuracy) {
-    std::cout << "The move missed!\n";
-    return;
+  if (move.power == -1 || move.power == 0) {
+    // Status move or special move
+    std::cout << attacker.name << " used " << move.name << "!" << std::endl;
+
+    // Apply status condition if move has one
+    StatusCondition statusToApply = move.getStatusCondition();
+    if (statusToApply != StatusCondition::NONE) {
+      // Check if status effect proc'd based on ailment_chance
+      bool statusApplied = false;
+
+      if (move.category == "ailment") {
+        // Pure status moves have 100% chance (unless they miss)
+        statusApplied = true;
+      } else if (move.ailment_chance > 0) {
+        // Damage + ailment moves have specified chance
+        auto distribution = std::uniform_int_distribution<int>(1, 100);
+        statusApplied = distribution(rng) <= move.ailment_chance;
+      }
+
+      if (statusApplied && !defender.hasStatusCondition()) {
+        defender.applyStatusCondition(statusToApply);
+        std::cout << defender.name << " is now "
+                  << defender.getStatusConditionName() << "!" << std::endl;
+      } else if (statusApplied && defender.hasStatusCondition()) {
+        std::cout << "But it failed! " << defender.name
+                  << " is already affected by a status condition." << std::endl;
+      }
+    } else {
+      std::cout << "The move applies a status effect!" << std::endl;
+    }
+  } else {
+    // Damage-dealing move
+    auto damageResult = calculateDamageWithEffects(attacker, defender, move);
+
+    std::cout << attacker.name << " used " << move.name << "!" << std::endl;
+    std::cout << "It dealt " << damageResult.damage << " damage!";
+
+    if (damageResult.hadSTAB) {
+      std::cout << " " << attacker.name << " gets STAB!";
+    }
+
+    if (damageResult.wasCritical) {
+      std::cout << " A critical hit!";
+    }
+
+    // Check type effectiveness for message
+    auto typeMultiplier = TypeEffectiveness::getEffectivenessMultiplier(
+        MoveTypeMapping::getMoveType(move.name), defender.types);
+
+    if (typeMultiplier > 1.0) {
+      std::cout << " It's super effective!";
+    } else if (typeMultiplier < 1.0 && typeMultiplier > 0.0) {
+      std::cout << " It's not very effective...";
+    } else if (typeMultiplier == 0.0) {
+      std::cout << " It has no effect!";
+    }
+
+    std::cout << std::endl;
+
+    defender.takeDamage(damageResult.damage);
+
+    // Apply status condition from damage moves
+    StatusCondition statusToApply = move.getStatusCondition();
+    if (statusToApply != StatusCondition::NONE && move.ailment_chance > 0) {
+      auto distribution = std::uniform_int_distribution<int>(1, 100);
+      if (distribution(rng) <= move.ailment_chance &&
+          !defender.hasStatusCondition()) {
+        defender.applyStatusCondition(statusToApply);
+        std::cout << defender.name << " is now "
+                  << defender.getStatusConditionName() << "!" << std::endl;
+      }
+    }
   }
-
-  // Calculate damage with all effects
-  auto damageResult = calculateDamageWithEffects(attacker, defender, move);
-
-  // Calculate type effectiveness for display purposes
-  auto typeMultiplier =
-      TypeEffectiveness::getEffectivenessMultiplier(move.type, defender.types);
-
-  defender.takeDamage(damageResult.damage);
-
-  std::cout << "It dealt " << damageResult.damage << " damage!";
-
-  // Display special effect messages
-  if (damageResult.wasCritical) {
-    std::cout << " A critical hit!";
-  }
-
-  if (damageResult.hadSTAB) {
-    std::cout << " " << attacker.name << " gets STAB!";
-  }
-
-  // Display type effectiveness message
-  if (typeMultiplier > 1.0) {
-    std::cout << " It's super effective!";
-  } else if (typeMultiplier < 1.0 && typeMultiplier > 0.0) {
-    std::cout << " It's not very effective...";
-  } else if (typeMultiplier == 0.0) {
-    std::cout << " It had no effect!";
-  }
-
-  std::cout << "\n";
 }
 
 Battle::DamageResult Battle::calculateDamageWithEffects(
@@ -111,10 +171,11 @@ Battle::DamageResult Battle::calculateDamageWithEffects(
     return {0, false, false};
   }
 
-  // Base damage calculation
+  // Base damage calculation using effective stats
   int baseDamage = 0;
   if (move.damage_class == "physical") {
-    baseDamage = (attacker.attack - defender.defense) + move.power;
+    baseDamage =
+        (attacker.getEffectiveAttack() - defender.defense) + move.power;
   } else if (move.damage_class == "special") {
     baseDamage =
         (attacker.special_attack - defender.special_defense) + move.power;
@@ -147,40 +208,37 @@ Battle::DamageResult Battle::calculateDamageWithEffects(
 
 int Battle::calculateDamage(const Pokemon &attacker, const Pokemon &defender,
                             const Move &move) const {
-  // Status moves don't deal damage
   if (move.power <= 0) {
     return 0;
   }
 
-  // Base damage calculation
-  int baseDamage = 0;
+  // Use effective stats (modified by status conditions)
+  int effectiveAttack = attacker.getEffectiveAttack();
+  int level = 50; // Assuming level 50
+  int defense = defender.defense;
+
+  // Determine which attack stat to use
+  int attackStat;
   if (move.damage_class == "physical") {
-    baseDamage = (attacker.attack - defender.defense) + move.power;
-  } else if (move.damage_class == "special") {
-    baseDamage =
-        (attacker.special_attack - defender.special_defense) + move.power;
+    attackStat = effectiveAttack;
+  } else {
+    attackStat = attacker.special_attack;
   }
 
-  // Ensure minimum base damage
-  baseDamage = std::max(1, baseDamage);
+  // Determine which defense stat to use
+  int defenseStat;
+  if (move.damage_class == "physical") {
+    defenseStat = defense;
+  } else {
+    defenseStat = defender.special_defense;
+  }
 
-  // Apply type effectiveness
-  double typeMultiplier =
-      TypeEffectiveness::getEffectivenessMultiplier(move.type, defender.types);
+  // Basic damage calculation
+  double damage = ((2.0 * level + 10.0) / 250.0) *
+                      (attackStat / (double)defenseStat) * move.power +
+                  2;
 
-  // Apply STAB (Same Type Attack Bonus) - 1.5x damage if move type matches
-  // attacker type
-  double stabMultiplier = calculateSTABMultiplier(attacker, move);
-
-  // Apply critical hit multiplier - 2x damage on critical hit
-  double criticalMultiplier = calculateCriticalMultiplier(move);
-
-  // Calculate final damage with all multipliers
-  double finalDamage =
-      baseDamage * typeMultiplier * stabMultiplier * criticalMultiplier;
-
-  return std::max(1,
-                  static_cast<int>(finalDamage)); // Ensure minimum damage is 1
+  return static_cast<int>(damage);
 }
 
 bool Battle::playerFirst(const Move &playerMove,
@@ -188,8 +246,10 @@ bool Battle::playerFirst(const Move &playerMove,
   if (playerMove.priority != opponentMove.priority) {
     return playerMove.priority > opponentMove.priority;
   }
-  if (selectedPokemon->speed != opponentSelectedPokemon->speed) {
-    return selectedPokemon->speed > opponentSelectedPokemon->speed;
+  if (selectedPokemon->getEffectiveSpeed() !=
+      opponentSelectedPokemon->getEffectiveSpeed()) {
+    return selectedPokemon->getEffectiveSpeed() >
+           opponentSelectedPokemon->getEffectiveSpeed();
   }
   return rand() % 2; // Randomize if speeds are equal
 }
@@ -253,24 +313,37 @@ void Battle::startBattle() {
 
   // Main battle loop
   while (!isBattleOver()) {
-    // Player chooses move
-    int playerMoveIndex = getMoveChoice();
-    Move playerMove = selectedPokemon->moves[playerMoveIndex];
+    // Process status conditions at start of turn
+    if (selectedPokemon->hasStatusCondition()) {
+      selectedPokemon->processStatusCondition();
+    }
+    if (opponentSelectedPokemon->hasStatusCondition()) {
+      opponentSelectedPokemon->processStatusCondition();
+    }
 
-    // Opponent chooses random move
-    int opponentMoveIndex = rand() % opponentSelectedPokemon->moves.size();
-    Move opponentMove = opponentSelectedPokemon->moves[opponentMoveIndex];
-
-    // Determine turn order and execute moves
-    if (playerFirst(playerMove, opponentMove)) {
-      executeMove(*selectedPokemon, *opponentSelectedPokemon, playerMove);
-      if (opponentSelectedPokemon->isAlive()) {
-        executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMove);
-      }
+    // Check if either Pokemon fainted from status damage
+    if (!selectedPokemon->isAlive() || !opponentSelectedPokemon->isAlive()) {
+      // Handle fainted Pokemon below...
     } else {
-      executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMove);
-      if (selectedPokemon->isAlive()) {
+      // Player chooses move
+      int playerMoveIndex = getMoveChoice();
+      Move playerMove = selectedPokemon->moves[playerMoveIndex];
+
+      // Opponent chooses random move
+      int opponentMoveIndex = rand() % opponentSelectedPokemon->moves.size();
+      Move opponentMove = opponentSelectedPokemon->moves[opponentMoveIndex];
+
+      // Determine turn order and execute moves
+      if (playerFirst(playerMove, opponentMove)) {
         executeMove(*selectedPokemon, *opponentSelectedPokemon, playerMove);
+        if (opponentSelectedPokemon->isAlive()) {
+          executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMove);
+        }
+      } else {
+        executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMove);
+        if (selectedPokemon->isAlive()) {
+          executeMove(*selectedPokemon, *opponentSelectedPokemon, playerMove);
+        }
       }
     }
 
@@ -348,4 +421,61 @@ bool Battle::isCriticalHit(const Move &move) const {
 
 double Battle::calculateCriticalMultiplier(const Move &move) const {
   return isCriticalHit(move) ? 2.0 : 1.0;
+}
+
+void Battle::executeTurn() {
+  // Process status conditions at start of turn
+  if (selectedPokemon->hasStatusCondition()) {
+    selectedPokemon->processStatusCondition();
+  }
+  if (opponentSelectedPokemon->hasStatusCondition()) {
+    opponentSelectedPokemon->processStatusCondition();
+  }
+
+  // Check if either Pokemon fainted from status damage
+  if (!selectedPokemon->isAlive() || !opponentSelectedPokemon->isAlive()) {
+    handlePokemonFainted();
+    return;
+  }
+
+  int moveChoice = getMoveChoice();
+  const auto &playerMove = selectedPokemon->moves[moveChoice - 1];
+
+  // Simple AI: opponent chooses a random damage-dealing move
+  auto opponentMoves = std::vector<Move>{};
+  for (const auto &move : opponentSelectedPokemon->moves) {
+    if (move.power > 0) {
+      opponentMoves.push_back(move);
+    }
+  }
+
+  if (opponentMoves.empty()) {
+    opponentMoves = opponentSelectedPokemon->moves;
+  }
+
+  auto distribution =
+      std::uniform_int_distribution<size_t>(0, opponentMoves.size() - 1);
+  const auto &opponentMove = opponentMoves[distribution(rng)];
+
+  // Determine turn order based on effective speed (modified by status)
+  bool playerFirst = selectedPokemon->getEffectiveSpeed() >=
+                     opponentSelectedPokemon->getEffectiveSpeed();
+
+  if (playerFirst) {
+    executeMove(*selectedPokemon, *opponentSelectedPokemon, playerMove);
+    if (opponentSelectedPokemon->isAlive()) {
+      executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMove);
+    }
+  } else {
+    executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMove);
+    if (selectedPokemon->isAlive()) {
+      executeMove(*selectedPokemon, *opponentSelectedPokemon, playerMove);
+    }
+  }
+
+  handlePokemonFainted();
+}
+
+void Battle::handlePokemonFainted() {
+  // Implementation of handlePokemonFainted method
 }

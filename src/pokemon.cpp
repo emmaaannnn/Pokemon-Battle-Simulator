@@ -1,13 +1,17 @@
 #include "pokemon.h"
+#include <random>
 
 using json = nlohmann::json;
 
 Pokemon::Pokemon()
     : name(""), id(0), hp(0), attack(0), defense(0), special_attack(0),
-      special_defense(0), speed(0), fainted(false) {}
+      special_defense(0), speed(0), fainted(false),
+      status(StatusCondition::NONE), status_turns_remaining(0) {}
 
-Pokemon::Pokemon(const std::string &pokemonName) {
+Pokemon::Pokemon(const std::string &pokemonName)
+    : fainted(false), status(StatusCondition::NONE), status_turns_remaining(0) {
   loadFromJson("data/pokemon/" + pokemonName + ".json");
+  loadMoves();
 }
 
 void Pokemon::loadFromJson(const std::string &file_path) {
@@ -74,4 +78,152 @@ void Pokemon::heal(int amount) {
   if (current_hp > 0) {
     fainted = false;
   }
+}
+
+void Pokemon::applyStatusCondition(StatusCondition newStatus) {
+  // Can't apply status if already has one (except replacing with same type)
+  if (hasStatusCondition() && status != newStatus) {
+    return;
+  }
+
+  status = newStatus;
+
+  // Set duration based on status type
+  switch (newStatus) {
+  case StatusCondition::SLEEP:
+    // Sleep lasts 1-3 turns
+    status_turns_remaining = 1 + (std::rand() % 3);
+    break;
+  case StatusCondition::POISON:
+  case StatusCondition::BURN:
+  case StatusCondition::PARALYSIS:
+  case StatusCondition::FREEZE:
+    // These last until cured or switched out
+    status_turns_remaining = -1; // Indefinite
+    break;
+  case StatusCondition::NONE:
+    status_turns_remaining = 0;
+    break;
+  }
+}
+
+void Pokemon::processStatusCondition() {
+  if (!hasStatusCondition())
+    return;
+
+  switch (status) {
+  case StatusCondition::POISON:
+    // Poison deals 1/8 max HP damage each turn
+    {
+      int damage = std::max(1, hp / 8);
+      takeDamage(damage);
+      std::cout << name << " is hurt by poison! (-" << damage << " HP)"
+                << std::endl;
+    }
+    break;
+
+  case StatusCondition::BURN:
+    // Burn deals 1/16 max HP damage each turn
+    {
+      int damage = std::max(1, hp / 16);
+      takeDamage(damage);
+      std::cout << name << " is hurt by burn! (-" << damage << " HP)"
+                << std::endl;
+    }
+    break;
+
+  case StatusCondition::SLEEP:
+    // Sleep countdown
+    if (status_turns_remaining > 0) {
+      status_turns_remaining--;
+      std::cout << name << " is fast asleep!" << std::endl;
+      if (status_turns_remaining == 0) {
+        clearStatusCondition();
+        std::cout << name << " woke up!" << std::endl;
+      }
+    }
+    break;
+
+  case StatusCondition::FREEZE:
+    // 20% chance to thaw out each turn
+    {
+      static std::random_device rd;
+      static std::mt19937 gen(rd());
+      static std::uniform_real_distribution<> dis(0.0, 1.0);
+
+      if (dis(gen) < 0.20) {
+        clearStatusCondition();
+        std::cout << name << " thawed out!" << std::endl;
+      } else {
+        std::cout << name << " is frozen solid!" << std::endl;
+      }
+    }
+    break;
+
+  case StatusCondition::PARALYSIS:
+    // Paralysis persists until cured
+    std::cout << name << " is paralyzed!" << std::endl;
+    break;
+
+  case StatusCondition::NONE:
+    break;
+  }
+}
+
+bool Pokemon::canAct() const {
+  if (!isAlive())
+    return false;
+
+  switch (status) {
+  case StatusCondition::SLEEP:
+  case StatusCondition::FREEZE:
+    return false;
+
+  case StatusCondition::PARALYSIS:
+    // 25% chance to be fully paralyzed
+    {
+      static std::random_device rd;
+      static std::mt19937 gen(rd());
+      static std::uniform_real_distribution<> dis(0.0, 1.0);
+      return dis(gen) >= 0.25;
+    }
+
+  default:
+    return true;
+  }
+}
+
+std::string Pokemon::getStatusConditionName() const {
+  switch (status) {
+  case StatusCondition::POISON:
+    return "Poisoned";
+  case StatusCondition::BURN:
+    return "Burned";
+  case StatusCondition::PARALYSIS:
+    return "Paralyzed";
+  case StatusCondition::SLEEP:
+    return "Asleep";
+  case StatusCondition::FREEZE:
+    return "Frozen";
+  case StatusCondition::NONE:
+    return "";
+  default:
+    return "";
+  }
+}
+
+int Pokemon::getEffectiveAttack() const {
+  // Burn halves Attack stat
+  if (status == StatusCondition::BURN) {
+    return attack / 2;
+  }
+  return attack;
+}
+
+int Pokemon::getEffectiveSpeed() const {
+  // Paralysis halves Speed stat
+  if (status == StatusCondition::PARALYSIS) {
+    return speed / 2;
+  }
+  return speed;
 }
