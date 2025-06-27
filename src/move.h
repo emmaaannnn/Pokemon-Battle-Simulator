@@ -6,6 +6,9 @@
 #include <string>
 #include <vector>
 
+// Forward declaration
+enum class StatusCondition;
+
 class Move {
 public:
   // Move stats
@@ -21,6 +24,7 @@ public:
   std::string type;
 
   // Move effects
+  std::string ailment_name;
   int ailment_chance;
   std::string category;
   int crit_rate;
@@ -38,6 +42,9 @@ public:
 
   // Default constructor
   Move() = default;
+
+  // Status condition utility
+  StatusCondition getStatusCondition() const;
 
 private:
   void loadFromJson(const std::string &file_path);
