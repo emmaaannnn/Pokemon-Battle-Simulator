@@ -6,16 +6,15 @@
 
 #include "battle.h"
 
-using namespace std;
-
 int main() {
   // Get user's name
-  string userName;
-  cout << "Enter your name: ";
-  cin >> userName;
+  std::string userName;
+  std::cout << "Enter your name: ";
+  std::cin >> userName;
 
-  // Available teams
-  unordered_map<string, vector<string>> selectedTeams = {
+  // Available teams - using auto to reduce verbosity
+  const auto selectedTeams = std::unordered_map<std::string,
+                                                std::vector<std::string>>{
       // Player Pokemon
       {"Team 1",
        {"venusaur", "pikachu", "machamp", "arcanine", "lapras", "snorlax"}},
@@ -44,8 +43,10 @@ int main() {
        {"nidoking", "nidoqueen", "dugtrio", "rhydon", "marowak", "sandslash"}},
   };
 
-  // Select moves
-  unordered_map<string, vector<pair<string, vector<string>>>> selectedMoves = {
+  // Select moves - using auto for complex type
+  const auto selectedMoves = std::unordered_map<
+      std::string,
+      std::vector<std::pair<std::string, std::vector<std::string>>>>{
       {"Team 1",
        {{"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}},
         {"pikachu", {"thunderbolt", "brick-break", "iron-tail", "reflect"}},
@@ -173,32 +174,31 @@ int main() {
 
   // Prompt for team selection
   int chosenTeamNum;
-  cout << "\n Enter the number of the team you want to select: ";
-  cin >> chosenTeamNum;
+  std::cout << "\n Enter the number of the team you want to select: ";
+  std::cin >> chosenTeamNum;
 
   // Validate input
   if (chosenTeamNum < 1 || chosenTeamNum > 3) {
-    cout << "Invalid selection - try again." << endl;
+    std::cout << "Invalid selection - try again." << std::endl;
     return 1;
   }
 
-  string chosenTeamKey = "Team " + to_string(chosenTeamNum);
-  const vector<string> chosenTeam = selectedTeams[chosenTeamKey];
+  const auto chosenTeamKey = "Team " + std::to_string(chosenTeamNum);
 
-  std::cout << "" << endl;
+  std::cout << "" << std::endl;
   std::cout << "========================================================== My "
                "Team =========================================================="
             << std::endl;
-  std::cout << "" << endl;
+  std::cout << "" << std::endl;
 
-  // init Player Team and load Pokemon & Moves
+  // Initialize Player Team and load Pokemon & Moves
   Team PlayerTeam;
   PlayerTeam.loadTeams(selectedTeams, selectedMoves, chosenTeamKey);
 
   // Print out Player's team with moves
   std::cout << "Your selected team includes:\n";
   for (int i = 0; i < static_cast<int>(PlayerTeam.size()); ++i) {
-    const Pokemon *pokemon = PlayerTeam.getPokemon(i);
+    const auto *pokemon = PlayerTeam.getPokemon(i);
     if (pokemon) {
       std::cout << "- " << pokemon->name << "\n  Moves:\n";
       for (const auto &move : pokemon->moves) {
@@ -211,50 +211,52 @@ int main() {
   std::cout << std::endl;
 
   // Show available opponent teams
-  cout << "Available Opponents:" << endl;
-  cout << "[1] - Brock (Rock Gym Leader)" << endl;
-  cout << "[2] - Misty (Water Gym Leader)" << endl;
-  cout << "[3] - Surge (Electric Gym Leader)" << endl;
-  cout << "[4] - Erika (Grass Gym Leader)" << endl;
-  cout << "[5] - Koga (Poison Gym Leader)" << endl;
-  cout << "[6] - Sabrina (Psychic Gym Leader)" << endl;
-  cout << "[7] - Blaine (Fire Gym Leader)" << endl;
-  cout << "[8] - Giovanni (Ground Gym Leader)" << endl;
+  std::cout << "Available Opponents:" << std::endl;
+  std::cout << "[1] - Brock (Rock Gym Leader)" << std::endl;
+  std::cout << "[2] - Misty (Water Gym Leader)" << std::endl;
+  std::cout << "[3] - Surge (Electric Gym Leader)" << std::endl;
+  std::cout << "[4] - Erika (Grass Gym Leader)" << std::endl;
+  std::cout << "[5] - Koga (Poison Gym Leader)" << std::endl;
+  std::cout << "[6] - Sabrina (Psychic Gym Leader)" << std::endl;
+  std::cout << "[7] - Blaine (Fire Gym Leader)" << std::endl;
+  std::cout << "[8] - Giovanni (Ground Gym Leader)" << std::endl;
 
   // Prompt for opponent selection
   int chosenOpponentNum;
-  cout << "\n Enter the number of your chosen opponent: ";
-  cin >> chosenOpponentNum;
+  std::cout << "\n Enter the number of your chosen opponent: ";
+  std::cin >> chosenOpponentNum;
 
   // Validate input
   if (chosenOpponentNum < 1 || chosenOpponentNum > 8) {
-    cout << "Invalid selection - try again." << endl;
+    std::cout << "Invalid selection - try again." << std::endl;
     return 1;
   }
 
-  string chosenOpponentKey = "Opponent Team " + to_string(chosenOpponentNum);
-  const vector<string> chosenOpponent = selectedTeams[chosenOpponentKey];
-  cout << "\nYou have selected " << chosenOpponentKey << " with the Pokémon: ";
+  const auto chosenOpponentKey =
+      "Opponent Team " + std::to_string(chosenOpponentNum);
+  const auto &chosenOpponent = selectedTeams.at(chosenOpponentKey);
+  std::cout << "\nYou have selected " << chosenOpponentKey
+            << " with the Pokémon: ";
   for (const auto &pokemon : chosenOpponent) {
-    cout << pokemon << " ";
+    std::cout << pokemon << " ";
   }
-  cout << "\n\n";
+  std::cout << "\n\n";
 
-  std::cout << "" << endl;
+  std::cout << "" << std::endl;
   std::cout
       << "========================================================== Oppenent "
          "Team =========================================================="
       << std::endl;
-  std::cout << "" << endl;
+  std::cout << "" << std::endl;
 
-  // init Opp Team and load Pokemon & Moves
+  // Initialize Opponent Team and load Pokemon & Moves
   Team OppTeam;
   OppTeam.loadTeams(selectedTeams, selectedMoves, chosenOpponentKey);
 
   // Print out Opponent's team with moves
   std::cout << "Opponent's selected team includes:\n";
   for (int i = 0; i < static_cast<int>(OppTeam.size()); ++i) {
-    const Pokemon *pokemon = OppTeam.getPokemon(i);
+    const auto *pokemon = OppTeam.getPokemon(i);
     if (pokemon) {
       std::cout << "- " << pokemon->name << "\n";
     }

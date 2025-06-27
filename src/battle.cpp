@@ -21,7 +21,7 @@ void Battle::selectPokemon() {
 
   // Display available Pokemon
   for (int i = 0; i < static_cast<int>(playerTeam.size()); ++i) {
-    const Pokemon *pokemon = playerTeam.getPokemon(i);
+    const auto *pokemon = playerTeam.getPokemon(i);
     if (pokemon && pokemon->isAlive()) {
       std::cout << "[" << i + 1 << "] - " << pokemon->name << std::endl;
     }
@@ -34,7 +34,7 @@ void Battle::selectPokemon() {
 
     if (chosenPokemonNum >= 1 &&
         chosenPokemonNum <= static_cast<int>(playerTeam.size())) {
-      Pokemon *pokemon = playerTeam.getPokemon(chosenPokemonNum - 1);
+      auto *pokemon = playerTeam.getPokemon(chosenPokemonNum - 1);
       if (pokemon && pokemon->isAlive()) {
         selectedPokemon = pokemon;
         std::cout << "\nYou have selected " << selectedPokemon->name
@@ -47,9 +47,9 @@ void Battle::selectPokemon() {
 }
 
 void Battle::selectOpponentPokemon() {
-  std::vector<Pokemon *> alivePokemon = opponentTeam.getAlivePokemon();
+  auto alivePokemon = opponentTeam.getAlivePokemon();
   if (!alivePokemon.empty()) {
-    int randomIndex = rand() % alivePokemon.size();
+    auto randomIndex = rand() % alivePokemon.size();
     opponentSelectedPokemon = alivePokemon[randomIndex];
     std::cout << "\nThe opponent has selected " << opponentSelectedPokemon->name
               << " to send out!" << std::endl;
@@ -73,11 +73,10 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
   }
 
   // Calculate damage with all effects
-  DamageResult damageResult =
-      calculateDamageWithEffects(attacker, defender, move);
+  auto damageResult = calculateDamageWithEffects(attacker, defender, move);
 
   // Calculate type effectiveness for display purposes
-  double typeMultiplier =
+  auto typeMultiplier =
       TypeEffectiveness::getEffectivenessMultiplier(move.type, defender.types);
 
   defender.takeDamage(damageResult.damage);
@@ -129,15 +128,15 @@ Battle::DamageResult Battle::calculateDamageWithEffects(
       TypeEffectiveness::getEffectivenessMultiplier(move.type, defender.types);
 
   // Check for STAB and critical hit
-  bool hasStab = hasSTAB(attacker, move);
-  bool isCrit = isCriticalHit(move);
+  auto hasStab = hasSTAB(attacker, move);
+  auto isCrit = isCriticalHit(move);
 
   // Apply STAB (Same Type Attack Bonus) - 1.5x damage if move type matches
   // attacker type
-  double stabMultiplier = hasStab ? 1.5 : 1.0;
+  auto stabMultiplier = hasStab ? 1.5 : 1.0;
 
   // Apply critical hit multiplier - 2x damage on critical hit
-  double criticalMultiplier = isCrit ? 2.0 : 1.0;
+  auto criticalMultiplier = isCrit ? 2.0 : 1.0;
 
   // Calculate final damage with all multipliers
   double finalDamage =
@@ -279,7 +278,7 @@ void Battle::startBattle() {
     if (!selectedPokemon->isAlive()) {
       std::cout << "\n"
                 << selectedPokemon->name << " has fainted!" << std::endl;
-      Pokemon *newPokemon = playerTeam.getFirstAlivePokemon();
+      auto *newPokemon = playerTeam.getFirstAlivePokemon();
       if (newPokemon) {
         selectedPokemon = newPokemon;
         std::cout << "\nYou send out " << selectedPokemon->name << "!\n";
@@ -289,7 +288,7 @@ void Battle::startBattle() {
     if (!opponentSelectedPokemon->isAlive()) {
       std::cout << "\nOpponent's " << opponentSelectedPokemon->name
                 << " has fainted!" << std::endl;
-      Pokemon *newPokemon = opponentTeam.getFirstAlivePokemon();
+      auto *newPokemon = opponentTeam.getFirstAlivePokemon();
       if (newPokemon) {
         opponentSelectedPokemon = newPokemon;
         std::cout << "\nOpponent sends out " << opponentSelectedPokemon->name

@@ -72,9 +72,9 @@ std::vector<std::string> TypeEffectiveness::getAllTypes() {
 
 void TypeEffectiveness::initialiseTypeChart() {
   // Initialise all combinations to normal effectiveness first
-  std::vector<std::string> types = getAllTypes();
-  for (const std::string &attackingType : types) {
-    for (const std::string &defendingType : types) {
+  auto types = getAllTypes();
+  for (const auto &attackingType : types) {
+    for (const auto &defendingType : types) {
       typeChart[attackingType][defendingType] = Effectiveness::NORMAL;
     }
   }
