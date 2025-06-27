@@ -15,12 +15,12 @@ void Team::loadTeams(
   // Get the selected Pokémon names for the chosen team
   auto teamIt = selectedTeams.find(selectedTeamName);
   if (teamIt != selectedTeams.end()) {
-    const std::vector<std::string> &teamPokemons = teamIt->second;
+    const auto &teamPokemons = teamIt->second;
 
     // Loop over each Pokémon in the selected team
-    for (const std::string &pokemonName : teamPokemons) {
+    for (const auto &pokemonName : teamPokemons) {
       // Create a Pokémon object and load its details from JSON
-      Pokemon pokeObj = Pokemon(pokemonName);
+      auto pokeObj = Pokemon(pokemonName);
 
       // Check if moves for this Pokémon exist in selectedMoves
       auto movesIt = selectedMoves.find(selectedTeamName);
@@ -29,7 +29,7 @@ void Team::loadTeams(
           if (movePair.first == pokemonName) {
             for (const auto &move : movePair.second) {
               // Load moves for this Pokémon
-              Move moveObj(move);
+              auto moveObj = Move(move);
               pokeObj.moves.push_back(moveObj);
             }
           }
@@ -63,7 +63,7 @@ bool Team::hasAlivePokemon() const {
 }
 
 std::vector<Pokemon *> Team::getAlivePokemon() {
-  std::vector<Pokemon *> alivePokemon;
+  auto alivePokemon = std::vector<Pokemon *>{};
   for (auto &pair : pokemonTeam) {
     if (pair.second.isAlive()) {
       alivePokemon.push_back(&pair.second);

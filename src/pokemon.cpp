@@ -11,13 +11,13 @@ Pokemon::Pokemon(const std::string &pokemonName) {
 }
 
 void Pokemon::loadFromJson(const std::string &file_path) {
-  std::ifstream file(file_path);
+  auto file = std::ifstream(file_path);
   if (!file.is_open()) {
     std::cerr << "Error opening file: " << file_path << std::endl;
     return;
   }
 
-  json pokemon_json;
+  auto pokemon_json = json{};
   file >> pokemon_json;
 
   // Map JSON data to class members
@@ -43,17 +43,17 @@ void Pokemon::loadFromJson(const std::string &file_path) {
 }
 
 void Pokemon::loadMoves() {
-  std::ifstream file("data/moves/" + name + ".json");
+  auto file = std::ifstream("data/moves/" + name + ".json");
   if (!file.is_open()) {
     std::cerr << "Error opening file: " << "data/moves/" + name + ".json"
               << std::endl;
     return;
   }
-  json move_json;
+  auto move_json = json{};
   file >> move_json;
   for (const auto &move : move_json) {
-    std::string moveName = move["move"]["name"];
-    Move MoveObj = Move(moveName);
+    auto moveName = move["move"]["name"].get<std::string>();
+    auto MoveObj = Move(moveName);
     moves.push_back(MoveObj);
   }
 }
