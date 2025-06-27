@@ -66,23 +66,32 @@ Pokemon-Battle-Simulator/
 git clone <repository-url>
 cd Pokemon-Battle-Simulator
 
-# Build with CMake
+# Build with CMake (mac/Linux)
 mkdir build && cd build
 cmake ..
 make -j4
 
+# Build with CMake (Windows)
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release
+cmake --build . --config Release
+
 # Start battling!
-./bin/pokemon_battle
+./bin/pokemon_battle (mac)
+./bin/Release/pokemon_battle.exe (windows)
 ```
+
 
 ### Quick Demo
 
 ```bash
 # Interactive battle demo
 ./bin/game-demo
+./bin/Release/game-demo.exe (windows)
 
 # Test specific mechanics
 ./bin/debug-test
+./bin/Release/debug-test.exe (windows)
 ```
 
 ## ⚔️ Battle System Deep Dive
