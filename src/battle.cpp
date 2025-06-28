@@ -354,6 +354,15 @@ void Battle::startBattle() {
           executeMove(*selectedPokemon, *opponentSelectedPokemon, playerMove);
         }
       }
+
+      // Display health after moves are executed
+      std::cout << std::endl;
+      if (opponentSelectedPokemon->isAlive()) {
+        displayHealth(*opponentSelectedPokemon);
+      }
+      if (selectedPokemon->isAlive()) {
+        displayHealth(*selectedPokemon);
+      }
     }
 
     // Handle fainted Pokemon (simplified for now)
@@ -364,6 +373,7 @@ void Battle::startBattle() {
       if (newPokemon) {
         selectedPokemon = newPokemon;
         std::cout << "\nYou send out " << selectedPokemon->name << "!\n";
+        displayHealth(*selectedPokemon);
       }
     }
 
@@ -375,6 +385,7 @@ void Battle::startBattle() {
         opponentSelectedPokemon = newPokemon;
         std::cout << "\nOpponent sends out " << opponentSelectedPokemon->name
                   << "!\n";
+        displayHealth(*opponentSelectedPokemon);
       }
     }
   }

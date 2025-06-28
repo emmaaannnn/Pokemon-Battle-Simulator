@@ -11,7 +11,7 @@ Pokemon::Pokemon()
 Pokemon::Pokemon(const std::string &pokemonName)
     : fainted(false), status(StatusCondition::NONE), status_turns_remaining(0) {
   loadFromJson("data/pokemon/" + pokemonName + ".json");
-  loadMoves();
+  // loadMoves(); // Removed - moves are loaded by Team::loadTeams()
 }
 
 void Pokemon::loadFromJson(const std::string &file_path) {
