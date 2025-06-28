@@ -58,6 +58,9 @@ private:
                                  const Move &move) const;
   double calculateCriticalMultiplier(const Move &move) const;
 
+  // Accuracy checking
+  bool checkMoveAccuracy(const Move &move) const;
+
   // Input handling
   int getMoveChoice() const;
   int getPokemonChoice() const;
