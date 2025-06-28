@@ -98,9 +98,17 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
     return;
   }
 
+  // Announce the move attempt
+  std::cout << attacker.name << " used " << move.name << "!" << std::endl;
+
+  // Check if the move hits
+  if (!checkMoveAccuracy(move)) {
+    std::cout << attacker.name << "'s attack missed!" << std::endl;
+    return;
+  }
+
   if (move.power == -1 || move.power == 0) {
-    // Status move or special move
-    std::cout << attacker.name << " used " << move.name << "!" << std::endl;
+    // Status move or special move - move announcement already done above
 
     // Apply status condition if move has one
     StatusCondition statusToApply = move.getStatusCondition();
@@ -132,7 +140,6 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
     // Damage-dealing move
     auto damageResult = calculateDamageWithEffects(attacker, defender, move);
 
-    std::cout << attacker.name << " used " << move.name << "!" << std::endl;
     std::cout << "It dealt " << damageResult.damage << " damage!";
 
     if (damageResult.hadSTAB) {
@@ -450,6 +457,18 @@ bool Battle::isCriticalHit(const Move &move) const {
 
 double Battle::calculateCriticalMultiplier(const Move &move) const {
   return isCriticalHit(move) ? 2.0 : 1.0;
+}
+
+// Accuracy checking implementation
+bool Battle::checkMoveAccuracy(const Move &move) const {
+  // Moves with accuracy = 0 never miss (like Swift, Aerial Ace)
+  if (move.accuracy == 0) {
+    return true;
+  }
+
+  // Roll 1-100 vs accuracy value
+  auto accuracyDistribution = std::uniform_int_distribution<int>(1, 100);
+  return accuracyDistribution(rng) <= move.accuracy;
 }
 
 void Battle::executeTurn() {
