@@ -87,8 +87,7 @@ void Battle::selectOpponentPokemon() {
   }
 }
 
-void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
-                         const Move &move) {
+void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
   // Check if attacker can act (not asleep, frozen, or fully paralyzed)
   if (!attacker.canAct()) {
     if (attacker.status == StatusCondition::PARALYSIS) {
@@ -98,8 +97,20 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
     return;
   }
 
+  // Get the move and check if it can be used
+  Move &move = attacker.moves[moveIndex];
+
+  if (!move.canUse()) {
+    std::cout << attacker.name << " tried to use " << move.name
+              << " but it has no PP left!" << std::endl;
+    return;
+  }
+
   // Announce the move attempt
   std::cout << attacker.name << " used " << move.name << "!" << std::endl;
+
+  // Consume PP
+  move.usePP();
 
   // Check if the move hits
   if (!checkMoveAccuracy(move)) {
@@ -286,7 +297,14 @@ int Battle::getMoveChoice() const {
     std::cout << "    " << (i + 1) << ". " << move.name
               << " (Type: " << move.type << ", Power: " << move.power
               << ", Accuracy: " << move.accuracy
-              << ", Class: " << move.damage_class << ")\n";
+              << ", PP: " << move.getRemainingPP() << "/" << move.getMaxPP()
+              << ", Class: " << move.damage_class << ")";
+
+    // Show "No PP!" if move can't be used
+    if (!move.canUse()) {
+      std::cout << " [No PP!]";
+    }
+    std::cout << "\n";
   }
 
   int chosenMoveIndex;
@@ -297,6 +315,16 @@ int Battle::getMoveChoice() const {
 
     if (chosenMoveIndex >= 1 &&
         chosenMoveIndex <= static_cast<int>(selectedPokemon->moves.size())) {
+
+      const Move &selectedMove = selectedPokemon->moves[chosenMoveIndex - 1];
+
+      // Check if the move has PP remaining
+      if (!selectedMove.canUse()) {
+        std::cout << selectedMove.name
+                  << " has no PP left! Choose another move.\n";
+        continue;
+      }
+
       return chosenMoveIndex - 1; // Return 0-based index
     }
     std::cout << "Invalid choice. Please select a valid move.\n";
@@ -360,14 +388,18 @@ void Battle::startBattle() {
 
       // Determine turn order and execute moves
       if (playerFirst(playerMove, opponentMove)) {
-        executeMove(*selectedPokemon, *opponentSelectedPokemon, playerMove);
+        executeMove(*selectedPokemon, *opponentSelectedPokemon,
+                    playerMoveIndex);
         if (opponentSelectedPokemon->isAlive()) {
-          executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMove);
+          executeMove(*opponentSelectedPokemon, *selectedPokemon,
+                      opponentMoveIndex);
         }
       } else {
-        executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMove);
+        executeMove(*opponentSelectedPokemon, *selectedPokemon,
+                    opponentMoveIndex);
         if (selectedPokemon->isAlive()) {
-          executeMove(*selectedPokemon, *opponentSelectedPokemon, playerMove);
+          executeMove(*selectedPokemon, *opponentSelectedPokemon,
+                      playerMoveIndex);
         }
       }
 
@@ -487,37 +519,37 @@ void Battle::executeTurn() {
   }
 
   int moveChoice = getMoveChoice();
-  const auto &playerMove = selectedPokemon->moves[moveChoice - 1];
 
-  // Simple AI: opponent chooses a random damage-dealing move
-  auto opponentMoves = std::vector<Move>{};
-  for (const auto &move : opponentSelectedPokemon->moves) {
-    if (move.power > 0) {
-      opponentMoves.push_back(move);
+  // Simple AI: opponent chooses a random move with PP
+  int opponentMoveIndex = -1;
+  for (int i = 0; i < static_cast<int>(opponentSelectedPokemon->moves.size());
+       ++i) {
+    if (opponentSelectedPokemon->moves[i].canUse()) {
+      if (opponentMoveIndex == -1 || rand() % 2) {
+        opponentMoveIndex = i;
+      }
     }
   }
 
-  if (opponentMoves.empty()) {
-    opponentMoves = opponentSelectedPokemon->moves;
+  // If no moves have PP, use first move anyway (will fail in executeMove)
+  if (opponentMoveIndex == -1) {
+    opponentMoveIndex = 0;
   }
-
-  auto distribution =
-      std::uniform_int_distribution<size_t>(0, opponentMoves.size() - 1);
-  const auto &opponentMove = opponentMoves[distribution(rng)];
 
   // Determine turn order based on effective speed (modified by status)
   bool playerFirst = selectedPokemon->getEffectiveSpeed() >=
                      opponentSelectedPokemon->getEffectiveSpeed();
 
   if (playerFirst) {
-    executeMove(*selectedPokemon, *opponentSelectedPokemon, playerMove);
+    executeMove(*selectedPokemon, *opponentSelectedPokemon, moveChoice);
     if (opponentSelectedPokemon->isAlive()) {
-      executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMove);
+      executeMove(*opponentSelectedPokemon, *selectedPokemon,
+                  opponentMoveIndex);
     }
   } else {
-    executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMove);
+    executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMoveIndex);
     if (selectedPokemon->isAlive()) {
-      executeMove(*selectedPokemon, *opponentSelectedPokemon, playerMove);
+      executeMove(*selectedPokemon, *opponentSelectedPokemon, moveChoice);
     }
   }
 
