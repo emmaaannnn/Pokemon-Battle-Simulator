@@ -81,7 +81,15 @@ void Pokemon::heal(int amount) {
 }
 
 void Pokemon::applyStatusCondition(StatusCondition newStatus) {
-  // Can't apply status if already has one (except replacing with same type)
+  // Flinch can be applied even if Pokemon has another status condition
+  if (newStatus == StatusCondition::FLINCH) {
+    status = newStatus;
+    status_turns_remaining = 1; // Flinch only lasts 1 turn
+    return;
+  }
+
+  // Can't apply other status if already has one (except replacing with same
+  // type)
   if (hasStatusCondition() && status != newStatus) {
     return;
   }
@@ -103,6 +111,9 @@ void Pokemon::applyStatusCondition(StatusCondition newStatus) {
     break;
   case StatusCondition::NONE:
     status_turns_remaining = 0;
+    break;
+  case StatusCondition::FLINCH:
+    // Already handled above
     break;
   }
 }
@@ -165,6 +176,12 @@ void Pokemon::processStatusCondition() {
     std::cout << name << " is paralyzed!" << std::endl;
     break;
 
+  case StatusCondition::FLINCH:
+    // Flinch automatically clears after 1 turn
+    std::cout << name << " flinched and couldn't move!" << std::endl;
+    clearStatusCondition();
+    break;
+
   case StatusCondition::NONE:
     break;
   }
@@ -177,6 +194,7 @@ bool Pokemon::canAct() const {
   switch (status) {
   case StatusCondition::SLEEP:
   case StatusCondition::FREEZE:
+  case StatusCondition::FLINCH:
     return false;
 
   case StatusCondition::PARALYSIS:
@@ -205,6 +223,8 @@ std::string Pokemon::getStatusConditionName() const {
     return "Asleep";
   case StatusCondition::FREEZE:
     return "Frozen";
+  case StatusCondition::FLINCH:
+    return "Flinched";
   case StatusCondition::NONE:
     return "";
   default:
