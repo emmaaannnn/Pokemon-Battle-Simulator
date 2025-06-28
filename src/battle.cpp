@@ -150,6 +150,15 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender,
 
     defender.takeDamage(damageResult.damage);
 
+    // Apply flinch effect if move has flinch chance and defender is still alive
+    if (move.flinch_chance > 0 && defender.isAlive()) {
+      auto flinchDistribution = std::uniform_int_distribution<int>(1, 100);
+      if (flinchDistribution(rng) <= move.flinch_chance) {
+        defender.applyStatusCondition(StatusCondition::FLINCH);
+        std::cout << defender.name << " flinched!" << std::endl;
+      }
+    }
+
     // Apply status condition from damage moves
     StatusCondition statusToApply = move.getStatusCondition();
     if (statusToApply != StatusCondition::NONE && move.ailment_chance > 0) {

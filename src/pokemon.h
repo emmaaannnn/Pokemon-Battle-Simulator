@@ -8,7 +8,15 @@
 #include <vector>
 
 // Status conditions enum
-enum class StatusCondition { NONE, POISON, BURN, PARALYSIS, SLEEP, FREEZE };
+enum class StatusCondition {
+  NONE,
+  POISON,
+  BURN,
+  PARALYSIS,
+  SLEEP,
+  FREEZE,
+  FLINCH
+};
 
 class Pokemon {
 public:
