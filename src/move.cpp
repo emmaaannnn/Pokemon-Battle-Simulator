@@ -1,6 +1,7 @@
 #include "move.h"
 #include "move_type_mapping.h"
 #include "pokemon.h"
+#include <algorithm>
 
 using json = nlohmann::json;
 
@@ -34,6 +35,7 @@ void Move::loadFromJson(const std::string &file_path) {
   }
 
   pp = move_json.value("pp", 0);
+  current_pp = pp; // Initialize current PP to maximum PP
   priority = move_json.value("priority", 0);
 
   if (move_json["power"].is_null()) {
@@ -98,3 +100,28 @@ StatusCondition Move::getStatusCondition() const {
     return StatusCondition::FREEZE;
   return StatusCondition::NONE;
 }
+
+// PP Management method implementations
+bool Move::canUse() const { return current_pp > 0; }
+
+bool Move::usePP() {
+  if (current_pp > 0) {
+    current_pp--;
+    return true;
+  }
+  return false;
+}
+
+void Move::restorePP(int amount) {
+  if (amount == -1) {
+    // Restore to maximum PP
+    current_pp = pp;
+  } else {
+    // Restore specified amount, but don't exceed maximum
+    current_pp = std::min(pp, current_pp + amount);
+  }
+}
+
+int Move::getRemainingPP() const { return current_pp; }
+
+int Move::getMaxPP() const { return pp; }
