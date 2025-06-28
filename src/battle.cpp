@@ -20,12 +20,21 @@ void Battle::displayHealth(const Pokemon &pokemon) const {
   double healthPercent = pokemon.getHealthPercentage();
   int filledBars = static_cast<int>(healthPercent * barLength / 100);
 
+  // Use Unicode blocks on Unix/Mac, ASCII on Windows for compatibility
+#ifdef _WIN32
+  const char *filledChar = "=";
+  const char *emptyChar = "-";
+#else
+  const char *filledChar = "█";
+  const char *emptyChar = "░";
+#endif
+
   std::cout << "[";
   for (int i = 0; i < barLength; ++i) {
     if (i < filledBars) {
-      std::cout << "█";
+      std::cout << filledChar;
     } else {
-      std::cout << "░";
+      std::cout << emptyChar;
     }
   }
   std::cout << "] " << static_cast<int>(healthPercent) << "%";
