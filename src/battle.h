@@ -32,7 +32,7 @@ private:
   void selectPokemon();
   void selectOpponentPokemon();
   void executeTurn();
-  void executeMove(Pokemon &attacker, Pokemon &defender, const Move &move);
+  void executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex);
   void handlePokemonFainted();
 
   // Utility methods

@@ -15,7 +15,8 @@ public:
   std::string name;
   int accuracy;
   int effect_chance;
-  int pp;
+  int pp;         // Maximum PP
+  int current_pp; // Current remaining PP
   int priority;
   int power;
 
@@ -42,6 +43,13 @@ public:
 
   // Default constructor
   Move() = default;
+
+  // PP Management methods
+  bool canUse() const;             // Check if move has PP remaining
+  bool usePP();                    // Use 1 PP, returns false if no PP left
+  void restorePP(int amount = -1); // Restore PP (default restores to max)
+  int getRemainingPP() const;      // Get current PP
+  int getMaxPP() const;            // Get maximum PP
 
   // Status condition utility
   StatusCondition getStatusCondition() const;
