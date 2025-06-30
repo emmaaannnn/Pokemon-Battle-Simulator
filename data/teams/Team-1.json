@@ -6,7 +6,7 @@
         "moves": {
           "venusaur": ["sludge-bomb", "mega-drain", "leech-seed", "amnesia"],
           "pikachu": ["thunderbolt", "brick-break", "iron-tail", "reflect"],
-          "machamp": ["superpower", "fire-blast", "earthquake", "hyper-beam"],
+          "machamp": ["superpower", "double-edge", "earthquake", "hyper-beam"],
           "arcanine": ["heat-wave", "crunch", "will-o-wisp", "roar"],
           "lapras": ["ice-shard", "waterfall", "body-slam", "megahorn"],
           "snorlax": ["toxic", "protect", "rest", "body-slam"]

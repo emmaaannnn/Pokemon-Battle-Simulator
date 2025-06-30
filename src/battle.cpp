@@ -118,7 +118,17 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
     return;
   }
 
-  // Handle healing moves first (Recover, Soft-Boiled, etc.)
+  // Handle OHKO moves first (Guillotine, Sheer Cold, etc.)
+  if (move.category == "ohko") {
+    // OHKO moves ignore normal damage calculation
+    // In real Pokemon, OHKO accuracy is based on level difference, but we'll
+    // use base accuracy
+    std::cout << "It's a one-hit KO!" << std::endl;
+    defender.takeDamage(defender.current_hp); // Deal enough damage to KO
+    return; // OHKO moves don't have other effects
+  }
+
+  // Handle healing moves (Recover, Soft-Boiled, etc.)
   if (move.healing > 0) {
     int healAmount = (attacker.hp * move.healing) / 100;
     int actualHeal = std::min(healAmount, attacker.hp - attacker.current_hp);
@@ -239,6 +249,20 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
         attacker.heal(actualHeal);
         std::cout << attacker.name << " absorbed " << actualHeal << " HP! ("
                   << move.drain << "% of damage dealt)" << std::endl;
+      }
+    }
+
+    // Handle recoil moves (Double Edge, Take Down, etc.)
+    if (move.drain < 0 && totalDamage > 0) {
+      int recoilPercent =
+          -move.drain; // Convert negative drain to positive percentage
+      int recoilDamage = (totalDamage * recoilPercent) / 100;
+
+      if (recoilDamage > 0) {
+        attacker.takeDamage(recoilDamage);
+        std::cout << attacker.name << " is hit with recoil! (" << recoilPercent
+                  << "% of damage dealt = " << recoilDamage << " HP)"
+                  << std::endl;
       }
     }
 
