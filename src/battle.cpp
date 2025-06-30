@@ -118,6 +118,31 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
     return;
   }
 
+  // Handle OHKO moves first (Guillotine, Sheer Cold, etc.)
+  if (move.category == "ohko") {
+    // OHKO moves ignore normal damage calculation
+    // In real Pokemon, OHKO accuracy is based on level difference, but we'll
+    // use base accuracy
+    std::cout << "It's a one-hit KO!" << std::endl;
+    defender.takeDamage(defender.current_hp); // Deal enough damage to KO
+    return; // OHKO moves don't have other effects
+  }
+
+  // Handle healing moves (Recover, Soft-Boiled, etc.)
+  if (move.healing > 0) {
+    int healAmount = (attacker.hp * move.healing) / 100;
+    int actualHeal = std::min(healAmount, attacker.hp - attacker.current_hp);
+
+    if (actualHeal > 0) {
+      attacker.heal(actualHeal);
+      std::cout << attacker.name << " restored " << actualHeal << " HP! ("
+                << healAmount << "% heal)" << std::endl;
+    } else {
+      std::cout << attacker.name << "'s HP is already full!" << std::endl;
+    }
+    return; // Healing moves don't do damage or apply other effects
+  }
+
   if (move.power == -1 || move.power == 0) {
     // Status move or special move - move announcement already done above
 
@@ -149,33 +174,97 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
     }
   } else {
     // Damage-dealing move
-    auto damageResult = calculateDamageWithEffects(attacker, defender, move);
 
-    std::cout << "It dealt " << damageResult.damage << " damage!";
-
-    if (damageResult.hadSTAB) {
-      std::cout << " " << attacker.name << " gets STAB!";
+    // Determine number of hits for multi-hit moves
+    int numHits = 1;
+    if (move.min_hits > 0 && move.max_hits > 0) {
+      auto hitDistribution =
+          std::uniform_int_distribution<int>(move.min_hits, move.max_hits);
+      numHits = hitDistribution(rng);
     }
 
-    if (damageResult.wasCritical) {
-      std::cout << " A critical hit!";
+    int totalDamage = 0;
+    bool hadSTAB = false;
+    bool wasCritical = false;
+    bool showEffectiveness = true;
+
+    // Execute each hit
+    for (int hit = 0; hit < numHits && defender.isAlive(); ++hit) {
+      auto damageResult = calculateDamageWithEffects(attacker, defender, move);
+
+      if (numHits > 1) {
+        std::cout << "Hit " << (hit + 1) << ": ";
+      }
+
+      std::cout << "It dealt " << damageResult.damage << " damage!";
+
+      // Track overall move properties
+      totalDamage += damageResult.damage;
+      if (damageResult.hadSTAB)
+        hadSTAB = true;
+      if (damageResult.wasCritical)
+        wasCritical = true;
+
+      if (damageResult.wasCritical) {
+        std::cout << " A critical hit!";
+      }
+
+      // Show type effectiveness only once for multi-hit moves
+      if (showEffectiveness) {
+        auto typeMultiplier = TypeEffectiveness::getEffectivenessMultiplier(
+            MoveTypeMapping::getMoveType(move.name), defender.types);
+
+        if (typeMultiplier > 1.0) {
+          std::cout << " It's super effective!";
+        } else if (typeMultiplier < 1.0 && typeMultiplier > 0.0) {
+          std::cout << " It's not very effective...";
+        } else if (typeMultiplier == 0.0) {
+          std::cout << " It has no effect!";
+        }
+        showEffectiveness = false;
+      }
+
+      std::cout << std::endl;
+      defender.takeDamage(damageResult.damage);
     }
 
-    // Check type effectiveness for message
-    auto typeMultiplier = TypeEffectiveness::getEffectivenessMultiplier(
-        MoveTypeMapping::getMoveType(move.name), defender.types);
-
-    if (typeMultiplier > 1.0) {
-      std::cout << " It's super effective!";
-    } else if (typeMultiplier < 1.0 && typeMultiplier > 0.0) {
-      std::cout << " It's not very effective...";
-    } else if (typeMultiplier == 0.0) {
-      std::cout << " It has no effect!";
+    // Show multi-hit summary
+    if (numHits > 1) {
+      std::cout << "Hit " << numHits << " time(s) for " << totalDamage
+                << " total damage!";
+      if (hadSTAB) {
+        std::cout << " " << attacker.name << " gets STAB!";
+      }
+      std::cout << std::endl;
+    } else if (hadSTAB) {
+      std::cout << attacker.name << " gets STAB!" << std::endl;
     }
 
-    std::cout << std::endl;
+    // Handle draining moves (Mega Drain, Absorb, etc.)
+    if (move.drain > 0 && totalDamage > 0) {
+      int drainAmount = (totalDamage * move.drain) / 100;
+      int actualHeal = std::min(drainAmount, attacker.hp - attacker.current_hp);
 
-    defender.takeDamage(damageResult.damage);
+      if (actualHeal > 0) {
+        attacker.heal(actualHeal);
+        std::cout << attacker.name << " absorbed " << actualHeal << " HP! ("
+                  << move.drain << "% of damage dealt)" << std::endl;
+      }
+    }
+
+    // Handle recoil moves (Double Edge, Take Down, etc.)
+    if (move.drain < 0 && totalDamage > 0) {
+      int recoilPercent =
+          -move.drain; // Convert negative drain to positive percentage
+      int recoilDamage = (totalDamage * recoilPercent) / 100;
+
+      if (recoilDamage > 0) {
+        attacker.takeDamage(recoilDamage);
+        std::cout << attacker.name << " is hit with recoil! (" << recoilPercent
+                  << "% of damage dealt = " << recoilDamage << " HP)"
+                  << std::endl;
+      }
+    }
 
     // Apply flinch effect if move has flinch chance and defender is still alive
     if (move.flinch_chance > 0 && defender.isAlive()) {
