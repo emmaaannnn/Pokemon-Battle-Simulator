@@ -39,6 +39,13 @@ public:
   StatusCondition status;
   int status_turns_remaining;
 
+  // Stat modifications (stages: -6 to +6, like in real Pokemon)
+  int attack_stage;
+  int defense_stage;
+  int special_attack_stage;
+  int special_defense_stage;
+  int speed_stage;
+
   // Array of Move objects
   std::vector<Move> moves;
 
@@ -64,9 +71,20 @@ public:
     status_turns_remaining = 0;
   }
 
-  // Stat modification for status effects
+  // Stat modification for status effects and stat stages
   int getEffectiveAttack() const;
+  int getEffectiveDefense() const;
+  int getEffectiveSpecialAttack() const;
+  int getEffectiveSpecialDefense() const;
   int getEffectiveSpeed() const;
+
+  // Stat stage modification methods
+  void modifyAttack(int stages);
+  void modifyDefense(int stages);
+  void modifySpecialAttack(int stages);
+  void modifySpecialDefense(int stages);
+  void modifySpeed(int stages);
+  void resetStatStages();
 
 private:
   void loadFromJson(const std::string &file_path);
