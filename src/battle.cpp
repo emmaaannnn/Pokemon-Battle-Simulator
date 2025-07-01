@@ -169,8 +169,13 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
         std::cout << "But it failed! " << defender.name
                   << " is already affected by a status condition." << std::endl;
       }
-    } else {
-      std::cout << "The move applies a status effect!" << std::endl;
+    }
+
+    // Handle stat modification moves (Swords Dance, Growl, etc.)
+    if (move.category == "net-good-stats") {
+      applyStatModification(attacker, defender, move);
+    } else if (statusToApply == StatusCondition::NONE) {
+      std::cout << "The move had no effect!" << std::endl;
     }
   } else {
     // Damage-dealing move
@@ -300,10 +305,12 @@ Battle::DamageResult Battle::calculateDamageWithEffects(
   int baseDamage = 0;
   if (move.damage_class == "physical") {
     baseDamage =
-        (attacker.getEffectiveAttack() - defender.defense) + move.power;
+        (attacker.getEffectiveAttack() - defender.getEffectiveDefense()) +
+        move.power;
   } else if (move.damage_class == "special") {
-    baseDamage =
-        (attacker.special_attack - defender.special_defense) + move.power;
+    baseDamage = (attacker.getEffectiveSpecialAttack() -
+                  defender.getEffectiveSpecialDefense()) +
+                 move.power;
   }
 
   // Ensure minimum base damage
@@ -647,4 +654,65 @@ void Battle::executeTurn() {
 
 void Battle::handlePokemonFainted() {
   // Implementation of handlePokemonFainted method
+}
+
+void Battle::applyStatModification(Pokemon &attacker, Pokemon &defender,
+                                   const Move &move) {
+  // Map move names to stat modifications
+  // Format: {stat, stages, target} where target: true=self, false=opponent
+
+  if (move.name == "swords-dance") {
+    attacker.modifyAttack(2);
+    std::cout << attacker.name << "'s Attack rose sharply!" << std::endl;
+  } else if (move.name == "growl") {
+    defender.modifyAttack(-1);
+    std::cout << defender.name << "'s Attack fell!" << std::endl;
+  } else if (move.name == "agility") {
+    attacker.modifySpeed(2);
+    std::cout << attacker.name << "'s Speed rose sharply!" << std::endl;
+  } else if (move.name == "harden") {
+    attacker.modifyDefense(1);
+    std::cout << attacker.name << "'s Defense rose!" << std::endl;
+  } else if (move.name == "defense-curl") {
+    attacker.modifyDefense(1);
+    std::cout << attacker.name << "'s Defense rose!" << std::endl;
+  } else if (move.name == "iron-defense") {
+    attacker.modifyDefense(2);
+    std::cout << attacker.name << "'s Defense rose sharply!" << std::endl;
+  } else if (move.name == "calm-mind") {
+    attacker.modifySpecialAttack(1);
+    attacker.modifySpecialDefense(1);
+    std::cout << attacker.name << "'s Special Attack and Special Defense rose!"
+              << std::endl;
+  } else if (move.name == "leer") {
+    defender.modifyDefense(-1);
+    std::cout << defender.name << "'s Defense fell!" << std::endl;
+  } else if (move.name == "tail-whip") {
+    defender.modifyDefense(-1);
+    std::cout << defender.name << "'s Defense fell!" << std::endl;
+  } else if (move.name == "amnesia") {
+    attacker.modifySpecialDefense(2);
+    std::cout << attacker.name << "'s Special Defense rose sharply!"
+              << std::endl;
+  } else if (move.name == "barrier") {
+    attacker.modifyDefense(2);
+    std::cout << attacker.name << "'s Defense rose sharply!" << std::endl;
+  } else if (move.name == "sharpen") {
+    attacker.modifyAttack(1);
+    std::cout << attacker.name << "'s Attack rose!" << std::endl;
+  } else if (move.name == "meditate") {
+    attacker.modifyAttack(1);
+    std::cout << attacker.name << "'s Attack rose!" << std::endl;
+  } else if (move.name == "dragon-dance") {
+    attacker.modifyAttack(1);
+    attacker.modifySpeed(1);
+    std::cout << attacker.name << "'s Attack and Speed rose!" << std::endl;
+  } else if (move.name == "nasty-plot") {
+    attacker.modifySpecialAttack(2);
+    std::cout << attacker.name << "'s Special Attack rose sharply!"
+              << std::endl;
+  } else {
+    std::cout << attacker.name << " used " << move.name
+              << ", but it had no stat effect!" << std::endl;
+  }
 }
