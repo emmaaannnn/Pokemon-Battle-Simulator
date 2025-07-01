@@ -6,10 +6,14 @@ using json = nlohmann::json;
 Pokemon::Pokemon()
     : name(""), id(0), hp(0), attack(0), defense(0), special_attack(0),
       special_defense(0), speed(0), fainted(false),
-      status(StatusCondition::NONE), status_turns_remaining(0) {}
+      status(StatusCondition::NONE), status_turns_remaining(0), attack_stage(0),
+      defense_stage(0), special_attack_stage(0), special_defense_stage(0),
+      speed_stage(0) {}
 
 Pokemon::Pokemon(const std::string &pokemonName)
-    : fainted(false), status(StatusCondition::NONE), status_turns_remaining(0) {
+    : fainted(false), status(StatusCondition::NONE), status_turns_remaining(0),
+      attack_stage(0), defense_stage(0), special_attack_stage(0),
+      special_defense_stage(0), speed_stage(0) {
   loadFromJson("data/pokemon/" + pokemonName + ".json");
   // loadMoves(); // Removed - moves are loaded by Team::loadTeams()
 }
@@ -232,18 +236,86 @@ std::string Pokemon::getStatusConditionName() const {
   }
 }
 
-int Pokemon::getEffectiveAttack() const {
-  // Burn halves Attack stat
-  if (status == StatusCondition::BURN) {
-    return attack / 2;
+// Helper function to calculate stat stage multiplier
+double getStatStageMultiplier(int stage) {
+  // Clamp stage to valid range (-6 to +6)
+  stage = std::max(-6, std::min(6, stage));
+
+  if (stage >= 0) {
+    return 1.0 + (stage * 0.5); // +1 stage = 1.5x, +2 = 2.0x, etc.
+  } else {
+    return 1.0 / (1.0 - (stage * 0.5)); // -1 stage = 0.66x, -2 = 0.5x, etc.
   }
-  return attack;
+}
+
+int Pokemon::getEffectiveAttack() const {
+  int base_attack = attack;
+
+  // Apply status condition effects
+  if (status == StatusCondition::BURN) {
+    base_attack = base_attack / 2;
+  }
+
+  // Apply stat stage modifications
+  double multiplier = getStatStageMultiplier(attack_stage);
+  return static_cast<int>(base_attack * multiplier);
+}
+
+int Pokemon::getEffectiveDefense() const {
+  double multiplier = getStatStageMultiplier(defense_stage);
+  return static_cast<int>(defense * multiplier);
+}
+
+int Pokemon::getEffectiveSpecialAttack() const {
+  double multiplier = getStatStageMultiplier(special_attack_stage);
+  return static_cast<int>(special_attack * multiplier);
+}
+
+int Pokemon::getEffectiveSpecialDefense() const {
+  double multiplier = getStatStageMultiplier(special_defense_stage);
+  return static_cast<int>(special_defense * multiplier);
 }
 
 int Pokemon::getEffectiveSpeed() const {
-  // Paralysis halves Speed stat
+  int base_speed = speed;
+
+  // Apply status condition effects
   if (status == StatusCondition::PARALYSIS) {
-    return speed / 2;
+    base_speed = base_speed / 2;
   }
-  return speed;
+
+  // Apply stat stage modifications
+  double multiplier = getStatStageMultiplier(speed_stage);
+  return static_cast<int>(base_speed * multiplier);
+}
+
+// Stat stage modification methods
+void Pokemon::modifyAttack(int stages) {
+  attack_stage = std::max(-6, std::min(6, attack_stage + stages));
+}
+
+void Pokemon::modifyDefense(int stages) {
+  defense_stage = std::max(-6, std::min(6, defense_stage + stages));
+}
+
+void Pokemon::modifySpecialAttack(int stages) {
+  special_attack_stage =
+      std::max(-6, std::min(6, special_attack_stage + stages));
+}
+
+void Pokemon::modifySpecialDefense(int stages) {
+  special_defense_stage =
+      std::max(-6, std::min(6, special_defense_stage + stages));
+}
+
+void Pokemon::modifySpeed(int stages) {
+  speed_stage = std::max(-6, std::min(6, speed_stage + stages));
+}
+
+void Pokemon::resetStatStages() {
+  attack_stage = 0;
+  defense_stage = 0;
+  special_attack_stage = 0;
+  special_defense_stage = 0;
+  speed_stage = 0;
 }
