@@ -61,6 +61,10 @@ private:
   // Accuracy checking
   bool checkMoveAccuracy(const Move &move) const;
 
+  // Stat modification handling
+  void applyStatModification(Pokemon &attacker, Pokemon &defender,
+                             const Move &move);
+
   // Input handling
   int getMoveChoice() const;
   int getPokemonChoice() const;
