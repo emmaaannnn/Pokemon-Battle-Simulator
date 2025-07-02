@@ -1,5 +1,6 @@
 #include "battle.h"
 #include "move_type_mapping.h"
+#include "weather.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -9,6 +10,7 @@
 Battle::Battle(const Team &playerTeam, const Team &opponentTeam)
     : playerTeam(playerTeam), opponentTeam(opponentTeam),
       selectedPokemon(nullptr), opponentSelectedPokemon(nullptr),
+      currentWeather(WeatherCondition::NONE), weatherTurnsRemaining(0),
       rng(std::random_device{}()), criticalDistribution(0.0, 1.0) {
   srand(time(0)); // Seed random number generator once
 }
@@ -174,6 +176,16 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
     // Handle stat modification moves (Swords Dance, Growl, etc.)
     if (move.category == "net-good-stats") {
       applyStatModification(attacker, defender, move);
+    }
+    // Handle weather-setting moves
+    else if (move.name == "rain-dance") {
+      setWeather(WeatherCondition::RAIN, 5);
+    } else if (move.name == "sunny-day") {
+      setWeather(WeatherCondition::SUN, 5);
+    } else if (move.name == "sandstorm") {
+      setWeather(WeatherCondition::SANDSTORM, 5);
+    } else if (move.name == "hail") {
+      setWeather(WeatherCondition::HAIL, 5);
     } else if (statusToApply == StatusCondition::NONE) {
       std::cout << "The move had no effect!" << std::endl;
     }
@@ -202,6 +214,17 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
       }
 
       std::cout << "It dealt " << damageResult.damage << " damage!";
+
+      // Show weather boost if applicable
+      double weatherMultiplier =
+          Weather::getWeatherDamageMultiplier(currentWeather, move.type);
+      if (weatherMultiplier > 1.0) {
+        std::cout << " (Boosted by " << Weather::getWeatherName(currentWeather)
+                  << "!)";
+      } else if (weatherMultiplier < 1.0) {
+        std::cout << " (Weakened by " << Weather::getWeatherName(currentWeather)
+                  << "!)";
+      }
 
       // Track overall move properties
       totalDamage += damageResult.damage;
@@ -320,6 +343,10 @@ Battle::DamageResult Battle::calculateDamageWithEffects(
   double typeMultiplier =
       TypeEffectiveness::getEffectivenessMultiplier(move.type, defender.types);
 
+  // Apply weather effects
+  double weatherMultiplier =
+      Weather::getWeatherDamageMultiplier(currentWeather, move.type);
+
   // Check for STAB and critical hit
   auto hasStab = hasSTAB(attacker, move);
   auto isCrit = isCriticalHit(move);
@@ -332,8 +359,8 @@ Battle::DamageResult Battle::calculateDamageWithEffects(
   auto criticalMultiplier = isCrit ? 2.0 : 1.0;
 
   // Calculate final damage with all multipliers
-  double finalDamage =
-      baseDamage * typeMultiplier * stabMultiplier * criticalMultiplier;
+  double finalDamage = baseDamage * typeMultiplier * weatherMultiplier *
+                       stabMultiplier * criticalMultiplier;
 
   return {std::max(1, static_cast<int>(finalDamage)), isCrit, hasStab};
 }
@@ -469,6 +496,9 @@ void Battle::startBattle() {
     if (opponentSelectedPokemon->hasStatusCondition()) {
       opponentSelectedPokemon->processStatusCondition();
     }
+
+    // Process weather conditions
+    processWeather();
 
     // Check if either Pokemon fainted from status damage
     if (!selectedPokemon->isAlive() || !opponentSelectedPokemon->isAlive()) {
@@ -714,5 +744,112 @@ void Battle::applyStatModification(Pokemon &attacker, Pokemon &defender,
   } else {
     std::cout << attacker.name << " used " << move.name
               << ", but it had no stat effect!" << std::endl;
+  }
+}
+
+void Battle::processWeather() {
+  if (currentWeather == WeatherCondition::NONE) {
+    return;
+  }
+
+  // Display weather effect
+  std::cout << "Weather: " << Weather::getWeatherName(currentWeather);
+  if (weatherTurnsRemaining > 0) {
+    std::cout << " (" << weatherTurnsRemaining << " turns left)";
+  }
+
+  // Show current weather boosts
+  switch (currentWeather) {
+  case WeatherCondition::RAIN:
+    std::cout << " [Water +50%, Fire -50%]";
+    break;
+  case WeatherCondition::SUN:
+    std::cout << " [Fire +50%, Water -50%]";
+    break;
+  case WeatherCondition::SANDSTORM:
+    std::cout << " [Sandstorm damage]";
+    break;
+  case WeatherCondition::HAIL:
+    std::cout << " [Hail damage]";
+    break;
+  default:
+    break;
+  }
+  std::cout << std::endl;
+
+  // Apply weather damage to Pokemon
+  if (selectedPokemon && selectedPokemon->isAlive()) {
+    if (!Weather::isImmuneToWeatherDamage(currentWeather,
+                                          selectedPokemon->types)) {
+      int damage =
+          Weather::getWeatherDamage(currentWeather, selectedPokemon->hp);
+      if (damage > 0) {
+        selectedPokemon->takeDamage(damage);
+        std::cout << selectedPokemon->name << " is hurt by "
+                  << Weather::getWeatherName(currentWeather) << "! (-" << damage
+                  << " HP)" << std::endl;
+      }
+    }
+  }
+
+  if (opponentSelectedPokemon && opponentSelectedPokemon->isAlive()) {
+    if (!Weather::isImmuneToWeatherDamage(currentWeather,
+                                          opponentSelectedPokemon->types)) {
+      int damage = Weather::getWeatherDamage(currentWeather,
+                                             opponentSelectedPokemon->hp);
+      if (damage > 0) {
+        opponentSelectedPokemon->takeDamage(damage);
+        std::cout << opponentSelectedPokemon->name << " is hurt by "
+                  << Weather::getWeatherName(currentWeather) << "! (-" << damage
+                  << " HP)" << std::endl;
+      }
+    }
+  }
+
+  // Countdown weather turns
+  if (weatherTurnsRemaining > 0) {
+    weatherTurnsRemaining--;
+    if (weatherTurnsRemaining == 0) {
+      std::cout << "The " << Weather::getWeatherName(currentWeather)
+                << " stopped." << std::endl;
+      currentWeather = WeatherCondition::NONE;
+    }
+  }
+}
+
+void Battle::setWeather(WeatherCondition weather, int turns) {
+  currentWeather = weather;
+  weatherTurnsRemaining = turns;
+  if (weather != WeatherCondition::NONE) {
+    std::cout << Weather::getWeatherName(weather) << " started!";
+
+    // Show what boost the weather provides
+    switch (weather) {
+    case WeatherCondition::RAIN:
+      std::cout << " (Water moves boosted 1.5x, Fire moves weakened 0.5x)";
+      break;
+    case WeatherCondition::SUN:
+      std::cout << " (Fire moves boosted 1.5x, Water moves weakened 0.5x)";
+      break;
+    case WeatherCondition::SANDSTORM:
+      std::cout << " (Non Rock/Ground/Steel types take damage each turn)";
+      break;
+    case WeatherCondition::HAIL:
+      std::cout << " (Non Ice types take damage each turn)";
+      break;
+    default:
+      break;
+    }
+    std::cout << std::endl;
+  }
+}
+
+void Battle::displayWeather() const {
+  if (currentWeather != WeatherCondition::NONE) {
+    std::cout << "Current weather: " << Weather::getWeatherName(currentWeather);
+    if (weatherTurnsRemaining > 0) {
+      std::cout << " (" << weatherTurnsRemaining << " turns remaining)";
+    }
+    std::cout << std::endl;
   }
 }

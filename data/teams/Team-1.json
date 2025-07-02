@@ -1,16 +1,53 @@
 {
-    "Team 1": {
-        "name" : "Player Team 1",
-      "Pokemon": {
-        "pokemon": ["venusaur", "pikachu", "machamp", "arcanine", "lapras", "snorlax"],
-        "moves": {
-          "venusaur": ["sludge-bomb", "mega-drain", "leech-seed", "amnesia"],
-          "pikachu": ["thunderbolt", "brick-break", "iron-tail", "reflect"],
-          "machamp": ["superpower", "double-edge", "earthquake", "hyper-beam"],
-          "arcanine": ["heat-wave", "crunch", "will-o-wisp", "roar"],
-          "lapras": ["ice-shard", "waterfall", "body-slam", "megahorn"],
-          "snorlax": ["toxic", "protect", "rest", "body-slam"]
-        }
+  "Team 1": {
+    "name": "Player Team 1",
+    "Pokemon": {
+      "pokemon": [
+        "venusaur",
+        "pikachu",
+        "machamp",
+        "arcanine",
+        "lapras",
+        "snorlax"
+      ],
+      "moves": {
+        "venusaur": [
+          "sludge-bomb",
+          "mega-drain",
+          "leech-seed",
+          "amnesia"
+        ],
+        "pikachu": [
+          "thunderbolt",
+          "brick-break",
+          "iron-tail",
+          "reflect"
+        ],
+        "machamp": [
+          "superpower",
+          "double-edge",
+          "earthquake",
+          "hyper-beam"
+        ],
+        "arcanine": [
+          "heat-wave",
+          "sunny-day",
+          "will-o-wisp",
+          "roar"
+        ],
+        "lapras": [
+          "ice-shard",
+          "waterfall",
+          "rain-dance",
+          "megahorn"
+        ],
+        "snorlax": [
+          "toxic",
+          "protect",
+          "rest",
+          "body-slam"
+        ]
+      }
     }
   }
 }
