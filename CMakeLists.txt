@@ -24,6 +24,7 @@ set(MAIN_SOURCES
     src/battle.cpp
     src/type_effectiveness.cpp
     src/move_type_mapping.cpp
+    src/weather.cpp
     src/main.cpp
 )
 
@@ -35,6 +36,7 @@ set(CORE_SOURCES
     src/battle.cpp
     src/type_effectiveness.cpp
     src/move_type_mapping.cpp
+    src/weather.cpp
 )
 
 # Header files
@@ -45,6 +47,7 @@ set(HEADERS
     src/battle.h
     src/type_effectiveness.h
     src/move_type_mapping.h
+    src/weather.h
 )
 
 # Create main executable

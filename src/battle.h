@@ -4,6 +4,7 @@
 #include "pokemon.h"
 #include "team.h"
 #include "type_effectiveness.h"
+#include "weather.h"
 #include <iostream>
 #include <memory>
 #include <random>
@@ -27,6 +28,10 @@ private:
   Team opponentTeam;
   Pokemon *selectedPokemon;
   Pokemon *opponentSelectedPokemon;
+
+  // Weather state
+  WeatherCondition currentWeather;
+  int weatherTurnsRemaining;
 
   // Battle flow methods
   void selectPokemon();
@@ -64,6 +69,11 @@ private:
   // Stat modification handling
   void applyStatModification(Pokemon &attacker, Pokemon &defender,
                              const Move &move);
+
+  // Weather handling
+  void processWeather();
+  void setWeather(WeatherCondition weather, int turns = 5);
+  void displayWeather() const;
 
   // Input handling
   int getMoveChoice() const;
