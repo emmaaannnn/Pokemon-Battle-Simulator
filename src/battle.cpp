@@ -480,12 +480,8 @@ void Battle::startBattle() {
 
   // Initial Pokemon selection
   selectOpponentPokemon();
-  if (opponentSelectedPokemon) {
-  }
   selectPokemon();
-  if (selectedPokemon) {
-  }
-
+  
   // Main battle loop
   while (!isBattleOver()) {
     std::cout << "==============================================================="
