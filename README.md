@@ -10,6 +10,7 @@ A **comprehensive C++ implementation** of a Pokémon battle system that simulate
 - **Comprehensive Status Conditions**: Sleep, Poison, Burn, Paralysis, Freeze with authentic effects
 - **Turn-based Status Processing**: Damage over time, action restrictions, and automatic recovery
 - **Effective Stat Calculations**: Burn halves Attack, Paralysis halves Speed
+- **🌤️ Weather System**: Rain, Sun, Sandstorm, and Hail with authentic type interactions and damage
 
 ### 💎 **Professional Code Quality**
 - **Modern C++17**: Clean, object-oriented design with auto type deduction
@@ -36,6 +37,7 @@ Pokemon-Battle-Simulator/
 │   ├── pokemon.cpp/h      # Pokémon class with status tracking
 │   ├── move.cpp/h         # Move system with ailment support
 │   ├── team.cpp/h         # Team management
+│   ├── weather.cpp/h      # Weather system implementation
 │   └── type_effectiveness.cpp/h  # Complete type chart implementation
 ├── include/               # External libraries
 │   └── json.hpp          # nlohmann/json library
@@ -113,11 +115,27 @@ Our comprehensive status system includes:
 - ✅ Authentic damage calculations and restrictions
 - ✅ Automatic recovery and turn countdowns
 
+### 🌤️ **Weather System** (NEW!)
+Dynamic weather conditions that affect battle strategy:
+
+| Weather | Move Effects | Environmental Damage | Immunity |
+|---------|-------------|---------------------|----------|
+| **🌧️ Rain** | Water moves: 1.5x<br/>Fire moves: 0.5x | None | All types |
+| **☀️ Sun** | Fire moves: 1.5x<br/>Water moves: 0.5x | None | All types |
+| **🌪️ Sandstorm** | No move effects | 1/16 max HP/turn | Rock, Ground, Steel |
+| **❄️ Hail** | No move effects | 1/16 max HP/turn | Ice |
+
+**Features**:
+- ✅ Authentic damage multipliers for weather-affected moves
+- ✅ Environmental damage with type-based immunity
+- ✅ Weather persistence throughout battle
+- ✅ Visual weather indicators and damage notifications
+
 ### ⭐ **STAB & Critical Hits** (NEW!)
 - **STAB Bonus**: 1.5x damage when Pokémon type matches move type
 - **Critical Hits**: Base 6.25% chance, high-crit moves 12.5%
 - **Enhanced Feedback**: "Charizard gets STAB!" and "A critical hit!" messages
-- **Proper Stacking**: All multipliers combine correctly (Type × STAB × Critical)
+- **Proper Stacking**: All multipliers combine correctly (Type × STAB × Critical × Weather)
 
 ### 🎯 **Type Effectiveness System**
 Complete implementation with authentic Pokémon type chart:
@@ -176,9 +194,28 @@ raichu is now Paralyzed!
 raichu is paralyzed and can't move!
 ```
 
+### Weather Effects in Battle
+```
+The battle begins under Rain!
+
+blastoise used hydro-pump!
+Rain boosted the attack! (1.5x damage)
+It dealt 142 damage!
+
+charizard used flamethrower!
+Rain weakened the attack! (0.5x damage)
+It dealt 31 damage.
+
+A Sandstorm is raging!
+pikachu is buffeted by the sandstorm! (-12 HP)
+golem is unaffected by the sandstorm.
+```
+
 ### Strategic Depth
 - **Status Timing**: When to inflict vs cure status conditions
 - **Type Synergy**: STAB bonuses change move selection priorities  
+- **Weather Strategy**: Choosing moves based on current weather conditions
+- **Environmental Awareness**: Protecting vulnerable Pokémon from weather damage
 - **Speed Control**: Paralysis and stat modifications affect turn order
 - **Risk/Reward**: Status moves vs immediate damage trade-offs
 
@@ -210,6 +247,25 @@ pokemon.applyStatusCondition(StatusCondition::BURN);
 
 // Process status effects each turn
 pokemon.processStatusCondition();
+```
+
+### Weather System Programming
+```cpp
+#include "weather.h"
+
+// Set battle weather
+WeatherCondition currentWeather = WeatherCondition::RAIN;
+
+// Calculate weather-modified damage
+double weatherMultiplier = Weather::getWeatherDamageMultiplier(
+    currentWeather, move.getType());
+int finalDamage = baseDamage * weatherMultiplier;
+
+// Check for weather immunity and apply environmental damage
+if (!Weather::isImmuneToWeatherDamage(currentWeather, pokemon.getTypes())) {
+    int weatherDamage = Weather::getWeatherDamage(currentWeather, pokemon.getMaxHP());
+    pokemon.takeDamage(weatherDamage);
+}
 ```
 
 ## 🧪 Testing & Quality
@@ -250,7 +306,6 @@ Streamlined experience with:
 ## 🔮 Future Enhancements
 
 ### Planned Features
-- **🌤️ Weather System**: Rain, Sun, Sandstorm, Hail effects
 - **🎯 Priority Moves**: Quick Attack, Mach Punch always go first
 - **🔄 Multi-turn Moves**: Hyper Beam recharge, Solar Beam charging
 - **🎨 Battle Animations**: ASCII art and enhanced visual effects
