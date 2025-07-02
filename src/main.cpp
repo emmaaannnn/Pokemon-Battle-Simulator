@@ -38,7 +38,7 @@ int main() {
       {"Opponent Team 6",
        {"alakazam", "slowbro", "mr-mime", "jynx", "hypno", "exeggutor"}},
       {"Opponent Team 7",
-       {"ninetails", "arcanine", "rapidash", "magmar", "flareon", "charizard"}},
+       {"ninetales", "arcanine", "rapidash", "magmar", "flareon", "charizard"}},
       {"Opponent Team 8",
        {"nidoking", "nidoqueen", "dugtrio", "rhydon", "marowak", "sandslash"}},
   };
@@ -138,7 +138,7 @@ int main() {
        }},
       {"Opponent Team 7",
        {
-           {"ninetails",
+           {"ninetales",
             {"flamethrower", "fire-spin", "confuse-ray", "take-down"}},
            {"arcanine", {"flamethrower", "fire-blast", "take-down", "leer"}},
            {"rapidash", {"fire-blast", "stomp", "take-down", "growl"}},
