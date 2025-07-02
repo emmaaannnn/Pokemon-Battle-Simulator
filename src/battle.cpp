@@ -215,6 +215,17 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
 
       std::cout << "It dealt " << damageResult.damage << " damage!";
 
+      // Show weather boost if applicable
+      double weatherMultiplier =
+          Weather::getWeatherDamageMultiplier(currentWeather, move.type);
+      if (weatherMultiplier > 1.0) {
+        std::cout << " (Boosted by " << Weather::getWeatherName(currentWeather)
+                  << "!)";
+      } else if (weatherMultiplier < 1.0) {
+        std::cout << " (Weakened by " << Weather::getWeatherName(currentWeather)
+                  << "!)";
+      }
+
       // Track overall move properties
       totalDamage += damageResult.damage;
       if (damageResult.hadSTAB)
@@ -746,6 +757,24 @@ void Battle::processWeather() {
   if (weatherTurnsRemaining > 0) {
     std::cout << " (" << weatherTurnsRemaining << " turns left)";
   }
+
+  // Show current weather boosts
+  switch (currentWeather) {
+  case WeatherCondition::RAIN:
+    std::cout << " [Water +50%, Fire -50%]";
+    break;
+  case WeatherCondition::SUN:
+    std::cout << " [Fire +50%, Water -50%]";
+    break;
+  case WeatherCondition::SANDSTORM:
+    std::cout << " [Sandstorm damage]";
+    break;
+  case WeatherCondition::HAIL:
+    std::cout << " [Hail damage]";
+    break;
+  default:
+    break;
+  }
   std::cout << std::endl;
 
   // Apply weather damage to Pokemon
@@ -792,7 +821,26 @@ void Battle::setWeather(WeatherCondition weather, int turns) {
   currentWeather = weather;
   weatherTurnsRemaining = turns;
   if (weather != WeatherCondition::NONE) {
-    std::cout << Weather::getWeatherName(weather) << " started!" << std::endl;
+    std::cout << Weather::getWeatherName(weather) << " started!";
+
+    // Show what boost the weather provides
+    switch (weather) {
+    case WeatherCondition::RAIN:
+      std::cout << " (Water moves boosted 1.5x, Fire moves weakened 0.5x)";
+      break;
+    case WeatherCondition::SUN:
+      std::cout << " (Fire moves boosted 1.5x, Water moves weakened 0.5x)";
+      break;
+    case WeatherCondition::SANDSTORM:
+      std::cout << " (Non Rock/Ground/Steel types take damage each turn)";
+      break;
+    case WeatherCondition::HAIL:
+      std::cout << " (Non Ice types take damage each turn)";
+      break;
+    default:
+      break;
+    }
+    std::cout << std::endl;
   }
 }
 
