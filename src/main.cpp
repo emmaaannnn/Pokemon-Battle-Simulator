@@ -160,7 +160,9 @@ int main() {
   };
 
   // Show available teams for player selection
-  std::cout << "\n=== Pokemon Battle Simulator ===" << std::endl;
+  std::cout << "\n================================================== Pokemon Battle " 
+                "Simulator =================================================" << std::endl;
+  std::cout << "" << std::endl;
   std::cout << "Choose your team:" << std::endl;
   std::cout << "1. Team 1 - Balanced Team (Venusaur, Pikachu, Machamp, "
                "Arcanine, Lapras, Snorlax)"
@@ -209,6 +211,10 @@ int main() {
     }
   }
   std::cout << std::endl;
+
+  std::cout << "==============================================================="
+  "===============================================================" << std::endl;
+  std::cout << "" << std::endl;
 
   // Show available opponent teams
   std::cout << "Available Opponents:" << std::endl;
