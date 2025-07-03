@@ -414,7 +414,9 @@ bool Battle::playerFirst(const Move &playerMove,
 }
 
 int Battle::getMoveChoice() const {
-  std::cout << "\nChoose a move:\n";
+  std::cout << "\nChoose an action:\n";
+
+  // Show moves
   for (size_t i = 0; i < selectedPokemon->moves.size(); ++i) {
     const Move &move = selectedPokemon->moves[i];
     std::cout << "    " << (i + 1) << ". " << move.name
@@ -430,27 +432,96 @@ int Battle::getMoveChoice() const {
     std::cout << "\n";
   }
 
-  int chosenMoveIndex;
+  // Show switch option if other Pokemon are available
+  bool canSwitch = false;
+  for (int i = 0; i < static_cast<int>(playerTeam.size()); ++i) {
+    const auto *pokemon = playerTeam.getPokemon(i);
+    if (pokemon && pokemon->isAlive() && pokemon != selectedPokemon) {
+      canSwitch = true;
+      break;
+    }
+  }
+
+  if (canSwitch) {
+    std::cout << "    " << (selectedPokemon->moves.size() + 1)
+              << ". Switch Pokémon\n";
+  }
+
+  int choice;
   while (true) {
-    std::cout << "\nSelect a move (1-" << selectedPokemon->moves.size()
-              << "): ";
-    std::cin >> chosenMoveIndex;
+    std::cout << "\nSelect an action (1-"
+              << (selectedPokemon->moves.size() + (canSwitch ? 1 : 0)) << "): ";
+    std::cin >> choice;
 
-    if (chosenMoveIndex >= 1 &&
-        chosenMoveIndex <= static_cast<int>(selectedPokemon->moves.size())) {
-
-      const Move &selectedMove = selectedPokemon->moves[chosenMoveIndex - 1];
+    // Check if it's a move choice
+    if (choice >= 1 &&
+        choice <= static_cast<int>(selectedPokemon->moves.size())) {
+      const Move &selectedMove = selectedPokemon->moves[choice - 1];
 
       // Check if the move has PP remaining
       if (!selectedMove.canUse()) {
         std::cout << selectedMove.name
-                  << " has no PP left! Choose another move.\n";
+                  << " has no PP left! Choose another action.\n";
         continue;
       }
 
-      return chosenMoveIndex - 1; // Return 0-based index
+      return choice - 1; // Return 0-based move index
     }
-    std::cout << "Invalid choice. Please select a valid move.\n";
+
+    // Check if it's a switch choice
+    if (canSwitch &&
+        choice == static_cast<int>(selectedPokemon->moves.size() + 1)) {
+      return -1; // Special value to indicate switching
+    }
+
+    std::cout << "Invalid choice. Please select a valid action.\n";
+  }
+}
+
+int Battle::getPokemonChoice() const {
+  std::cout << "\nChoose a Pokémon to send out:\n";
+
+  // Show available Pokemon (exclude currently selected one)
+  std::vector<int> availableIndices;
+  for (int i = 0; i < static_cast<int>(playerTeam.size()); ++i) {
+    const auto *pokemon = playerTeam.getPokemon(i);
+    if (pokemon && pokemon->isAlive() && pokemon != selectedPokemon) {
+      availableIndices.push_back(i);
+      std::cout << "    [" << availableIndices.size() << "] - "
+                << pokemon->name;
+
+      // Show health percentage
+      double healthPercent = pokemon->getHealthPercentage();
+      std::cout << " (HP: " << static_cast<int>(healthPercent) << "%)";
+
+      // Show status condition if any
+      if (pokemon->hasStatusCondition()) {
+        std::cout << " (" << pokemon->getStatusConditionName() << ")";
+      }
+
+      std::cout << "\n";
+    }
+  }
+
+  if (availableIndices.empty()) {
+    std::cout << "No other Pokémon available!\n";
+    return -1; // No Pokemon to switch to
+  }
+
+  int choice;
+  while (true) {
+    std::cout << "\nSelect a Pokémon (1-" << availableIndices.size() << "): ";
+    std::cin >> choice;
+
+    if (choice >= 1 && choice <= static_cast<int>(availableIndices.size())) {
+      int pokemonIndex = availableIndices[choice - 1];
+      const auto *pokemon = playerTeam.getPokemon(pokemonIndex);
+
+      if (pokemon && pokemon->isAlive()) {
+        return pokemonIndex; // Return actual team index
+      }
+    }
+    std::cout << "Invalid choice. Please select a valid Pokémon.\n";
   }
 }
 
@@ -504,64 +575,71 @@ void Battle::startBattle() {
     if (!selectedPokemon->isAlive() || !opponentSelectedPokemon->isAlive()) {
       // Handle fainted Pokemon below...
     } else {
-      // Player chooses move
-      int playerMoveIndex = getMoveChoice();
-      Move playerMove = selectedPokemon->moves[playerMoveIndex];
+      // Player chooses action (move or switch)
+      int playerChoice = getMoveChoice();
 
-      // Opponent chooses random move
-      int opponentMoveIndex = rand() % opponentSelectedPokemon->moves.size();
-      Move opponentMove = opponentSelectedPokemon->moves[opponentMoveIndex];
+      if (playerChoice == -1) {
+        // Player wants to switch Pokemon
+        int chosenIndex = getPokemonChoice();
+        if (chosenIndex >= 0) {
+          std::cout << "\n"
+                    << selectedPokemon->name << ", come back!" << std::endl;
+          selectedPokemon = playerTeam.getPokemon(chosenIndex);
+          std::cout << "Go, " << selectedPokemon->name << "!" << std::endl;
+          displayHealth(*selectedPokemon);
 
-      // Determine turn order and execute moves
-      if (playerFirst(playerMove, opponentMove)) {
-        executeMove(*selectedPokemon, *opponentSelectedPokemon,
-                    playerMoveIndex);
-        if (opponentSelectedPokemon->isAlive()) {
+          // Opponent still gets to attack (switching takes a turn)
+          int opponentMoveIndex =
+              rand() % opponentSelectedPokemon->moves.size();
           executeMove(*opponentSelectedPokemon, *selectedPokemon,
                       opponentMoveIndex);
+
+          // Display health after opponent's move
+          std::cout << std::endl;
+          if (opponentSelectedPokemon->isAlive()) {
+            displayHealth(*opponentSelectedPokemon);
+          }
+          if (selectedPokemon->isAlive()) {
+            displayHealth(*selectedPokemon);
+          }
         }
       } else {
-        executeMove(*opponentSelectedPokemon, *selectedPokemon,
-                    opponentMoveIndex);
+        // Player chose a move
+        Move playerMove = selectedPokemon->moves[playerChoice];
+
+        // Opponent chooses random move
+        int opponentMoveIndex = rand() % opponentSelectedPokemon->moves.size();
+        Move opponentMove = opponentSelectedPokemon->moves[opponentMoveIndex];
+
+        // Determine turn order and execute moves
+        if (playerFirst(playerMove, opponentMove)) {
+          executeMove(*selectedPokemon, *opponentSelectedPokemon, playerChoice);
+          if (opponentSelectedPokemon->isAlive()) {
+            executeMove(*opponentSelectedPokemon, *selectedPokemon,
+                        opponentMoveIndex);
+          }
+        } else {
+          executeMove(*opponentSelectedPokemon, *selectedPokemon,
+                      opponentMoveIndex);
+          if (selectedPokemon->isAlive()) {
+            executeMove(*selectedPokemon, *opponentSelectedPokemon,
+                        playerChoice);
+          }
+        }
+
+        // Display health after moves are executed
+        std::cout << std::endl;
+        if (opponentSelectedPokemon->isAlive()) {
+          displayHealth(*opponentSelectedPokemon);
+        }
         if (selectedPokemon->isAlive()) {
-          executeMove(*selectedPokemon, *opponentSelectedPokemon,
-                      playerMoveIndex);
+          displayHealth(*selectedPokemon);
         }
       }
-
-      // Display health after moves are executed
-      std::cout << std::endl;
-      if (opponentSelectedPokemon->isAlive()) {
-        displayHealth(*opponentSelectedPokemon);
-      }
-      if (selectedPokemon->isAlive()) {
-        displayHealth(*selectedPokemon);
-      }
     }
 
-    // Handle fainted Pokemon (simplified for now)
-    if (!selectedPokemon->isAlive()) {
-      std::cout << "\n"
-                << selectedPokemon->name << " has fainted!" << std::endl;
-      auto *newPokemon = playerTeam.getFirstAlivePokemon();
-      if (newPokemon) {
-        selectedPokemon = newPokemon;
-        std::cout << "\nYou send out " << selectedPokemon->name << "!\n";
-        displayHealth(*selectedPokemon);
-      }
-    }
-
-    if (!opponentSelectedPokemon->isAlive()) {
-      std::cout << "\nOpponent's " << opponentSelectedPokemon->name
-                << " has fainted!" << std::endl;
-      auto *newPokemon = opponentTeam.getFirstAlivePokemon();
-      if (newPokemon) {
-        opponentSelectedPokemon = newPokemon;
-        std::cout << "\nOpponent sends out " << opponentSelectedPokemon->name
-                  << "!\n";
-        displayHealth(*opponentSelectedPokemon);
-      }
-    }
+    // Handle fainted Pokemon
+    handlePokemonFainted();
   }
 
   // Display battle result
@@ -683,7 +761,43 @@ void Battle::executeTurn() {
 }
 
 void Battle::handlePokemonFainted() {
-  // Implementation of handlePokemonFainted method
+  // Handle player Pokemon fainting
+  if (!selectedPokemon->isAlive()) {
+    std::cout << "\n" << selectedPokemon->name << " has fainted!" << std::endl;
+
+    // Check if player has any Pokemon left
+    if (!playerTeam.hasAlivePokemon()) {
+      return; // Battle will end
+    }
+
+    // Let player choose replacement Pokemon
+    int chosenIndex = getPokemonChoice();
+    if (chosenIndex >= 0) {
+      selectedPokemon = playerTeam.getPokemon(chosenIndex);
+      std::cout << "\nYou send out " << selectedPokemon->name << "!\n";
+      displayHealth(*selectedPokemon);
+    }
+  }
+
+  // Handle opponent Pokemon fainting
+  if (!opponentSelectedPokemon->isAlive()) {
+    std::cout << "\nOpponent's " << opponentSelectedPokemon->name
+              << " has fainted!" << std::endl;
+
+    // Check if opponent has any Pokemon left
+    if (!opponentTeam.hasAlivePokemon()) {
+      return; // Battle will end
+    }
+
+    // Opponent automatically sends out next Pokemon (AI behavior)
+    auto *newPokemon = opponentTeam.getFirstAlivePokemon();
+    if (newPokemon) {
+      opponentSelectedPokemon = newPokemon;
+      std::cout << "\nOpponent sends out " << opponentSelectedPokemon->name
+                << "!\n";
+      displayHealth(*opponentSelectedPokemon);
+    }
+  }
 }
 
 void Battle::applyStatModification(Pokemon &attacker, Pokemon &defender,
