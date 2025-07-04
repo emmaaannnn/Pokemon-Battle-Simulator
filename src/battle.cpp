@@ -6,6 +6,9 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <chrono>
+#include <thread>
+
 
 Battle::Battle(const Team &playerTeam, const Team &opponentTeam)
     : playerTeam(playerTeam), opponentTeam(opponentTeam),
@@ -634,20 +637,19 @@ void Battle::startBattle() {
         }
       }
 
-      // Display health after moves are executed
+      // Wait a moment to simulate turn processing
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+
+      // Always display health after moves, even if fainted
       std::cout << std::endl;
-      if (opponentSelectedPokemon->isAlive()) {
-        displayHealth(*opponentSelectedPokemon);
-      }
-      if (selectedPokemon->isAlive()) {
-        displayHealth(*selectedPokemon);
+      displayHealth(*opponentSelectedPokemon);
+      displayHealth(*selectedPokemon);
+
+      // Wait a moment to simulate turn processing
+      std::this_thread::sleep_for(std::chrono::seconds(1));
       }
     }
 
-    // Always display health after moves, even if fainted
-      displayHealth(*opponentSelectedPokemon);
-      displayHealth(*selectedPokemon);
-    }
 
     // Handle fainted Pokemon (simplified for now)
     if (!selectedPokemon->isAlive()) {
@@ -657,7 +659,6 @@ void Battle::startBattle() {
       if (newPokemon) {
         selectedPokemon = newPokemon;
         std::cout << "\nYou send out " << selectedPokemon->name << "!\n";
-        displayHealth(*selectedPokemon);
       }
     }
 
@@ -669,7 +670,6 @@ void Battle::startBattle() {
         opponentSelectedPokemon = newPokemon;
         std::cout << "\nOpponent sends out " << opponentSelectedPokemon->name
                   << "!\n";
-        displayHealth(*opponentSelectedPokemon);
       }
     }
   }
