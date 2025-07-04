@@ -2,19 +2,20 @@
 #include "move_type_mapping.h"
 #include "weather.h"
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <chrono>
 #include <thread>
 
-
-Battle::Battle(const Team &playerTeam, const Team &opponentTeam)
+Battle::Battle(const Team &playerTeam, const Team &opponentTeam,
+               AIDifficulty aiDifficulty)
     : playerTeam(playerTeam), opponentTeam(opponentTeam),
       selectedPokemon(nullptr), opponentSelectedPokemon(nullptr),
-      currentWeather(WeatherCondition::NONE), weatherTurnsRemaining(0),
-      rng(std::random_device{}()), criticalDistribution(0.0, 1.0) {
+      aiDifficulty(aiDifficulty), currentWeather(WeatherCondition::NONE),
+      weatherTurnsRemaining(0), rng(std::random_device{}()),
+      criticalDistribution(0.0, 1.0) {
   srand(time(0)); // Seed random number generator once
 }
 
@@ -549,17 +550,21 @@ bool Battle::isBattleOver() const {
 }
 
 void Battle::startBattle() {
-  std::cout << "\n======================================================== BATTLE "
-  "START ========================================================="    << std::endl;
+  std::cout
+      << "\n======================================================== BATTLE "
+         "START ========================================================="
+      << std::endl;
 
   // Initial Pokemon selection
   selectOpponentPokemon();
   selectPokemon();
-  
+
   // Main battle loop
   while (!isBattleOver()) {
-    std::cout << "==============================================================="
-    "===============================================================" << std::endl;
+    std::cout
+        << "==============================================================="
+           "==============================================================="
+        << std::endl;
     std::cout << std::endl;
 
     // Process status conditions at start of turn
@@ -599,8 +604,7 @@ void Battle::startBattle() {
           displayHealth(*selectedPokemon);
 
           // Opponent still gets to attack (switching takes a turn)
-          int opponentMoveIndex =
-              rand() % opponentSelectedPokemon->moves.size();
+          int opponentMoveIndex = getAIMoveChoice();
           executeMove(*opponentSelectedPokemon, *selectedPokemon,
                       opponentMoveIndex);
 
@@ -617,39 +621,38 @@ void Battle::startBattle() {
         // Player chose a move
         Move playerMove = selectedPokemon->moves[playerChoice];
 
-        // Opponent chooses random move
-        int opponentMoveIndex = rand() % opponentSelectedPokemon->moves.size();
+        // Opponent chooses move based on AI difficulty
+        int opponentMoveIndex = getAIMoveChoice();
         Move opponentMove = opponentSelectedPokemon->moves[opponentMoveIndex];
 
-      // Determine turn order and execute moves
-      if (playerFirst(playerMove, opponentMove)) {
-        executeMove(*selectedPokemon, *opponentSelectedPokemon, playerChoice);
-        if (opponentSelectedPokemon->isAlive()) {
+        // Determine turn order and execute moves
+        if (playerFirst(playerMove, opponentMove)) {
+          executeMove(*selectedPokemon, *opponentSelectedPokemon, playerChoice);
+          if (opponentSelectedPokemon->isAlive()) {
+            executeMove(*opponentSelectedPokemon, *selectedPokemon,
+                        opponentMoveIndex);
+          }
+        } else {
           executeMove(*opponentSelectedPokemon, *selectedPokemon,
                       opponentMoveIndex);
+          if (selectedPokemon->isAlive()) {
+            executeMove(*selectedPokemon, *opponentSelectedPokemon,
+                        playerChoice);
+          }
         }
-      } else {
-        executeMove(*opponentSelectedPokemon, *selectedPokemon,
-                    opponentMoveIndex);
-        if (selectedPokemon->isAlive()) {
-          executeMove(*selectedPokemon, *opponentSelectedPokemon,
-                      playerChoice);
-        }
-      }
 
-      // Wait a moment to simulate turn processing
-      std::this_thread::sleep_for(std::chrono::seconds(1));
+        // Wait a moment to simulate turn processing
+        std::this_thread::sleep_for(std::chrono::seconds(1));
 
-      // Always display health after moves, even if fainted
-      std::cout << std::endl;
-      displayHealth(*opponentSelectedPokemon);
-      displayHealth(*selectedPokemon);
+        // Always display health after moves, even if fainted
+        std::cout << std::endl;
+        displayHealth(*opponentSelectedPokemon);
+        displayHealth(*selectedPokemon);
 
-      // Wait a moment to simulate turn processing
-      std::this_thread::sleep_for(std::chrono::seconds(1));
+        // Wait a moment to simulate turn processing
+        std::this_thread::sleep_for(std::chrono::seconds(1));
       }
     }
-
 
     // Handle fainted Pokemon (simplified for now)
     if (!selectedPokemon->isAlive()) {
@@ -997,5 +1000,205 @@ void Battle::displayWeather() const {
       std::cout << " (" << weatherTurnsRemaining << " turns remaining)";
     }
     std::cout << std::endl;
+  }
+}
+
+// AI Move Selection Implementation
+int Battle::getAIMoveChoice() const {
+  switch (aiDifficulty) {
+  case AIDifficulty::EASY:
+    return getAIMoveEasy();
+  case AIDifficulty::MEDIUM:
+    return getAIMoveMedium();
+  case AIDifficulty::HARD:
+    return getAIMoveHard();
+  case AIDifficulty::EXPERT:
+    return getAIMoveExpert();
+  default:
+    return getAIMoveEasy();
+  }
+}
+
+// Easy AI: Random move selection (current behavior)
+int Battle::getAIMoveEasy() const {
+  std::vector<int> usableMoves;
+
+  // Find moves with PP
+  for (int i = 0; i < static_cast<int>(opponentSelectedPokemon->moves.size());
+       ++i) {
+    if (opponentSelectedPokemon->moves[i].canUse()) {
+      usableMoves.push_back(i);
+    }
+  }
+
+  // If no moves have PP, use first move anyway
+  if (usableMoves.empty()) {
+    return 0;
+  }
+
+  // Choose random move from usable moves
+  return usableMoves[rand() % usableMoves.size()];
+}
+
+// Medium AI: Basic type effectiveness consideration
+int Battle::getAIMoveMedium() const {
+  std::vector<std::pair<int, int>> moveScores; // {moveIndex, score}
+
+  for (int i = 0; i < static_cast<int>(opponentSelectedPokemon->moves.size());
+       ++i) {
+    const Move &move = opponentSelectedPokemon->moves[i];
+
+    if (!move.canUse()) {
+      continue; // Skip moves without PP
+    }
+
+    int score =
+        evaluateMoveScore(move, *opponentSelectedPokemon, *selectedPokemon);
+    moveScores.push_back({i, score});
+  }
+
+  if (moveScores.empty()) {
+    return 0; // Fallback to first move
+  }
+
+  // Sort by score (highest first)
+  std::sort(moveScores.begin(), moveScores.end(),
+            [](const auto &a, const auto &b) { return a.second > b.second; });
+
+  // 70% chance to pick best move, 30% chance for variety
+  if (rand() % 100 < 70) {
+    return moveScores[0].first;
+  } else {
+    return moveScores[rand() % moveScores.size()].first;
+  }
+}
+
+// Hard AI: Advanced strategy
+int Battle::getAIMoveHard() const {
+  // TODO: Implement more sophisticated AI logic
+  // For now, use medium AI logic with higher consistency
+  std::vector<std::pair<int, int>> moveScores; // {moveIndex, score}
+
+  for (int i = 0; i < static_cast<int>(opponentSelectedPokemon->moves.size());
+       ++i) {
+    const Move &move = opponentSelectedPokemon->moves[i];
+
+    if (!move.canUse()) {
+      continue;
+    }
+
+    int score =
+        evaluateMoveScore(move, *opponentSelectedPokemon, *selectedPokemon);
+    moveScores.push_back({i, score});
+  }
+
+  if (moveScores.empty()) {
+    return 0;
+  }
+
+  std::sort(moveScores.begin(), moveScores.end(),
+            [](const auto &a, const auto &b) { return a.second > b.second; });
+
+  // 90% chance to pick best move
+  if (rand() % 100 < 90) {
+    return moveScores[0].first;
+  } else {
+    return moveScores[rand() % std::min(3, static_cast<int>(moveScores.size()))]
+        .first;
+  }
+}
+
+// Expert AI: Near-optimal play
+int Battle::getAIMoveExpert() const {
+  // TODO: Implement expert-level AI with prediction and meta considerations
+  // For now, use hard AI logic with even higher consistency
+  return getAIMoveHard();
+}
+
+// Evaluate move effectiveness
+int Battle::evaluateMoveScore(const Move &move, const Pokemon &attacker,
+                              const Pokemon &defender) const {
+  int score = 0;
+
+  // Base score from move power
+  if (move.power > 0) {
+    score += move.power;
+  } else {
+    score += 50; // Base score for status moves
+  }
+
+  // Type effectiveness bonus
+  double typeMultiplier = calculateTypeAdvantage(move.type, defender.types);
+  if (typeMultiplier > 1.0) {
+    score += 50; // Super effective bonus
+  } else if (typeMultiplier < 1.0) {
+    score -= 25; // Not very effective penalty
+  }
+
+  // STAB bonus
+  if (hasSTAB(attacker, move)) {
+    score += 25;
+  }
+
+  // Accuracy consideration
+  score = static_cast<int>(score * (move.accuracy / 100.0));
+
+  // Priority moves get bonus
+  if (move.priority > 0) {
+    score += 20;
+  }
+
+  // Status move considerations
+  if (move.power <= 0) {
+    // Healing moves when low HP
+    if (move.healing > 0 && attacker.getHealthPercentage() < 50.0) {
+      score += 75;
+    }
+
+    // Status moves when opponent doesn't have status
+    if (move.getStatusCondition() != StatusCondition::NONE &&
+        !defender.hasStatusCondition()) {
+      score += 40;
+    }
+  }
+
+  return score;
+}
+
+// Calculate type advantage multiplier
+double Battle::calculateTypeAdvantage(
+    const std::string &moveType,
+    const std::vector<std::string> &defenderTypes) const {
+  return TypeEffectiveness::getEffectivenessMultiplier(moveType, defenderTypes);
+}
+
+// AI Pokemon switching (placeholder for future implementation)
+int Battle::getAIPokemonChoice() const {
+  // Find first alive Pokemon (simple logic for now)
+  for (int i = 0; i < static_cast<int>(opponentTeam.size()); ++i) {
+    const auto *pokemon = opponentTeam.getPokemon(i);
+    if (pokemon && pokemon->isAlive() && pokemon != opponentSelectedPokemon) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+// AI switching decision (Easy AI never switches voluntarily)
+bool Battle::shouldAISwitch() const {
+  switch (aiDifficulty) {
+  case AIDifficulty::EASY:
+    return false; // Easy AI never switches
+  case AIDifficulty::MEDIUM:
+    // TODO: Basic switching logic
+    return false;
+  case AIDifficulty::HARD:
+    // TODO: Smart switching logic
+    return false;
+  case AIDifficulty::EXPERT:
+    // TODO: Advanced switching logic
+    return false;
+  default:
+    return false;
   }
 }
