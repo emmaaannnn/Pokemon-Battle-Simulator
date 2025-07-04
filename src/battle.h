@@ -11,8 +11,17 @@
 
 class Battle {
 public:
+  // AI Difficulty Levels
+  enum class AIDifficulty {
+    EASY,   // Random moves, no switching
+    MEDIUM, // Basic type effectiveness, limited switching
+    HARD,   // Smart type effectiveness, strategic switching
+    EXPERT  // Advanced strategy with prediction?
+  };
+
   // Constructor
-  Battle(const Team &playerTeam, const Team &opponentTeam);
+  Battle(const Team &playerTeam, const Team &opponentTeam,
+         AIDifficulty aiDifficulty = AIDifficulty::EASY);
 
   // Main battle interface
   void startBattle();
@@ -28,6 +37,9 @@ private:
   Team opponentTeam;
   Pokemon *selectedPokemon;
   Pokemon *opponentSelectedPokemon;
+
+  // AI Configuration
+  AIDifficulty aiDifficulty;
 
   // Weather state
   WeatherCondition currentWeather;
@@ -78,6 +90,24 @@ private:
   // Input handling
   int getMoveChoice() const;
   int getPokemonChoice() const;
+
+  // AI move selection based on difficulty
+  int getAIMoveChoice() const;
+  int getAIPokemonChoice() const;
+  bool shouldAISwitch() const;
+
+  // AI difficulty-specific move selection
+  int getAIMoveEasy() const;
+  int getAIMoveMedium() const;
+  int getAIMoveHard() const;
+  int getAIMoveExpert() const;
+
+  // AI strategy helpers
+  int evaluateMoveScore(const Move &move, const Pokemon &attacker,
+                        const Pokemon &defender) const;
+  double
+  calculateTypeAdvantage(const std::string &moveType,
+                         const std::vector<std::string> &defenderTypes) const;
 
   // Random number generation for critical hits
   mutable std::mt19937 rng;
