@@ -40,6 +40,7 @@ void Battle::displayHealth(const Pokemon &pokemon) const {
     }
   }
   std::cout << "] " << static_cast<int>(healthPercent) << "%";
+  std::cout << std::endl;
 
   // Show status condition
   if (pokemon.hasStatusCondition()) {
@@ -72,6 +73,7 @@ void Battle::selectPokemon() {
         selectedPokemon = pokemon;
         std::cout << "\nYou have selected " << selectedPokemon->name
                   << " to send out!" << std::endl;
+        std::cout << std::endl;
         break;
       }
     }
@@ -544,22 +546,19 @@ bool Battle::isBattleOver() const {
 }
 
 void Battle::startBattle() {
-  std::cout << "\n====================== BATTLE START ======================"
-            << std::endl;
+  std::cout << "\n======================================================== BATTLE "
+  "START ========================================================="    << std::endl;
 
   // Initial Pokemon selection
   selectOpponentPokemon();
-  if (opponentSelectedPokemon) {
-    displayHealth(*opponentSelectedPokemon);
-  }
-
   selectPokemon();
-  if (selectedPokemon) {
-    displayHealth(*selectedPokemon);
-  }
-
+  
   // Main battle loop
   while (!isBattleOver()) {
+    std::cout << "==============================================================="
+    "===============================================================" << std::endl;
+    std::cout << std::endl;
+
     // Process status conditions at start of turn
     if (selectedPokemon->hasStatusCondition()) {
       selectedPokemon->processStatusCondition();
@@ -570,6 +569,14 @@ void Battle::startBattle() {
 
     // Process weather conditions
     processWeather();
+
+    // Show health bars before move selection
+    if (opponentSelectedPokemon->isAlive()) {
+      displayHealth(*opponentSelectedPokemon);
+    }
+    if (selectedPokemon->isAlive()) {
+      displayHealth(*selectedPokemon);
+    }
 
     // Check if either Pokemon fainted from status damage
     if (!selectedPokemon->isAlive() || !opponentSelectedPokemon->isAlive()) {
@@ -611,35 +618,60 @@ void Battle::startBattle() {
         int opponentMoveIndex = rand() % opponentSelectedPokemon->moves.size();
         Move opponentMove = opponentSelectedPokemon->moves[opponentMoveIndex];
 
-        // Determine turn order and execute moves
-        if (playerFirst(playerMove, opponentMove)) {
-          executeMove(*selectedPokemon, *opponentSelectedPokemon, playerChoice);
-          if (opponentSelectedPokemon->isAlive()) {
-            executeMove(*opponentSelectedPokemon, *selectedPokemon,
-                        opponentMoveIndex);
-          }
-        } else {
+      // Determine turn order and execute moves
+      if (playerFirst(playerMove, opponentMove)) {
+        executeMove(*selectedPokemon, *opponentSelectedPokemon, playerChoice);
+        if (opponentSelectedPokemon->isAlive()) {
           executeMove(*opponentSelectedPokemon, *selectedPokemon,
                       opponentMoveIndex);
-          if (selectedPokemon->isAlive()) {
-            executeMove(*selectedPokemon, *opponentSelectedPokemon,
-                        playerChoice);
-          }
         }
-
-        // Display health after moves are executed
-        std::cout << std::endl;
-        if (opponentSelectedPokemon->isAlive()) {
-          displayHealth(*opponentSelectedPokemon);
-        }
+      } else {
+        executeMove(*opponentSelectedPokemon, *selectedPokemon,
+                    opponentMoveIndex);
         if (selectedPokemon->isAlive()) {
-          displayHealth(*selectedPokemon);
+          executeMove(*selectedPokemon, *opponentSelectedPokemon,
+                      playerChoice);
         }
+      }
+
+      // Display health after moves are executed
+      std::cout << std::endl;
+      if (opponentSelectedPokemon->isAlive()) {
+        displayHealth(*opponentSelectedPokemon);
+      }
+      if (selectedPokemon->isAlive()) {
+        displayHealth(*selectedPokemon);
       }
     }
 
-    // Handle fainted Pokemon
-    handlePokemonFainted();
+    // Always display health after moves, even if fainted
+      displayHealth(*opponentSelectedPokemon);
+      displayHealth(*selectedPokemon);
+    }
+
+    // Handle fainted Pokemon (simplified for now)
+    if (!selectedPokemon->isAlive()) {
+      std::cout << "\n"
+                << selectedPokemon->name << " has fainted!" << std::endl;
+      auto *newPokemon = playerTeam.getFirstAlivePokemon();
+      if (newPokemon) {
+        selectedPokemon = newPokemon;
+        std::cout << "\nYou send out " << selectedPokemon->name << "!\n";
+        displayHealth(*selectedPokemon);
+      }
+    }
+
+    if (!opponentSelectedPokemon->isAlive()) {
+      std::cout << "\nOpponent's " << opponentSelectedPokemon->name
+                << " has fainted!" << std::endl;
+      auto *newPokemon = opponentTeam.getFirstAlivePokemon();
+      if (newPokemon) {
+        opponentSelectedPokemon = newPokemon;
+        std::cout << "\nOpponent sends out " << opponentSelectedPokemon->name
+                  << "!\n";
+        displayHealth(*opponentSelectedPokemon);
+      }
+    }
   }
 
   // Display battle result
