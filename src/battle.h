@@ -16,7 +16,7 @@ public:
     EASY,   // Random moves, no switching
     MEDIUM, // Basic type effectiveness, limited switching
     HARD,   // Smart type effectiveness, strategic switching
-    EXPERT  // Advanced strategy with prediction?
+    EXPERT  // Advanced strategy with prediction
   };
 
   // Constructor
