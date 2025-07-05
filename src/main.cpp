@@ -279,9 +279,7 @@ int main() {
   std::cout << "" << std::endl;
   std::cout << "Choose AI Difficulty Level:" << std::endl;
   std::cout << "[1] - Easy (Random moves, no switching)" << std::endl;
-  std::cout << "[2] - Medium (TODO: Basic type effectiveness) [Currently same "
-               "as Easy]"
-            << std::endl;
+  std::cout << "[2] - Medium (Basic type effectiveness)" << std::endl;
   std::cout << "[3] - Hard (TODO: Smart strategy) [Currently same as Easy]"
             << std::endl;
   std::cout << "[4] - Expert (TODO: Advanced AI) [Currently same as Easy]"
@@ -306,7 +304,7 @@ int main() {
     break;
   case 2:
     aiDifficulty = Battle::AIDifficulty::MEDIUM;
-    std::cout << "\nAI Difficulty set to: Medium (currently uses Easy AI logic)"
+    std::cout << "\nAI Difficulty set to: Medium (Basic type effectiveness)"
               << std::endl;
     break;
   case 3:

@@ -1040,10 +1040,45 @@ int Battle::getAIMoveEasy() const {
   return usableMoves[rand() % usableMoves.size()];
 }
 
-// Medium AI: TODO - Implement basic type effectiveness consideration
+// Medium AI: Basic type effectiveness consideration
 int Battle::getAIMoveMedium() const {
-  // For now, fallback to Easy AI until we implement this
-  return getAIMoveEasy();
+  std::vector<int> usableMoves;
+  std::vector<double> moveScores;
+
+  // Find moves with PP and calculate their type effectiveness
+  for (int i = 0; i < static_cast<int>(opponentSelectedPokemon->moves.size());
+       ++i) {
+    if (opponentSelectedPokemon->moves[i].canUse()) {
+      usableMoves.push_back(i);
+
+      // Calculate type effectiveness score
+      const Move &move = opponentSelectedPokemon->moves[i];
+      double typeMultiplier =
+          calculateTypeAdvantage(move.type, selectedPokemon->types);
+
+      // Score based on type effectiveness and move power
+      double score = (move.power > 0 ? move.power : 50) * typeMultiplier;
+      moveScores.push_back(score);
+    }
+  }
+
+  // If no moves have PP, use first move anyway
+  if (usableMoves.empty()) {
+    return 0;
+  }
+
+  // Find moves with the highest score (super effective moves)
+  double maxScore = *std::max_element(moveScores.begin(), moveScores.end());
+  std::vector<int> bestMoves;
+
+  for (size_t i = 0; i < moveScores.size(); ++i) {
+    if (moveScores[i] == maxScore) {
+      bestMoves.push_back(usableMoves[i]);
+    }
+  }
+
+  // Randomly select from the best moves
+  return bestMoves[rand() % bestMoves.size()];
 }
 
 // Hard AI: TODO - Implement smart strategy with type effectiveness
@@ -1058,12 +1093,44 @@ int Battle::getAIMoveExpert() const {
   return getAIMoveEasy();
 }
 
-// Evaluate move effectiveness (placeholder for future AI levels)
+// Evaluate move effectiveness for AI decision making
 int Battle::evaluateMoveScore(const Move &move, const Pokemon &attacker,
                               const Pokemon &defender) const {
-  // TODO: Implement for Medium/Hard/Expert AI levels
-  // For now, just return move power as basic score
-  return move.power > 0 ? move.power : 50;
+  // Base score from move power
+  int baseScore = move.power > 0 ? move.power : 50;
+
+  // Type effectiveness multiplier
+  double typeMultiplier = calculateTypeAdvantage(move.type, defender.types);
+
+  // STAB (Same Type Attack Bonus)
+  double stabMultiplier = 1.0;
+  for (const auto &type : attacker.types) {
+    if (type == move.type) {
+      stabMultiplier = 1.5;
+      break;
+    }
+  }
+
+  // Weather bonus
+  double weatherMultiplier =
+      Weather::getWeatherDamageMultiplier(currentWeather, move.type);
+
+  // Calculate final score
+  double finalScore =
+      baseScore * typeMultiplier * stabMultiplier * weatherMultiplier;
+
+  // Bonus for status moves that could be beneficial
+  if (move.power <= 0) {
+    if (move.stat_chance > 0) {
+      finalScore += 30; // Buff/debuff moves get bonus points
+    }
+    if (move.name == "toxic" || move.name == "will-o-wisp" ||
+        move.name == "sleep-powder") {
+      finalScore += 40; // Status condition moves get bonus points
+    }
+  }
+
+  return static_cast<int>(finalScore);
 }
 
 // Calculate type advantage multiplier (placeholder for future AI levels)
