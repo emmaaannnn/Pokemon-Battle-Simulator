@@ -1040,135 +1040,37 @@ int Battle::getAIMoveEasy() const {
   return usableMoves[rand() % usableMoves.size()];
 }
 
-// Medium AI: Basic type effectiveness consideration
+// Medium AI: TODO - Implement basic type effectiveness consideration
 int Battle::getAIMoveMedium() const {
-  std::vector<std::pair<int, int>> moveScores; // {moveIndex, score}
-
-  for (int i = 0; i < static_cast<int>(opponentSelectedPokemon->moves.size());
-       ++i) {
-    const Move &move = opponentSelectedPokemon->moves[i];
-
-    if (!move.canUse()) {
-      continue; // Skip moves without PP
-    }
-
-    int score =
-        evaluateMoveScore(move, *opponentSelectedPokemon, *selectedPokemon);
-    moveScores.push_back({i, score});
-  }
-
-  if (moveScores.empty()) {
-    return 0; // Fallback to first move
-  }
-
-  // Sort by score (highest first)
-  std::sort(moveScores.begin(), moveScores.end(),
-            [](const auto &a, const auto &b) { return a.second > b.second; });
-
-  // 70% chance to pick best move, 30% chance for variety
-  if (rand() % 100 < 70) {
-    return moveScores[0].first;
-  } else {
-    return moveScores[rand() % moveScores.size()].first;
-  }
+  // For now, fallback to Easy AI until we implement this
+  return getAIMoveEasy();
 }
 
-// Hard AI: Advanced strategy
+// Hard AI: TODO - Implement smart strategy with type effectiveness
 int Battle::getAIMoveHard() const {
-  // TODO: Implement more sophisticated AI logic
-  // For now, use medium AI logic with higher consistency
-  std::vector<std::pair<int, int>> moveScores; // {moveIndex, score}
-
-  for (int i = 0; i < static_cast<int>(opponentSelectedPokemon->moves.size());
-       ++i) {
-    const Move &move = opponentSelectedPokemon->moves[i];
-
-    if (!move.canUse()) {
-      continue;
-    }
-
-    int score =
-        evaluateMoveScore(move, *opponentSelectedPokemon, *selectedPokemon);
-    moveScores.push_back({i, score});
-  }
-
-  if (moveScores.empty()) {
-    return 0;
-  }
-
-  std::sort(moveScores.begin(), moveScores.end(),
-            [](const auto &a, const auto &b) { return a.second > b.second; });
-
-  // 90% chance to pick best move
-  if (rand() % 100 < 90) {
-    return moveScores[0].first;
-  } else {
-    return moveScores[rand() % std::min(3, static_cast<int>(moveScores.size()))]
-        .first;
-  }
+  // For now, fallback to Easy AI until we implement this
+  return getAIMoveEasy();
 }
 
-// Expert AI: Near-optimal play
+// Expert AI: TODO - Implement expert-level AI with prediction
 int Battle::getAIMoveExpert() const {
-  // TODO: Implement expert-level AI with prediction and meta considerations
-  // For now, use hard AI logic with even higher consistency
-  return getAIMoveHard();
+  // For now, fallback to Easy AI until we implement this
+  return getAIMoveEasy();
 }
 
-// Evaluate move effectiveness
+// Evaluate move effectiveness (placeholder for future AI levels)
 int Battle::evaluateMoveScore(const Move &move, const Pokemon &attacker,
                               const Pokemon &defender) const {
-  int score = 0;
-
-  // Base score from move power
-  if (move.power > 0) {
-    score += move.power;
-  } else {
-    score += 50; // Base score for status moves
-  }
-
-  // Type effectiveness bonus
-  double typeMultiplier = calculateTypeAdvantage(move.type, defender.types);
-  if (typeMultiplier > 1.0) {
-    score += 50; // Super effective bonus
-  } else if (typeMultiplier < 1.0) {
-    score -= 25; // Not very effective penalty
-  }
-
-  // STAB bonus
-  if (hasSTAB(attacker, move)) {
-    score += 25;
-  }
-
-  // Accuracy consideration
-  score = static_cast<int>(score * (move.accuracy / 100.0));
-
-  // Priority moves get bonus
-  if (move.priority > 0) {
-    score += 20;
-  }
-
-  // Status move considerations
-  if (move.power <= 0) {
-    // Healing moves when low HP
-    if (move.healing > 0 && attacker.getHealthPercentage() < 50.0) {
-      score += 75;
-    }
-
-    // Status moves when opponent doesn't have status
-    if (move.getStatusCondition() != StatusCondition::NONE &&
-        !defender.hasStatusCondition()) {
-      score += 40;
-    }
-  }
-
-  return score;
+  // TODO: Implement for Medium/Hard/Expert AI levels
+  // For now, just return move power as basic score
+  return move.power > 0 ? move.power : 50;
 }
 
-// Calculate type advantage multiplier
+// Calculate type advantage multiplier (placeholder for future AI levels)
 double Battle::calculateTypeAdvantage(
     const std::string &moveType,
     const std::vector<std::string> &defenderTypes) const {
+  // TODO: Use this for Medium/Hard/Expert AI levels
   return TypeEffectiveness::getEffectivenessMultiplier(moveType, defenderTypes);
 }
 
