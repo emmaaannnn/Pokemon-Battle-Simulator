@@ -2,12 +2,10 @@
 #include "move_type_mapping.h"
 #include "weather.h"
 #include <algorithm>
-#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <thread>
 
 Battle::Battle(const Team &playerTeam, const Team &opponentTeam,
                AIDifficulty aiDifficulty)
@@ -641,16 +639,10 @@ void Battle::startBattle() {
           }
         }
 
-        // Wait a moment to simulate turn processing
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-
         // Always display health after moves, even if fainted
         std::cout << std::endl;
         displayHealth(*opponentSelectedPokemon);
         displayHealth(*selectedPokemon);
-
-        // Wait a moment to simulate turn processing
-        std::this_thread::sleep_for(std::chrono::seconds(1));
       }
     }
 
