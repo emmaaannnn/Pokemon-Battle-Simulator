@@ -25,7 +25,7 @@ A **comprehensive C++ implementation** of a Pokémon battle system that simulate
 - **⚔️ Strategic Combat**: Status conditions, stat modifications, and multi-turn effects
 - **👥 Team Management**: Create and manage teams of up to 6 Pokémon with pre-built configurations
 - **🎨 Enhanced UI**: Visual health bars, status condition indicators, and detailed battle feedback
-- **📁 JSON Data Storage**: Modular, expandable data structure for easy customization
+- **📁 JSON Data Storage**: Modular, expandable data structure for easy customisation
 
 ## 📁 Project Structure
 
@@ -48,7 +48,7 @@ Pokemon-Battle-Simulator/
 ├── examples/             # Interactive demos
 │   ├── game-demo.cpp     # Simplified battle interface
 │   └── debug-test.cpp    # Development testing
-├── build/                # Build artifacts (CMake generated)
+├── build/                # Build artefacts (CMake generated)
 ├── CMakeLists.txt        # Build configuration
 └── README.md            # This documentation
 ```
@@ -147,7 +147,7 @@ Complete implementation with authentic Pokémon type chart:
 ### 🎮 **Enhanced Battle Flow**
 - **Turn Priority**: Move priority → Effective Speed → Random tiebreaker  
 - **Status Processing**: Automatic status effects at turn start
-- **Smart AI**: Opponent prioritizes damage moves and switches strategically
+- **Smart AI**: Opponent prioritises damage moves and switches strategically
 - **Visual Polish**: Health bars, status indicators, and detailed battle log
 
 ## 📊 Data Examples
@@ -361,7 +361,7 @@ TEST_F(WeatherIntegrationTest, RainBoostsWaterMoves) {
 
 #### **Google Test Framework**
 - **Assertions**: `EXPECT_EQ`, `EXPECT_TRUE`, `EXPECT_DOUBLE_EQ`, `ASSERT_NE`
-- **Test Fixtures**: Class-based test organization with `SetUp()` and `TearDown()`
+- **Test Fixtures**: Class-based test organisation with `SetUp()` and `TearDown()`
 - **Parameterized Tests**: Data-driven testing for comprehensive coverage
 - **Test Discovery**: Automatic test registration with `gtest_discover_tests()`
 
@@ -525,16 +525,16 @@ class TypeEffectivenessTest : public ::testing::TestWithParam<TypeMatchup> {
 ## 🔮 Future Enhancements
 
 ### Planned Features
-- **🎯 Priority Moves**: Quick Attack, Mach Punch always go first
-- **🔄 Multi-turn Moves**: Hyper Beam recharge, Solar Beam charging
+- **🔄 Multi-turn Moves**: Hyper Beam recharge, Solar Beam charging mechanics
 - **🎨 Battle Animations**: ASCII art and enhanced visual effects
-- **🏆 Tournament Mode**: Elite Four progression and championships
+- **🏆 Tournament Mode**: Elite Four progression and championship battles
+- **🎯 Expert AI**: Advanced prediction and strategic decision making
 
 ### Technical Improvements
-- **📊 Battle Statistics**: Damage dealt, accuracy rates, status success
 - **💾 Save System**: Team persistence and battle history
-- **🤖 Advanced AI**: Difficulty levels and strategic decision making
 - **🎵 Audio**: Sound effects and battle music integration
+- **📊 Enhanced Statistics**: Detailed battle analytics and performance metrics
+- **🌐 Multiplayer**: Network battles and online tournaments
 
 ## 🤝 Contributing
 
