@@ -11,6 +11,7 @@ A **comprehensive C++ implementation** of a Pokémon battle system that simulate
 - **Turn-based Status Processing**: Damage over time, action restrictions, and automatic recovery
 - **Effective Stat Calculations**: Burn halves Attack, Paralysis halves Speed
 - **🌤️ Weather System**: Rain, Sun, Sandstorm, and Hail with authentic type interactions and damage
+- **🧠 AI Difficulty System**: Easy, Medium, and Hard AI opponents with strategic decision making
 
 ### 💎 **Professional Code Quality**
 - **Modern C++17**: Clean, object-oriented design with auto type deduction
@@ -25,7 +26,7 @@ A **comprehensive C++ implementation** of a Pokémon battle system that simulate
 - **⚔️ Strategic Combat**: Status conditions, stat modifications, and multi-turn effects
 - **👥 Team Management**: Create and manage teams of up to 6 Pokémon with pre-built configurations
 - **🎨 Enhanced UI**: Visual health bars, status condition indicators, and detailed battle feedback
-- **📁 JSON Data Storage**: Modular, expandable data structure for easy customization
+- **📁 JSON Data Storage**: Modular, expandable data structure for easy customisation
 
 ## 📁 Project Structure
 
@@ -48,7 +49,7 @@ Pokemon-Battle-Simulator/
 ├── examples/             # Interactive demos
 │   ├── game-demo.cpp     # Simplified battle interface
 │   └── debug-test.cpp    # Development testing
-├── build/                # Build artifacts (CMake generated)
+├── build/                # Build artefacts (CMake generated)
 ├── CMakeLists.txt        # Build configuration
 └── README.md            # This documentation
 ```
@@ -137,6 +138,24 @@ Dynamic weather conditions that affect battle strategy:
 - **Enhanced Feedback**: "Charizard gets STAB!" and "A critical hit!" messages
 - **Proper Stacking**: All multipliers combine correctly (Type × STAB × Critical × Weather)
 
+### 🧠 **AI Difficulty System** (NEW!)
+Choose your challenge level with progressively smarter opponents:
+
+| Difficulty | Strategy | Switching | Decision Making |
+|------------|----------|-----------|-----------------|
+| **🟢 Easy** | Random moves only | Never switches | Pure randomness |
+| **🟡 Medium** | Basic type effectiveness | Switches when low HP | Considers move power + type |
+| **🔴 Hard** | Advanced strategy | Strategic switching | Multi-factor analysis |
+| **⭐ Expert** | *Coming Soon* | *Coming Soon* | *Coming Soon* |
+
+**Hard AI Features**:
+- ✅ **Strategic Move Selection**: Prioritises super-effective moves with 1.8x bonus
+- ✅ **Intelligent Switching**: Switches when disadvantaged or facing super-effective moves
+- ✅ **Status Strategy**: Uses status moves early, focuses damage when opponent is low
+- ✅ **Weather Awareness**: Boosts weather-synergistic moves by 1.3x
+- ✅ **OHKO Timing**: Prioritises one-hit KO moves against weakened opponents
+- ✅ **Weighted Selection**: 50% best move, 30% second best, 20% random for unpredictability
+
 ### 🎯 **Type Effectiveness System**
 Complete implementation with authentic Pokémon type chart:
 - **Super Effective** (2x): "It's super effective!"
@@ -147,7 +166,7 @@ Complete implementation with authentic Pokémon type chart:
 ### 🎮 **Enhanced Battle Flow**
 - **Turn Priority**: Move priority → Effective Speed → Random tiebreaker  
 - **Status Processing**: Automatic status effects at turn start
-- **Smart AI**: Opponent prioritizes damage moves and switches strategically
+- **Smart AI**: Multiple difficulty levels with strategic decision making
 - **Visual Polish**: Health bars, status indicators, and detailed battle log
 
 ## 📊 Data Examples
@@ -211,6 +230,25 @@ pikachu is buffeted by the sandstorm! (-12 HP)
 golem is unaffected by the sandstorm.
 ```
 
+### Hard AI Strategic Thinking
+```
+Choose AI Difficulty Level:
+[3] - Hard (Smart strategy with switching)
+
+AI Difficulty set to: Hard (Smart strategy with switching)
+
+venusaur used earthquake!
+It dealt 156 damage! It's super effective!
+
+// Hard AI recognises type disadvantage and switches
+aerodactyl, come back!
+Opponent sends out golem!
+
+// Hard AI prioritises super-effective moves
+golem used earthquake!
+It dealt 189 damage! It's super effective!
+```
+
 ### Strategic Depth
 - **Status Timing**: When to inflict vs cure status conditions
 - **Type Synergy**: STAB bonuses change move selection priorities  
@@ -218,6 +256,8 @@ golem is unaffected by the sandstorm.
 - **Environmental Awareness**: Protecting vulnerable Pokémon from weather damage
 - **Speed Control**: Paralysis and stat modifications affect turn order
 - **Risk/Reward**: Status moves vs immediate damage trade-offs
+- **AI Adaptation**: Different strategies required for Easy, Medium, and Hard opponents
+- **Switching Timing**: Knowing when to switch vs when to attack based on AI difficulty
 
 ## 🔧 Advanced Usage
 
@@ -280,6 +320,11 @@ echo "1\n4\n1\n3\n3\n3" | ./bin/pokemon_battle
 
 # Test STAB and critical hits  
 echo "2\n3\n2\n1\n1\n1" | ./bin/pokemon_battle
+
+# Test AI difficulty levels
+echo "1\n1\n1\n1\n1\n1\n1" | ./bin/pokemon_battle  # Easy AI
+echo "1\n1\n2\n2\n2\n2\n2" | ./bin/pokemon_battle  # Medium AI  
+echo "1\n1\n3\n3\n3\n3\n3" | ./bin/pokemon_battle  # Hard AI
 ```
 
 ### Code Quality Metrics
@@ -294,6 +339,7 @@ echo "2\n3\n2\n1\n1\n1" | ./bin/pokemon_battle
 Full-featured battle system with:
 - Team selection from 3 pre-built teams
 - 8 Gym Leader opponents with themed teams
+- AI difficulty selection (Easy, Medium, Hard)
 - Complete status condition mechanics
 - Enhanced visual feedback
 
@@ -314,7 +360,7 @@ Streamlined experience with:
 ### Technical Improvements
 - **📊 Battle Statistics**: Damage dealt, accuracy rates, status success
 - **💾 Save System**: Team persistence and battle history
-- **🤖 Advanced AI**: Difficulty levels and strategic decision making
+- **🤖 Expert AI**: Advanced difficulty level with prediction and strategy
 - **🎵 Audio**: Sound effects and battle music integration
 
 ## 🤝 Contributing
