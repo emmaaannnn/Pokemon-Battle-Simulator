@@ -1,6 +1,4 @@
-#include <chrono>
 #include <iostream>
-#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -160,8 +158,10 @@ int main() {
   };
 
   // Show available teams for player selection
-  std::cout << "\n================================================== Pokemon Battle " 
-                "Simulator =================================================" << std::endl;
+  std::cout
+      << "\n================================================== Pokemon Battle "
+         "Simulator ================================================="
+      << std::endl;
   std::cout << "" << std::endl;
   std::cout << "Choose your team:" << std::endl;
   std::cout << "1. Team 1 - Balanced Team (Venusaur, Pikachu, Machamp, "
@@ -213,7 +213,8 @@ int main() {
   std::cout << std::endl;
 
   std::cout << "==============================================================="
-  "===============================================================" << std::endl;
+               "==============================================================="
+            << std::endl;
   std::cout << "" << std::endl;
 
   // Show available opponent teams
@@ -269,7 +270,59 @@ int main() {
   }
   std::cout << std::endl;
 
+  // AI Difficulty Selection
+  std::cout << "==============================================================="
+               "==============================================================="
+            << std::endl;
+  std::cout << "" << std::endl;
+  std::cout << "Choose AI Difficulty Level:" << std::endl;
+  std::cout << "[1] - Easy (Random moves, no switching)" << std::endl;
+  std::cout << "[2] - Medium (Basic type effectiveness)" << std::endl;
+  std::cout << "[3] - Hard (Smart strategy with switching)"
+            << std::endl;
+  std::cout << "[4] - Expert (TODO: Advanced AI) [Currently same as Easy]"
+            << std::endl;
+
+  int chosenDifficulty;
+  std::cout << "\n Enter the difficulty level (1-4): ";
+  std::cin >> chosenDifficulty;
+
+  // Validate input
+  if (chosenDifficulty < 1 || chosenDifficulty > 4) {
+    std::cout << "Invalid selection - defaulting to Easy." << std::endl;
+    chosenDifficulty = 1;
+  }
+
+  // Convert to AI difficulty enum
+  Battle::AIDifficulty aiDifficulty;
+  switch (chosenDifficulty) {
+  case 1:
+    aiDifficulty = Battle::AIDifficulty::EASY;
+    std::cout << "\nAI Difficulty set to: Easy" << std::endl;
+    break;
+  case 2:
+    aiDifficulty = Battle::AIDifficulty::MEDIUM;
+    std::cout << "\nAI Difficulty set to: Medium (Basic type effectiveness)"
+              << std::endl;
+    break;
+  case 3:
+    aiDifficulty = Battle::AIDifficulty::HARD;
+    std::cout << "\nAI Difficulty set to: Hard (Smart strategy with switching)"
+              << std::endl;
+    break;
+  case 4:
+    aiDifficulty = Battle::AIDifficulty::EXPERT;
+    std::cout << "\nAI Difficulty set to: Expert (currently uses Easy AI logic)"
+              << std::endl;
+    break;
+  default:
+    aiDifficulty = Battle::AIDifficulty::EASY;
+    break;
+  }
+
+  std::cout << std::endl;
+
   // BATTLE PART
-  Battle battle(PlayerTeam, OppTeam);
+  Battle battle(PlayerTeam, OppTeam, aiDifficulty);
   battle.startBattle();
 }
