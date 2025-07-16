@@ -11,6 +11,7 @@ A **comprehensive C++ implementation** of a Pokémon battle system that simulate
 - **Turn-based Status Processing**: Damage over time, action restrictions, and automatic recovery
 - **Effective Stat Calculations**: Burn halves Attack, Paralysis halves Speed
 - **🌤️ Weather System**: Rain, Sun, Sandstorm, and Hail with authentic type interactions and damage
+- **🧠 AI Difficulty System**: Easy, Medium, and Hard AI opponents with strategic decision making
 
 ### 💎 **Professional Code Quality**
 - **Modern C++17**: Clean, object-oriented design with auto type deduction
@@ -147,7 +148,7 @@ Complete implementation with authentic Pokémon type chart:
 ### 🎮 **Enhanced Battle Flow**
 - **Turn Priority**: Move priority → Effective Speed → Random tiebreaker  
 - **Status Processing**: Automatic status effects at turn start
-- **Smart AI**: Opponent prioritizes damage moves and switches strategically
+- **Smart AI**: Multiple difficulty levels with strategic decision making
 - **Visual Polish**: Health bars, status indicators, and detailed battle log
 
 ## 📊 Data Examples
@@ -294,6 +295,7 @@ echo "2\n3\n2\n1\n1\n1" | ./bin/pokemon_battle
 Full-featured battle system with:
 - Team selection from 3 pre-built teams
 - 8 Gym Leader opponents with themed teams
+- AI difficulty selection (Easy, Medium, Hard)
 - Complete status condition mechanics
 - Enhanced visual feedback
 
@@ -314,7 +316,7 @@ Streamlined experience with:
 ### Technical Improvements
 - **📊 Battle Statistics**: Damage dealt, accuracy rates, status success
 - **💾 Save System**: Team persistence and battle history
-- **🤖 Advanced AI**: Difficulty levels and strategic decision making
+- **🤖 Expert AI**: Advanced difficulty level with prediction and strategy
 - **🎵 Audio**: Sound effects and battle music integration
 
 ## 🤝 Contributing
