@@ -1,0 +1,1 @@
+{"name": "testmove", "power": 80, "accuracy": 100, "pp": 15, "priority": 0, "damage_class": {"name": "physical"}, "Info": {"ailment": {"name": "none"}, "ailment_chance": 0, "crit_rate": 0, "drain": 0, "flinch_chance": 0, "healing": 0, "stat_chance": 0, "category": {"name": "damage"}}}
