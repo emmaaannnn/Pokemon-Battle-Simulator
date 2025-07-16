@@ -267,6 +267,9 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
       if (hadSTAB) {
         std::cout << " " << attacker.name << " gets STAB!";
       }
+      if (wasCritical) {
+        std::cout << " At least one critical hit!";
+      }
       std::cout << std::endl;
     } else if (hadSTAB) {
       std::cout << attacker.name << " gets STAB!" << std::endl;
