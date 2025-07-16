@@ -26,7 +26,7 @@ A **comprehensive C++ implementation** of a Pokémon battle system that simulate
 - **⚔️ Strategic Combat**: Status conditions, stat modifications, and multi-turn effects
 - **👥 Team Management**: Create and manage teams of up to 6 Pokémon with pre-built configurations
 - **🎨 Enhanced UI**: Visual health bars, status condition indicators, and detailed battle feedback
-- **📁 JSON Data Storage**: Modular, expandable data structure for easy customization
+- **📁 JSON Data Storage**: Modular, expandable data structure for easy customisation
 
 ## 📁 Project Structure
 
@@ -49,7 +49,7 @@ Pokemon-Battle-Simulator/
 ├── examples/             # Interactive demos
 │   ├── game-demo.cpp     # Simplified battle interface
 │   └── debug-test.cpp    # Development testing
-├── build/                # Build artifacts (CMake generated)
+├── build/                # Build artefacts (CMake generated)
 ├── CMakeLists.txt        # Build configuration
 └── README.md            # This documentation
 ```
@@ -149,11 +149,11 @@ Choose your challenge level with progressively smarter opponents:
 | **⭐ Expert** | *Coming Soon* | *Coming Soon* | *Coming Soon* |
 
 **Hard AI Features**:
-- ✅ **Strategic Move Selection**: Prioritizes super-effective moves with 1.8x bonus
+- ✅ **Strategic Move Selection**: Prioritises super-effective moves with 1.8x bonus
 - ✅ **Intelligent Switching**: Switches when disadvantaged or facing super-effective moves
 - ✅ **Status Strategy**: Uses status moves early, focuses damage when opponent is low
 - ✅ **Weather Awareness**: Boosts weather-synergistic moves by 1.3x
-- ✅ **OHKO Timing**: Prioritizes one-hit KO moves against weakened opponents
+- ✅ **OHKO Timing**: Prioritises one-hit KO moves against weakened opponents
 - ✅ **Weighted Selection**: 50% best move, 30% second best, 20% random for unpredictability
 
 ### 🎯 **Type Effectiveness System**
@@ -240,11 +240,11 @@ AI Difficulty set to: Hard (Smart strategy with switching)
 venusaur used earthquake!
 It dealt 156 damage! It's super effective!
 
-// Hard AI recognizes type disadvantage and switches
+// Hard AI recognises type disadvantage and switches
 aerodactyl, come back!
 Opponent sends out golem!
 
-// Hard AI prioritizes super-effective moves
+// Hard AI prioritises super-effective moves
 golem used earthquake!
 It dealt 189 damage! It's super effective!
 ```
