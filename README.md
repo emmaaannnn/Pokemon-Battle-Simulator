@@ -166,6 +166,7 @@ Complete implementation with authentic Pokémon type chart:
 ### 🎮 **Enhanced Battle Flow**
 - **Turn Priority**: Move priority → Effective Speed → Random tiebreaker  
 - **Status Processing**: Automatic status effects at turn start
+- **Smart AI**: Opponent prioritises damage moves and switches strategically
 - **Smart AI**: Multiple difficulty levels with strategic decision making
 - **Visual Polish**: Health bars, status indicators, and detailed battle log
 
@@ -349,19 +350,239 @@ Streamlined experience with:
 - Direct opponent matchups  
 - Focus on core battle mechanics
 
+## 🧪 Testing Infrastructure
+
+### **Professional Testing Suite**
+Our project features a comprehensive testing framework built with **Google Test (GTest)**, following industry best practices for C++ testing. The test suite ensures code quality, prevents regressions, and validates all battle mechanics.
+
+### **Testing Architecture**
+
+#### **🔬 Unit Tests** (7 test files)
+Individual component testing with isolated test scenarios:
+
+```cpp
+// Example: Testing Pokemon stat modifications
+TEST_F(PokemonTest, StatModifications) {
+    Pokemon testPokemon = TestUtils::createTestPokemon("test", 100, 80, 70, 90, 85, 75, {"normal"});
+    
+    // Test attack modification
+    testPokemon.modifyAttack(2);
+    EXPECT_EQ(testPokemon.attack_stage, 2);
+    EXPECT_GT(testPokemon.getEffectiveAttack(), testPokemon.attack);
+}
+```
+
+**Coverage:**
+- ✅ **test_team.cpp**: Team management, Pokemon access, alive Pokemon tracking
+- ✅ **test_battle.cpp**: Battle state management, AI difficulties, result transitions
+- ✅ **test_weather.cpp**: Weather effects, damage multipliers, immunity systems
+- ✅ **test_ai.cpp**: AI decision making across Easy/Medium/Hard difficulties
+- ✅ **test_pokemon.cpp**: Pokemon stats, status conditions, health management
+- ✅ **test_move.cpp**: Move mechanics, PP system, status effects
+- ✅ **test_type_effectiveness.cpp**: Complete type chart coverage
+
+#### **🔄 Integration Tests** (3 test files)
+End-to-end testing of complex interactions:
+
+```cpp
+// Example: Testing weather + battle integration
+TEST_F(WeatherIntegrationTest, RainBoostsWaterMoves) {
+    // Weather affects move damage in battle context
+    EXPECT_DOUBLE_EQ(Weather::getWeatherDamageMultiplier(WeatherCondition::RAIN, "water"), 1.5);
+    EXPECT_DOUBLE_EQ(Weather::getWeatherDamageMultiplier(WeatherCondition::RAIN, "fire"), 0.5);
+}
+```
+
+**Coverage:**
+- ✅ **test_full_battle.cpp**: Complete battle scenarios with type advantages, multi-hit moves, priority moves
+- ✅ **test_status_integration.cpp**: Status conditions in battle context (poison, burn, paralysis, sleep, freeze)
+- ✅ **test_weather_integration.cpp**: Weather system integration with battles and AI
+
+#### **🛠️ Testing Infrastructure**
+- **TestUtils Framework**: Comprehensive utilities for creating test Pokemon, moves, and teams
+- **Test Fixtures**: Organized setup/teardown with `PokemonTestFixture` and `BattleTestFixture`
+- **Mock Data**: Isolated test environments with controlled Pokemon and move data
+- **CMake Integration**: Automated test discovery and execution
+
+### **Technologies Used**
+
+#### **Google Test Framework**
+- **Assertions**: `EXPECT_EQ`, `EXPECT_TRUE`, `EXPECT_DOUBLE_EQ`, `ASSERT_NE`
+- **Test Fixtures**: Class-based test organisation with `SetUp()` and `TearDown()`
+- **Parameterized Tests**: Data-driven testing for comprehensive coverage
+- **Test Discovery**: Automatic test registration with `gtest_discover_tests()`
+
+#### **CMake Test Configuration**
+```cmake
+# Professional test setup
+include(GoogleTest)
+
+# Automated test creation function
+function(create_test test_name test_source)
+    add_executable(${test_name} ${test_source} ${CORE_SOURCES})
+    target_link_libraries(${test_name} gtest gtest_main test_utils)
+    gtest_discover_tests(${test_name})
+endfunction()
+```
+
+### **Running Tests**
+
+#### **🚀 Quick Start**
+```bash
+# Build and run all tests
+cd Pokemon-Battle-Simulator
+mkdir -p build && cd build
+cmake ..
+make -j4
+make run_all_tests
+```
+
+#### **📋 Common Test Commands**
+
+##### **Build Tests**
+```bash
+# Build all tests
+make
+
+# Build specific test
+make test_pokemon
+make test_battle
+make test_weather
+```
+
+##### **Run All Tests**
+```bash
+# Run all tests with summary
+make run_all_tests
+
+# Run with CTest (detailed output)
+ctest --verbose
+
+# Run with parallel execution
+ctest -j4
+
+# Run only failing tests
+ctest --rerun-failed
+```
+
+##### **Run Specific Tests**
+```bash
+# Run individual test executables
+./test_pokemon
+./test_battle
+./test_weather
+./test_ai
+./test_full_battle
+./test_status_integration
+./test_weather_integration
+```
+
+##### **Advanced Test Filtering**
+```bash
+# Run specific test cases
+./test_pokemon --gtest_filter="PokemonTest.BasicProperties"
+./test_battle --gtest_filter="*BattleState*"
+
+# Run tests matching pattern
+./test_weather --gtest_filter="WeatherTest.Rain*"
+
+# Exclude specific tests
+./test_ai --gtest_filter="*:-AITest.EdgeCases"
+```
+
+##### **Test Output Control**
+```bash
+# Verbose output
+ctest --verbose
+
+# Show only failures
+ctest --output-on-failure
+
+# Generate XML output
+ctest --output-junit results.xml
+
+# Run with specific verbosity
+./test_pokemon --gtest_brief
+```
+
+##### **Performance and Debugging**
+```bash
+# Run tests with timing
+ctest --verbose --parallel 4
+
+# Run specific test with detailed output
+./test_battle --gtest_filter="BattleTest.AIBehavior" --gtest_repeat=10
+
+# Memory testing (if valgrind available)
+valgrind --tool=memcheck ./test_pokemon
+```
+
+### **Test Coverage Analysis**
+
+#### **✅ Fully Tested Components**
+- **Weather System**: Rain, sun, sandstorm, hail with damage multipliers
+- **Status Conditions**: All 5 major status effects with battle integration
+- **Type Effectiveness**: Complete 18x18 type chart with dual-type support
+- **Team Management**: Pokemon loading, alive checks, switching logic
+- **Battle Flow**: State transitions, result determination, turn processing
+- **AI Behavior**: Easy, Medium, Hard difficulty decision making
+
+#### **🔄 Planned Test Expansion**
+- **Pokemon Switching Integration**: Real-time switching mechanics in battle
+- **STAB & Critical Hit Calculations**: Damage multiplier validation
+- **Move Priority System**: Turn order with priority moves
+- **Move Accuracy System**: Hit/miss mechanics testing
+- **Stat Modification Integration**: Stat stage effects in battle
+- **AI Behavioral Integration**: AI decision making in complex scenarios
+
+### **Testing Best Practices**
+
+#### **Google Test Patterns**
+```cpp
+// Test fixture for organized testing
+class WeatherTest : public ::testing::Test {
+protected:
+    void SetUp() override {
+        // Setup test environment
+    }
+};
+
+// Parameterized testing for comprehensive coverage
+class TypeEffectivenessTest : public ::testing::TestWithParam<TypeMatchup> {
+    // Test all type combinations
+};
+
+// Custom assertions for domain-specific testing
+#define EXPECT_POKEMON_ALIVE(pokemon) \
+    EXPECT_TRUE(pokemon.isAlive()) << #pokemon << " should be alive"
+```
+
+#### **Test Organization**
+- **Descriptive Test Names**: `TEST_F(PokemonTest, StatusConditionsPersistThroughBattle)`
+- **Arrange-Act-Assert Pattern**: Clear test structure
+- **Test Independence**: Each test runs in isolation
+- **Edge Case Coverage**: Boundary conditions and error scenarios
+
+### **Quality Metrics**
+- ✅ **Zero Compilation Warnings**: Clean builds with `-Wall -Wextra`
+- ✅ **Memory Safety**: RAII and smart pointer usage
+- ✅ **Thread Safety**: Proper resource management
+- ✅ **Regression Prevention**: Comprehensive test coverage prevents bugs
+
 ## 🔮 Future Enhancements
 
 ### Planned Features
-- **🎯 Priority Moves**: Quick Attack, Mach Punch always go first
-- **🔄 Multi-turn Moves**: Hyper Beam recharge, Solar Beam charging
+- **🔄 Multi-turn Moves**: Hyper Beam recharge, Solar Beam charging mechanics
 - **🎨 Battle Animations**: ASCII art and enhanced visual effects
-- **🏆 Tournament Mode**: Elite Four progression and championships
+- **🏆 Tournament Mode**: Elite Four progression and championship battles
+- **🎯 Expert AI**: Advanced prediction and strategic decision making
 
 ### Technical Improvements
-- **📊 Battle Statistics**: Damage dealt, accuracy rates, status success
 - **💾 Save System**: Team persistence and battle history
 - **🤖 Expert AI**: Advanced difficulty level with prediction and strategy
 - **🎵 Audio**: Sound effects and battle music integration
+- **📊 Enhanced Statistics**: Detailed battle analytics and performance metrics
+- **🌐 Multiplayer**: Network battles and online tournaments
 
 ## 🤝 Contributing
 
