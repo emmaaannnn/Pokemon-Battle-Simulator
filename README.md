@@ -138,6 +138,24 @@ Dynamic weather conditions that affect battle strategy:
 - **Enhanced Feedback**: "Charizard gets STAB!" and "A critical hit!" messages
 - **Proper Stacking**: All multipliers combine correctly (Type × STAB × Critical × Weather)
 
+### 🧠 **AI Difficulty System** (NEW!)
+Choose your challenge level with progressively smarter opponents:
+
+| Difficulty | Strategy | Switching | Decision Making |
+|------------|----------|-----------|-----------------|
+| **🟢 Easy** | Random moves only | Never switches | Pure randomness |
+| **🟡 Medium** | Basic type effectiveness | Switches when low HP | Considers move power + type |
+| **🔴 Hard** | Advanced strategy | Strategic switching | Multi-factor analysis |
+| **⭐ Expert** | *Coming Soon* | *Coming Soon* | *Coming Soon* |
+
+**Hard AI Features**:
+- ✅ **Strategic Move Selection**: Prioritizes super-effective moves with 1.8x bonus
+- ✅ **Intelligent Switching**: Switches when disadvantaged or facing super-effective moves
+- ✅ **Status Strategy**: Uses status moves early, focuses damage when opponent is low
+- ✅ **Weather Awareness**: Boosts weather-synergistic moves by 1.3x
+- ✅ **OHKO Timing**: Prioritizes one-hit KO moves against weakened opponents
+- ✅ **Weighted Selection**: 50% best move, 30% second best, 20% random for unpredictability
+
 ### 🎯 **Type Effectiveness System**
 Complete implementation with authentic Pokémon type chart:
 - **Super Effective** (2x): "It's super effective!"
@@ -212,6 +230,25 @@ pikachu is buffeted by the sandstorm! (-12 HP)
 golem is unaffected by the sandstorm.
 ```
 
+### Hard AI Strategic Thinking
+```
+Choose AI Difficulty Level:
+[3] - Hard (Smart strategy with switching)
+
+AI Difficulty set to: Hard (Smart strategy with switching)
+
+venusaur used earthquake!
+It dealt 156 damage! It's super effective!
+
+// Hard AI recognizes type disadvantage and switches
+aerodactyl, come back!
+Opponent sends out golem!
+
+// Hard AI prioritizes super-effective moves
+golem used earthquake!
+It dealt 189 damage! It's super effective!
+```
+
 ### Strategic Depth
 - **Status Timing**: When to inflict vs cure status conditions
 - **Type Synergy**: STAB bonuses change move selection priorities  
@@ -219,6 +256,8 @@ golem is unaffected by the sandstorm.
 - **Environmental Awareness**: Protecting vulnerable Pokémon from weather damage
 - **Speed Control**: Paralysis and stat modifications affect turn order
 - **Risk/Reward**: Status moves vs immediate damage trade-offs
+- **AI Adaptation**: Different strategies required for Easy, Medium, and Hard opponents
+- **Switching Timing**: Knowing when to switch vs when to attack based on AI difficulty
 
 ## 🔧 Advanced Usage
 
@@ -281,6 +320,11 @@ echo "1\n4\n1\n3\n3\n3" | ./bin/pokemon_battle
 
 # Test STAB and critical hits  
 echo "2\n3\n2\n1\n1\n1" | ./bin/pokemon_battle
+
+# Test AI difficulty levels
+echo "1\n1\n1\n1\n1\n1\n1" | ./bin/pokemon_battle  # Easy AI
+echo "1\n1\n2\n2\n2\n2\n2" | ./bin/pokemon_battle  # Medium AI  
+echo "1\n1\n3\n3\n3\n3\n3" | ./bin/pokemon_battle  # Hard AI
 ```
 
 ### Code Quality Metrics
