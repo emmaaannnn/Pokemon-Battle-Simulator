@@ -11,7 +11,7 @@ protected:
         setupStatusTestPokemon();
         
         // Create battle instance
-        battle = std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::EASY);
+        battle = std::make_unique<Battle>(playerTeam, opponentTeam);
     }
     
     void setupStatusTestPokemon() {
@@ -84,7 +84,7 @@ TEST_F(StatusIntegrationTest, PoisonStatusIntegration) {
     Team poisonTeam = TestUtils::createTestTeam({poisoner});
     Team normalTeam = TestUtils::createTestTeam({victim});
     
-    Battle poisonBattle(poisonTeam, normalTeam, Battle::AIDifficulty::EASY);
+    Battle poisonBattle(poisonTeam, normalTeam);
     
     EXPECT_FALSE(poisonBattle.isBattleOver());
     EXPECT_EQ(poisonBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -127,7 +127,7 @@ TEST_F(StatusIntegrationTest, BurnStatusIntegration) {
     Team burnTeam = TestUtils::createTestTeam({burner});
     Team grassTeam = TestUtils::createTestTeam({victim});
     
-    Battle burnBattle(burnTeam, grassTeam, Battle::AIDifficulty::EASY);
+    Battle burnBattle(burnTeam, grassTeam);
     
     EXPECT_FALSE(burnBattle.isBattleOver());
     EXPECT_EQ(burnBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -170,7 +170,7 @@ TEST_F(StatusIntegrationTest, ParalysisStatusIntegration) {
     Team paralysisTeam = TestUtils::createTestTeam({paralyzer});
     Team waterTeam = TestUtils::createTestTeam({victim});
     
-    Battle paralysisBattle(paralysisTeam, waterTeam, Battle::AIDifficulty::EASY);
+    Battle paralysisBattle(paralysisTeam, waterTeam);
     
     EXPECT_FALSE(paralysisBattle.isBattleOver());
     EXPECT_EQ(paralysisBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -223,7 +223,7 @@ TEST_F(StatusIntegrationTest, SleepStatusIntegration) {
     Team sleepTeam = TestUtils::createTestTeam({sleeper});
     Team normalTeam = TestUtils::createTestTeam({victim});
     
-    Battle sleepBattle(sleepTeam, normalTeam, Battle::AIDifficulty::EASY);
+    Battle sleepBattle(sleepTeam, normalTeam);
     
     EXPECT_FALSE(sleepBattle.isBattleOver());
     EXPECT_EQ(sleepBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -263,7 +263,7 @@ TEST_F(StatusIntegrationTest, FreezeStatusIntegration) {
     Team freezeTeam = TestUtils::createTestTeam({freezer});
     Team waterTeam = TestUtils::createTestTeam({victim});
     
-    Battle freezeBattle(freezeTeam, waterTeam, Battle::AIDifficulty::EASY);
+    Battle freezeBattle(freezeTeam, waterTeam);
     
     EXPECT_FALSE(freezeBattle.isBattleOver());
     EXPECT_EQ(freezeBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -329,7 +329,7 @@ TEST_F(StatusIntegrationTest, StatusInteractionsInBattle) {
     Team inflicterTeam = TestUtils::createTestTeam({inflicterPokemon});
     Team victimTeam = TestUtils::createTestTeam({victimPokemon});
     
-    Battle statusBattle(inflicterTeam, victimTeam, Battle::AIDifficulty::EASY);
+    Battle statusBattle(inflicterTeam, victimTeam);
     
     EXPECT_FALSE(statusBattle.isBattleOver());
     EXPECT_EQ(statusBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -376,7 +376,7 @@ TEST_F(StatusIntegrationTest, StatusHealingAndRecovery) {
     Team healerTeam = TestUtils::createTestTeam({healer});
     Team patientTeam = TestUtils::createTestTeam({patient});
     
-    Battle healingBattle(healerTeam, patientTeam, Battle::AIDifficulty::EASY);
+    Battle healingBattle(healerTeam, patientTeam);
     
     EXPECT_FALSE(healingBattle.isBattleOver());
     EXPECT_EQ(healingBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -424,7 +424,7 @@ TEST_F(StatusIntegrationTest, StatusEffectsOnBattleFlow) {
     Team fastTeam = TestUtils::createTestTeam({fastPokemon});
     Team slowTeam = TestUtils::createTestTeam({slowPokemon});
     
-    Battle speedBattle(fastTeam, slowTeam, Battle::AIDifficulty::EASY);
+    Battle speedBattle(fastTeam, slowTeam);
     
     EXPECT_FALSE(speedBattle.isBattleOver());
     EXPECT_EQ(speedBattle.getBattleResult(), Battle::BattleResult::ONGOING);

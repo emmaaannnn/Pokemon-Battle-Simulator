@@ -109,6 +109,7 @@ void TypeEffectiveness::initialiseTypeChart() {
   typeChart["electric"]["ground"] = Effectiveness::NO_EFFECT;
   typeChart["electric"]["flying"] = Effectiveness::SUPER_EFFECTIVE;
   typeChart["electric"]["dragon"] = Effectiveness::NOT_VERY_EFFECTIVE;
+  typeChart["electric"]["steel"] = Effectiveness::NOT_VERY_EFFECTIVE;
 
   // Grass type effectiveness
   typeChart["grass"]["fire"] = Effectiveness::NOT_VERY_EFFECTIVE;
@@ -162,7 +163,7 @@ void TypeEffectiveness::initialiseTypeChart() {
   typeChart["ground"]["flying"] = Effectiveness::NO_EFFECT;
   typeChart["ground"]["bug"] = Effectiveness::NOT_VERY_EFFECTIVE;
   typeChart["ground"]["rock"] = Effectiveness::SUPER_EFFECTIVE;
-  typeChart["ground"]["steel"] = Effectiveness::SUPER_EFFECTIVE;
+  // Ground vs Steel is neutral (1.0x) in Pokemon games
 
   // Flying type effectiveness
   typeChart["flying"]["electric"] = Effectiveness::NOT_VERY_EFFECTIVE;
@@ -205,6 +206,7 @@ void TypeEffectiveness::initialiseTypeChart() {
   typeChart["ghost"]["psychic"] = Effectiveness::SUPER_EFFECTIVE;
   typeChart["ghost"]["ghost"] = Effectiveness::SUPER_EFFECTIVE;
   typeChart["ghost"]["dark"] = Effectiveness::NOT_VERY_EFFECTIVE;
+  typeChart["ghost"]["steel"] = Effectiveness::NOT_VERY_EFFECTIVE;
 
   // Dragon type effectiveness
   typeChart["dragon"]["dragon"] = Effectiveness::SUPER_EFFECTIVE;
@@ -216,6 +218,7 @@ void TypeEffectiveness::initialiseTypeChart() {
   typeChart["dark"]["psychic"] = Effectiveness::SUPER_EFFECTIVE;
   typeChart["dark"]["ghost"] = Effectiveness::SUPER_EFFECTIVE;
   typeChart["dark"]["dark"] = Effectiveness::NOT_VERY_EFFECTIVE;
+  typeChart["dark"]["steel"] = Effectiveness::NOT_VERY_EFFECTIVE;
   typeChart["dark"]["fairy"] = Effectiveness::NOT_VERY_EFFECTIVE;
 
   // Steel type effectiveness
