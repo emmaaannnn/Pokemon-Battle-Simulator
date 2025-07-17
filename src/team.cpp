@@ -43,6 +43,11 @@ void Team::loadTeams(
   }
 }
 
+void Team::addPokemon(const Pokemon& pokemon) {
+  int index = pokemonTeam.size();
+  pokemonTeam[index] = pokemon;
+}
+
 Pokemon *Team::getPokemon(int index) {
   auto it = pokemonTeam.find(index);
   return (it != pokemonTeam.end()) ? &it->second : nullptr;
