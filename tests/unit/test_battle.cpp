@@ -7,9 +7,9 @@ protected:
     void SetUp() override {
         TestUtils::BattleTestFixture::SetUp();
         
-        // Create battle with easy AI
-        battle = std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::EASY);
-        battleMedium = std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::MEDIUM);
+        // Create battle
+        battle = std::make_unique<Battle>(playerTeam, opponentTeam);
+        battleMedium = std::make_unique<Battle>(playerTeam, opponentTeam);
     }
     
     std::unique_ptr<Battle> battle;
@@ -51,18 +51,14 @@ TEST_F(BattleTest, BattleResultStates) {
     EXPECT_EQ(faintedOpponentBattle.getBattleResult(), Battle::BattleResult::PLAYER_WINS);
 }
 
-// Test battle with different AI difficulties
-TEST_F(BattleTest, BattleAIDifficulties) {
-    // Test different AI difficulties can be constructed
-    Battle easyBattle(playerTeam, opponentTeam, Battle::AIDifficulty::EASY);
-    Battle mediumBattle(playerTeam, opponentTeam, Battle::AIDifficulty::MEDIUM);
-    Battle hardBattle(playerTeam, opponentTeam, Battle::AIDifficulty::HARD);
-    Battle expertBattle(playerTeam, opponentTeam, Battle::AIDifficulty::EXPERT);
+// Test battle construction
+TEST_F(BattleTest, BattleConstruction2) {
+    // Test battles can be constructed
+    Battle battle1(playerTeam, opponentTeam);
+    Battle battle2(playerTeam, opponentTeam);
     
-    EXPECT_FALSE(easyBattle.isBattleOver());
-    EXPECT_FALSE(mediumBattle.isBattleOver());
-    EXPECT_FALSE(hardBattle.isBattleOver());
-    EXPECT_FALSE(expertBattle.isBattleOver());
+    EXPECT_FALSE(battle1.isBattleOver());
+    EXPECT_FALSE(battle2.isBattleOver());
 }
 
 // Test battle state consistency
@@ -247,15 +243,12 @@ TEST_F(BattleTest, BattleResultEnumValues) {
     EXPECT_NE(Battle::BattleResult::OPPONENT_WINS, Battle::BattleResult::DRAW);
 }
 
-// Test AI difficulty enum values
-TEST_F(BattleTest, AIDifficultyEnumValues) {
+// Test battle result enum values
+TEST_F(BattleTest, BattleResultEnumValues2) {
     // Test that enum values are distinct
-    EXPECT_NE(Battle::AIDifficulty::EASY, Battle::AIDifficulty::MEDIUM);
-    EXPECT_NE(Battle::AIDifficulty::EASY, Battle::AIDifficulty::HARD);
-    EXPECT_NE(Battle::AIDifficulty::EASY, Battle::AIDifficulty::EXPERT);
-    EXPECT_NE(Battle::AIDifficulty::MEDIUM, Battle::AIDifficulty::HARD);
-    EXPECT_NE(Battle::AIDifficulty::MEDIUM, Battle::AIDifficulty::EXPERT);
-    EXPECT_NE(Battle::AIDifficulty::HARD, Battle::AIDifficulty::EXPERT);
+    EXPECT_NE(Battle::BattleResult::ONGOING, Battle::BattleResult::PLAYER_WINS);
+    EXPECT_NE(Battle::BattleResult::ONGOING, Battle::BattleResult::OPPONENT_WINS);
+    EXPECT_NE(Battle::BattleResult::ONGOING, Battle::BattleResult::DRAW);
 }
 
 // Test battle with mixed team states
