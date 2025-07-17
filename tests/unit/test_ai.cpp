@@ -7,11 +7,8 @@ protected:
     void SetUp() override {
         TestUtils::BattleTestFixture::SetUp();
         
-        // Create battles with different AI difficulties
-        battleEasy = std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::EASY);
-        battleMedium = std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::MEDIUM);
-        battleHard = std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::HARD);
-        battleExpert = std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::EXPERT);
+        // Create battle instance
+        battle = std::make_unique<Battle>(playerTeam, opponentTeam);
         
         // Set up Pokemon with various moves for testing
         setupTestPokemonWithMoves();
@@ -31,35 +28,17 @@ protected:
         }
     }
     
-    std::unique_ptr<Battle> battleEasy;
-    std::unique_ptr<Battle> battleMedium;
-    std::unique_ptr<Battle> battleHard;
-    std::unique_ptr<Battle> battleExpert;
+    std::unique_ptr<Battle> battle;
 };
 
-// Test AI difficulty enum creation
-TEST_F(AITest, AIDifficultyEnum) {
-    EXPECT_NE(Battle::AIDifficulty::EASY, Battle::AIDifficulty::MEDIUM);
-    EXPECT_NE(Battle::AIDifficulty::EASY, Battle::AIDifficulty::HARD);
-    EXPECT_NE(Battle::AIDifficulty::EASY, Battle::AIDifficulty::EXPERT);
-    EXPECT_NE(Battle::AIDifficulty::MEDIUM, Battle::AIDifficulty::HARD);
-    EXPECT_NE(Battle::AIDifficulty::MEDIUM, Battle::AIDifficulty::EXPERT);
-    EXPECT_NE(Battle::AIDifficulty::HARD, Battle::AIDifficulty::EXPERT);
+// Test AI battle construction
+TEST_F(AITest, AIBattleConstruction) {
+    EXPECT_NE(battle, nullptr);
+    
+    // Battle should start as ongoing
+    EXPECT_FALSE(battle->isBattleOver());
 }
 
-// Test that different AI difficulties can be constructed
-TEST_F(AITest, AIBattleConstruction) {
-    EXPECT_NE(battleEasy, nullptr);
-    EXPECT_NE(battleMedium, nullptr);
-    EXPECT_NE(battleHard, nullptr);
-    EXPECT_NE(battleExpert, nullptr);
-    
-    // All battles should start as ongoing
-    EXPECT_FALSE(battleEasy->isBattleOver());
-    EXPECT_FALSE(battleMedium->isBattleOver());
-    EXPECT_FALSE(battleHard->isBattleOver());
-    EXPECT_FALSE(battleExpert->isBattleOver());
-}
 
 // Test AI move selection behavior patterns
 TEST_F(AITest, AIMoveSelectionPatterns) {
@@ -75,15 +54,11 @@ TEST_F(AITest, AIMoveSelectionPatterns) {
     
     Team singleOpponentTeam = TestUtils::createTestTeam({testOpponent});
     
-    // Create battles with this specific setup
-    Battle easyBattle(playerTeam, singleOpponentTeam, Battle::AIDifficulty::EASY);
-    Battle mediumBattle(playerTeam, singleOpponentTeam, Battle::AIDifficulty::MEDIUM);
-    Battle hardBattle(playerTeam, singleOpponentTeam, Battle::AIDifficulty::HARD);
+    // Create battle with this specific setup
+    Battle testBattle(playerTeam, singleOpponentTeam);
     
     // Test that AI can make move selections without crashing
-    EXPECT_FALSE(easyBattle.isBattleOver());
-    EXPECT_FALSE(mediumBattle.isBattleOver());
-    EXPECT_FALSE(hardBattle.isBattleOver());
+    EXPECT_FALSE(testBattle.isBattleOver());
 }
 
 // Test AI behavior with Pokemon having no usable moves
@@ -97,7 +72,7 @@ TEST_F(AITest, AIWithNoUsableMoves) {
     
     Team noMovesTeam = TestUtils::createTestTeam({testOpponent});
     
-    Battle noPPBattle(playerTeam, noMovesTeam, Battle::AIDifficulty::EASY);
+    Battle noPPBattle(playerTeam, noMovesTeam);
     
     // Battle should still be functional even with no usable moves
     EXPECT_FALSE(noPPBattle.isBattleOver());
@@ -116,7 +91,7 @@ TEST_F(AITest, AIWithDifferentMoveTypes) {
     
     Team diverseTeam = TestUtils::createTestTeam({testOpponent});
     
-    Battle diverseBattle(playerTeam, diverseTeam, Battle::AIDifficulty::MEDIUM);
+    Battle diverseBattle(playerTeam, diverseTeam);
     
     // Battle should handle diverse move types
     EXPECT_FALSE(diverseBattle.isBattleOver());
@@ -126,14 +101,8 @@ TEST_F(AITest, AIWithDifferentMoveTypes) {
 TEST_F(AITest, AIConsistency) {
     // Test that AI makes consistent decisions (valid moves)
     for (int i = 0; i < 10; ++i) {
-        Battle testBattle(playerTeam, opponentTeam, Battle::AIDifficulty::EASY);
+        Battle testBattle(playerTeam, opponentTeam);
         EXPECT_FALSE(testBattle.isBattleOver());
-        
-        Battle testBattle2(playerTeam, opponentTeam, Battle::AIDifficulty::MEDIUM);
-        EXPECT_FALSE(testBattle2.isBattleOver());
-        
-        Battle testBattle3(playerTeam, opponentTeam, Battle::AIDifficulty::HARD);
-        EXPECT_FALSE(testBattle3.isBattleOver());
     }
 }
 
@@ -150,7 +119,7 @@ TEST_F(AITest, AIWithLowHealthPokemon) {
     
     Team lowHealthTeam = TestUtils::createTestTeam({lowHealthOpponent});
     
-    Battle lowHealthBattle(playerTeam, lowHealthTeam, Battle::AIDifficulty::HARD);
+    Battle lowHealthBattle(playerTeam, lowHealthTeam);
     
     // Battle should handle low health Pokemon
     EXPECT_FALSE(lowHealthBattle.isBattleOver());
@@ -171,7 +140,7 @@ TEST_F(AITest, AIWithStatusAffectedPokemon) {
     
     Team statusTeam = TestUtils::createTestTeam({statusOpponent});
     
-    Battle statusBattle(playerTeam, statusTeam, Battle::AIDifficulty::MEDIUM);
+    Battle statusBattle(playerTeam, statusTeam);
     
     // Battle should handle status-affected Pokemon
     EXPECT_FALSE(statusBattle.isBattleOver());
@@ -192,7 +161,7 @@ TEST_F(AITest, AIWithTypeAdvantage) {
     Team fireTeam = TestUtils::createTestTeam({fireOpponent});
     Team grassTeam = TestUtils::createTestTeam({grassPlayer});
     
-    Battle typeAdvantage(grassTeam, fireTeam, Battle::AIDifficulty::MEDIUM);
+    Battle typeAdvantage(grassTeam, fireTeam);
     
     // Battle should handle type advantages
     EXPECT_FALSE(typeAdvantage.isBattleOver());
@@ -207,7 +176,7 @@ TEST_F(AITest, AIWithSingleMove) {
     
     Team singleMoveTeam = TestUtils::createTestTeam({singleMoveOpponent});
     
-    Battle singleMoveBattle(playerTeam, singleMoveTeam, Battle::AIDifficulty::HARD);
+    Battle singleMoveBattle(playerTeam, singleMoveTeam);
     
     // Battle should handle single-move Pokemon
     EXPECT_FALSE(singleMoveBattle.isBattleOver());
@@ -224,7 +193,7 @@ TEST_F(AITest, AIWithHighPowerMoves) {
     
     Team powerTeam = TestUtils::createTestTeam({powerOpponent});
     
-    Battle powerBattle(playerTeam, powerTeam, Battle::AIDifficulty::MEDIUM);
+    Battle powerBattle(playerTeam, powerTeam);
     
     // Battle should handle high-power moves
     EXPECT_FALSE(powerBattle.isBattleOver());
@@ -241,7 +210,7 @@ TEST_F(AITest, AIWithAccuracyMoves) {
     
     Team accuracyTeam = TestUtils::createTestTeam({accuracyOpponent});
     
-    Battle accuracyBattle(playerTeam, accuracyTeam, Battle::AIDifficulty::HARD);
+    Battle accuracyBattle(playerTeam, accuracyTeam);
     
     // Battle should handle accuracy-based moves
     EXPECT_FALSE(accuracyBattle.isBattleOver());
@@ -266,14 +235,10 @@ TEST_F(AITest, AIDifficultyBehaviorDifferences) {
     Team team2 = TestUtils::createTestTeam({testOpponent2});
     Team team3 = TestUtils::createTestTeam({testOpponent3});
     
-    Battle easyBattle(playerTeam, team1, Battle::AIDifficulty::EASY);
-    Battle mediumBattle(playerTeam, team2, Battle::AIDifficulty::MEDIUM);
-    Battle hardBattle(playerTeam, team3, Battle::AIDifficulty::HARD);
+    Battle testBattle(playerTeam, team1);
     
-    // All should be functional
-    EXPECT_FALSE(easyBattle.isBattleOver());
-    EXPECT_FALSE(mediumBattle.isBattleOver());
-    EXPECT_FALSE(hardBattle.isBattleOver());
+    // Should be functional
+    EXPECT_FALSE(testBattle.isBattleOver());
 }
 
 // Test AI with empty move list
@@ -284,7 +249,7 @@ TEST_F(AITest, AIWithEmptyMoveList) {
     
     Team emptyMoveTeam = TestUtils::createTestTeam({emptyMoveOpponent});
     
-    Battle emptyMoveBattle(playerTeam, emptyMoveTeam, Battle::AIDifficulty::EASY);
+    Battle emptyMoveBattle(playerTeam, emptyMoveTeam);
     
     // Battle should handle empty move lists gracefully
     EXPECT_FALSE(emptyMoveBattle.isBattleOver());
@@ -296,7 +261,7 @@ TEST_F(AITest, AIStateConsistency) {
     std::vector<std::unique_ptr<Battle>> battles;
     
     for (int i = 0; i < 5; ++i) {
-        battles.push_back(std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::MEDIUM));
+        battles.push_back(std::make_unique<Battle>(playerTeam, opponentTeam));
         EXPECT_FALSE(battles.back()->isBattleOver());
         EXPECT_EQ(battles.back()->getBattleResult(), Battle::BattleResult::ONGOING);
     }
@@ -327,7 +292,7 @@ TEST_F(AITest, AIWithMaxStatModifications) {
     
     Team modifiedTeam = TestUtils::createTestTeam({modifiedOpponent});
     
-    Battle modifiedBattle(playerTeam, modifiedTeam, Battle::AIDifficulty::HARD);
+    Battle modifiedBattle(playerTeam, modifiedTeam);
     
     // Battle should handle maximally modified Pokemon
     EXPECT_FALSE(modifiedBattle.isBattleOver());

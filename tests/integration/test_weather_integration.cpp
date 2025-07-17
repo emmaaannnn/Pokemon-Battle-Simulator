@@ -12,7 +12,7 @@ protected:
         setupWeatherTestPokemon();
         
         // Create battle instance
-        battle = std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::EASY);
+        battle = std::make_unique<Battle>(playerTeam, opponentTeam);
     }
     
     void setupWeatherTestPokemon() {
@@ -95,7 +95,7 @@ TEST_F(WeatherIntegrationTest, RainWeatherIntegration) {
     Team rainTeam = TestUtils::createTestTeam({rainPokemon});
     Team fireTeam = TestUtils::createTestTeam({firePokemon});
     
-    Battle rainBattle(rainTeam, fireTeam, Battle::AIDifficulty::EASY);
+    Battle rainBattle(rainTeam, fireTeam);
     
     EXPECT_FALSE(rainBattle.isBattleOver());
     EXPECT_EQ(rainBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -133,7 +133,7 @@ TEST_F(WeatherIntegrationTest, SunWeatherIntegration) {
     Team sunTeam = TestUtils::createTestTeam({sunPokemon});
     Team waterTeam = TestUtils::createTestTeam({waterPokemon});
     
-    Battle sunBattle(sunTeam, waterTeam, Battle::AIDifficulty::EASY);
+    Battle sunBattle(sunTeam, waterTeam);
     
     EXPECT_FALSE(sunBattle.isBattleOver());
     EXPECT_EQ(sunBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -179,8 +179,8 @@ TEST_F(WeatherIntegrationTest, SandstormWeatherIntegration) {
     Team normalTeam = TestUtils::createTestTeam({normalPokemon});
     Team steelTeam = TestUtils::createTestTeam({steelPokemon});
     
-    Battle sandBattle(sandTeam, normalTeam, Battle::AIDifficulty::EASY);
-    Battle sandVsSteel(sandTeam, steelTeam, Battle::AIDifficulty::EASY);
+    Battle sandBattle(sandTeam, normalTeam);
+    Battle sandVsSteel(sandTeam, steelTeam);
     
     EXPECT_FALSE(sandBattle.isBattleOver());
     EXPECT_FALSE(sandVsSteel.isBattleOver());
@@ -228,8 +228,8 @@ TEST_F(WeatherIntegrationTest, HailWeatherIntegration) {
     Team normalTeam = TestUtils::createTestTeam({normalPokemon});
     Team waterTeam = TestUtils::createTestTeam({waterPokemon});
     
-    Battle hailBattle(hailTeam, normalTeam, Battle::AIDifficulty::EASY);
-    Battle hailVsWater(hailTeam, waterTeam, Battle::AIDifficulty::EASY);
+    Battle hailBattle(hailTeam, normalTeam);
+    Battle hailVsWater(hailTeam, waterTeam);
     
     EXPECT_FALSE(hailBattle.isBattleOver());
     EXPECT_FALSE(hailVsWater.isBattleOver());
@@ -269,7 +269,7 @@ TEST_F(WeatherIntegrationTest, WeatherTransitionsAndInteractions) {
     Team weatherTeam = TestUtils::createTestTeam({weatherChanger});
     Team normalTeam = TestUtils::createTestTeam({opponent});
     
-    Battle weatherBattle(weatherTeam, normalTeam, Battle::AIDifficulty::EASY);
+    Battle weatherBattle(weatherTeam, normalTeam);
     
     EXPECT_FALSE(weatherBattle.isBattleOver());
     EXPECT_EQ(weatherBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -375,7 +375,7 @@ TEST_F(WeatherIntegrationTest, WeatherBattleScenarios) {
     Team rainTeam = TestUtils::createTestTeam({rainDancer});
     Team fireTeam = TestUtils::createTestTeam({fireBreather});
     
-    Battle weatherWarBattle(rainTeam, fireTeam, Battle::AIDifficulty::MEDIUM);
+    Battle weatherWarBattle(rainTeam, fireTeam);
     
     EXPECT_FALSE(weatherWarBattle.isBattleOver());
     EXPECT_EQ(weatherWarBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -431,19 +431,13 @@ TEST_F(WeatherIntegrationTest, WeatherWithBattleAI) {
     Team weatherTeam = TestUtils::createTestTeam({weatherUser});
     Team normalTeam = TestUtils::createTestTeam({weatherTarget});
     
-    // Test with different AI difficulties
-    Battle easyWeatherBattle(weatherTeam, normalTeam, Battle::AIDifficulty::EASY);
-    Battle mediumWeatherBattle(weatherTeam, normalTeam, Battle::AIDifficulty::MEDIUM);
-    Battle hardWeatherBattle(weatherTeam, normalTeam, Battle::AIDifficulty::HARD);
+    // Test with battle instance
+    Battle weatherBattleTest(weatherTeam, normalTeam);
     
-    EXPECT_FALSE(easyWeatherBattle.isBattleOver());
-    EXPECT_FALSE(mediumWeatherBattle.isBattleOver());
-    EXPECT_FALSE(hardWeatherBattle.isBattleOver());
+    EXPECT_FALSE(weatherBattleTest.isBattleOver());
     
-    // All battles should be ongoing
-    EXPECT_EQ(easyWeatherBattle.getBattleResult(), Battle::BattleResult::ONGOING);
-    EXPECT_EQ(mediumWeatherBattle.getBattleResult(), Battle::BattleResult::ONGOING);
-    EXPECT_EQ(hardWeatherBattle.getBattleResult(), Battle::BattleResult::ONGOING);
+    // Battle should be ongoing
+    EXPECT_EQ(weatherBattleTest.getBattleResult(), Battle::BattleResult::ONGOING);
 }
 
 // Test weather integration main battle

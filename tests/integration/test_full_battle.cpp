@@ -11,7 +11,7 @@ protected:
         setupComprehensiveTestPokemon();
         
         // Create battle instance
-        battle = std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::EASY);
+        battle = std::make_unique<Battle>(playerTeam, opponentTeam);
     }
     
     void setupComprehensiveTestPokemon() {
@@ -96,7 +96,7 @@ TEST_F(FullBattleTest, BattleStateTransitions) {
     
     // Reset and test other direction
     setupComprehensiveTestPokemon();
-    battle = std::make_unique<Battle>(playerTeam, opponentTeam, Battle::AIDifficulty::EASY);
+    battle = std::make_unique<Battle>(playerTeam, opponentTeam);
     
     // Faint all opponent Pokemon
     for (size_t i = 0; i < opponentTeam.size(); ++i) {
@@ -136,15 +136,15 @@ TEST_F(FullBattleTest, BattleWithTypeAdvantages) {
     Team grassTeam = TestUtils::createTestTeam({grassType});
     
     // Test fire vs grass (fire advantage)
-    Battle fireVsGrass(fireTeam, grassTeam, Battle::AIDifficulty::EASY);
+    Battle fireVsGrass(fireTeam, grassTeam);
     EXPECT_FALSE(fireVsGrass.isBattleOver());
     
     // Test water vs fire (water advantage)
-    Battle waterVsFire(waterTeam, fireTeam, Battle::AIDifficulty::EASY);
+    Battle waterVsFire(waterTeam, fireTeam);
     EXPECT_FALSE(waterVsFire.isBattleOver());
     
     // Test grass vs water (grass advantage)
-    Battle grassVsWater(grassTeam, waterTeam, Battle::AIDifficulty::EASY);
+    Battle grassVsWater(grassTeam, waterTeam);
     EXPECT_FALSE(grassVsWater.isBattleOver());
 }
 
@@ -168,7 +168,7 @@ TEST_F(FullBattleTest, BattleWithStatusConditions) {
     Team statusTeam = TestUtils::createTestTeam({statusUser});
     Team normalTeam = TestUtils::createTestTeam({statusTarget});
     
-    Battle statusBattle(statusTeam, normalTeam, Battle::AIDifficulty::EASY);
+    Battle statusBattle(statusTeam, normalTeam);
     
     EXPECT_FALSE(statusBattle.isBattleOver());
     EXPECT_EQ(statusBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -201,7 +201,7 @@ TEST_F(FullBattleTest, BattleWithHealingMoves) {
     Team healerTeam = TestUtils::createTestTeam({healer});
     Team attackerTeam = TestUtils::createTestTeam({attacker});
     
-    Battle healingBattle(healerTeam, attackerTeam, Battle::AIDifficulty::EASY);
+    Battle healingBattle(healerTeam, attackerTeam);
     
     EXPECT_FALSE(healingBattle.isBattleOver());
     EXPECT_EQ(healingBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -234,7 +234,7 @@ TEST_F(FullBattleTest, BattleWithMultiHitMoves) {
     Team multiHitTeam = TestUtils::createTestTeam({multiHitter});
     Team defenderTeam = TestUtils::createTestTeam({defender});
     
-    Battle multiHitBattle(multiHitTeam, defenderTeam, Battle::AIDifficulty::EASY);
+    Battle multiHitBattle(multiHitTeam, defenderTeam);
     
     EXPECT_FALSE(multiHitBattle.isBattleOver());
     EXPECT_EQ(multiHitBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -265,7 +265,7 @@ TEST_F(FullBattleTest, BattleWithRecoilMoves) {
     Team recoilTeam = TestUtils::createTestTeam({recoilUser});
     Team normalTeam = TestUtils::createTestTeam({opponent});
     
-    Battle recoilBattle(recoilTeam, normalTeam, Battle::AIDifficulty::EASY);
+    Battle recoilBattle(recoilTeam, normalTeam);
     
     EXPECT_FALSE(recoilBattle.isBattleOver());
     EXPECT_EQ(recoilBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -296,7 +296,7 @@ TEST_F(FullBattleTest, BattleWithPriorityMoves) {
     Team fastTeam = TestUtils::createTestTeam({fastPokemon});
     Team slowTeam = TestUtils::createTestTeam({slowPokemon});
     
-    Battle priorityBattle(fastTeam, slowTeam, Battle::AIDifficulty::EASY);
+    Battle priorityBattle(fastTeam, slowTeam);
     
     EXPECT_FALSE(priorityBattle.isBattleOver());
     EXPECT_EQ(priorityBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -323,7 +323,7 @@ TEST_F(FullBattleTest, BattleWithStatModifyingMoves) {
     Team setupTeam = TestUtils::createTestTeam({setupPokemon});
     Team sweeperTeam = TestUtils::createTestTeam({sweeper});
     
-    Battle statModBattle(setupTeam, sweeperTeam, Battle::AIDifficulty::EASY);
+    Battle statModBattle(setupTeam, sweeperTeam);
     
     EXPECT_FALSE(statModBattle.isBattleOver());
     EXPECT_EQ(statModBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -357,7 +357,7 @@ TEST_F(FullBattleTest, BattleWithMixedTeamComposition) {
     Team diverseTeam1 = TestUtils::createTestTeam({tank, glass_cannon});
     Team diverseTeam2 = TestUtils::createTestTeam({balanced, glass_cannon});
     
-    Battle diverseBattle(diverseTeam1, diverseTeam2, Battle::AIDifficulty::MEDIUM);
+    Battle diverseBattle(diverseTeam1, diverseTeam2);
     
     EXPECT_FALSE(diverseBattle.isBattleOver());
     EXPECT_EQ(diverseBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -387,7 +387,7 @@ TEST_F(FullBattleTest, BattleCompletionScenarios) {
     Team strongTeam = TestUtils::createTestTeam({strong});
     Team weakTeam = TestUtils::createTestTeam({weak1, weak2});
     
-    Battle completionBattle(strongTeam, weakTeam, Battle::AIDifficulty::EASY);
+    Battle completionBattle(strongTeam, weakTeam);
     
     EXPECT_FALSE(completionBattle.isBattleOver());
     EXPECT_EQ(completionBattle.getBattleResult(), Battle::BattleResult::ONGOING);
@@ -398,24 +398,15 @@ TEST_F(FullBattleTest, BattleCompletionScenarios) {
     EXPECT_TRUE(weak2.isAlive());
 }
 
-// Test battle with different AI difficulties
-TEST_F(FullBattleTest, BattleWithDifferentAIDifficulties) {
-    // Test that different AI difficulties create functional battles
-    Battle easyBattle(playerTeam, opponentTeam, Battle::AIDifficulty::EASY);
-    Battle mediumBattle(playerTeam, opponentTeam, Battle::AIDifficulty::MEDIUM);
-    Battle hardBattle(playerTeam, opponentTeam, Battle::AIDifficulty::HARD);
-    Battle expertBattle(playerTeam, opponentTeam, Battle::AIDifficulty::EXPERT);
+// Test battle functionality
+TEST_F(FullBattleTest, BattleFunctionality) {
+    // Test that battles are functional
+    Battle testBattle(playerTeam, opponentTeam);
     
-    // All should be functional
-    EXPECT_FALSE(easyBattle.isBattleOver());
-    EXPECT_FALSE(mediumBattle.isBattleOver());
-    EXPECT_FALSE(hardBattle.isBattleOver());
-    EXPECT_FALSE(expertBattle.isBattleOver());
+    // Should be functional
+    EXPECT_FALSE(testBattle.isBattleOver());
     
-    EXPECT_EQ(easyBattle.getBattleResult(), Battle::BattleResult::ONGOING);
-    EXPECT_EQ(mediumBattle.getBattleResult(), Battle::BattleResult::ONGOING);
-    EXPECT_EQ(hardBattle.getBattleResult(), Battle::BattleResult::ONGOING);
-    EXPECT_EQ(expertBattle.getBattleResult(), Battle::BattleResult::ONGOING);
+    EXPECT_EQ(testBattle.getBattleResult(), Battle::BattleResult::ONGOING);
 }
 
 // Test battle memory and state management
@@ -461,7 +452,7 @@ TEST_F(FullBattleTest, BattleEdgeCases) {
     Team extremeTeam1 = TestUtils::createTestTeam({glassCannonExtreme});
     Team extremeTeam2 = TestUtils::createTestTeam({wallExtreme});
     
-    Battle extremeBattle(extremeTeam1, extremeTeam2, Battle::AIDifficulty::EASY);
+    Battle extremeBattle(extremeTeam1, extremeTeam2);
     
     EXPECT_FALSE(extremeBattle.isBattleOver());
     EXPECT_EQ(extremeBattle.getBattleResult(), Battle::BattleResult::ONGOING);
