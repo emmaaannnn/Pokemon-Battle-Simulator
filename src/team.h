@@ -19,6 +19,9 @@ public:
                 std::vector<std::pair<std::string, std::vector<std::string>>>>
                 &selectedMoves,
             const std::string &selectedTeamName);
+  
+  // Add Pokemon directly to team (for testing)
+  void addPokemon(const Pokemon& pokemon);
 
   // Getters
   Pokemon *getPokemon(int index);

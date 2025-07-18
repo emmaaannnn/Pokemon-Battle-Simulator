@@ -77,7 +77,8 @@ void setupTestEnvironment();
 class PokemonTestFixture : public ::testing::Test {
 protected:
     void SetUp() override {
-        TestUtils::setupTestEnvironment();
+        // Skip setupTestEnvironment() to avoid overwriting our fixed JSON files
+        // TestUtils::setupTestEnvironment();
     }
     
     void TearDown() override {
@@ -89,7 +90,8 @@ protected:
 class BattleTestFixture : public ::testing::Test {
 protected:
     void SetUp() override {
-        TestUtils::setupTestEnvironment();
+        // Skip setupTestEnvironment() to avoid overwriting our fixed JSON files
+        // TestUtils::setupTestEnvironment();
         
         // Create test Pokemon
         testPokemon1 = TestUtils::createTestPokemon("testmon1", 100, 80, 70, 90, 85, 75, {"normal"});
