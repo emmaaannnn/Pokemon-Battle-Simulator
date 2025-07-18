@@ -10,6 +10,7 @@ Pokemon createTestPokemon(const std::string& name, int hp, int attack, int defen
                          const std::vector<std::string>& moveNames) {
     Pokemon pokemon;
     pokemon.name = name;
+    pokemon.id = 1000; // Add required ID field
     pokemon.hp = hp;
     pokemon.current_hp = hp;
     pokemon.attack = attack;
@@ -30,7 +31,7 @@ Pokemon createTestPokemon(const std::string& name, int hp, int attack, int defen
     pokemon.status = StatusCondition::NONE;
     pokemon.status_turns_remaining = 0;
     
-    // Create test moves
+    // Create test moves programmatically (avoid JSON loading)
     for (const auto& moveName : moveNames) {
         Move move = createTestMove(moveName);
         pokemon.moves.push_back(move);
@@ -46,6 +47,7 @@ Move createTestMove(const std::string& name, int power, int accuracy, int pp,
     move.name = name;
     move.power = power;
     move.accuracy = accuracy;
+    move.effect_chance = 0; // Add required effect_chance field
     move.pp = pp;
     move.current_pp = pp;
     move.type = type;
@@ -88,30 +90,12 @@ Move createTestMove(const std::string& name, int power, int accuracy, int pp,
 
 Team createTestTeam(const std::vector<Pokemon>& pokemon) {
     Team team;
-    // Create team configuration for loadTeams method
-    std::unordered_map<std::string, std::vector<std::string>> teams;
-    std::unordered_map<std::string, std::vector<std::pair<std::string, std::vector<std::string>>>> moves;
     
-    std::vector<std::string> pokemonNames;
-    std::vector<std::pair<std::string, std::vector<std::string>>> moveConfig;
-    
+    // Direct approach: add each programmatically created Pokemon to the team
     for (const auto& p : pokemon) {
-        pokemonNames.push_back(p.name);
-        
-        std::vector<std::string> moveNames;
-        for (const auto& move : p.moves) {
-            moveNames.push_back(move.name);
-        }
-        
-        moveConfig.push_back({p.name, moveNames});
+        team.addPokemon(p);
     }
     
-    teams["TestTeam"] = pokemonNames;
-    moves["TestTeam"] = moveConfig;
-    
-    // This approach requires that the Pokemon data exists in the data files
-    // For now, we'll create a simpler approach
-    team.loadTeams(teams, moves, "TestTeam");
     return team;
 }
 
@@ -129,6 +113,7 @@ std::string createTestPokemonJson(const std::string& name, int hp, int attack, i
     std::stringstream ss;
     ss << R"({
     "name": ")" << name << R"(",
+    "id": 1000,
     "types": [)";
     
     for (size_t i = 0; i < types.size(); ++i) {
@@ -158,6 +143,7 @@ std::string createTestMoveJson(const std::string& name, int power, int accuracy,
     "name": ")" << name << R"(",
     "power": )" << (power > 0 ? std::to_string(power) : "null") << R"(,
     "accuracy": )" << accuracy << R"(,
+    "effect_chance": null,
     "pp": )" << pp << R"(,
     "priority": 0,
     "damage_class": {"name": ")" << damageClass << R"("},
@@ -186,7 +172,7 @@ void setupTestEnvironment() {
     std::system("mkdir -p test_data/moves");
     std::system("mkdir -p test_data/teams");
     
-    // Create basic test Pokemon
+    // Create basic test Pokemon with 'id' field
     writeTestJsonFile("test_data/pokemon/testmon.json", 
         createTestPokemonJson("testmon", 100, 80, 70, 90, 85, 75, {"normal"}));
     
@@ -196,7 +182,7 @@ void setupTestEnvironment() {
     writeTestJsonFile("test_data/pokemon/watertest.json",
         createTestPokemonJson("watertest", 110, 75, 80, 85, 90, 70, {"water"}));
     
-    // Create basic test moves
+    // Create basic test moves with 'effect_chance' field
     writeTestJsonFile("test_data/moves/testmove.json",
         createTestMoveJson("testmove", 80, 100, 15, "normal", "physical", "none", 0));
     
