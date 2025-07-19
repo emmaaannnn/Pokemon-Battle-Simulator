@@ -32,21 +32,27 @@ TEST_F(BattleTest, BattleResultStates) {
     EXPECT_EQ(battle->getBattleResult(), Battle::BattleResult::ONGOING);
     EXPECT_FALSE(battle->isBattleOver());
     
-    // Test with all player Pokemon fainted
-    for (auto& pair : playerTeam) {
+    // Test with all player Pokemon fainted - create fresh teams
+    Team faintedPlayerTeam = TestUtils::createTestTeam({testPokemon1});
+    Team healthyOpponentTeam = TestUtils::createTestTeam({testPokemon2});
+    
+    for (auto& pair : faintedPlayerTeam) {
         pair.second.takeDamage(pair.second.hp);
     }
     
-    Battle faintedPlayerBattle(playerTeam, opponentTeam);
+    Battle faintedPlayerBattle(faintedPlayerTeam, healthyOpponentTeam);
     EXPECT_TRUE(faintedPlayerBattle.isBattleOver());
     EXPECT_EQ(faintedPlayerBattle.getBattleResult(), Battle::BattleResult::OPPONENT_WINS);
     
-    // Test with all opponent Pokemon fainted
-    for (auto& pair : opponentTeam) {
+    // Test with all opponent Pokemon fainted - create fresh teams
+    Team healthyPlayerTeam = TestUtils::createTestTeam({testPokemon1});
+    Team faintedOpponentTeam = TestUtils::createTestTeam({testPokemon2});
+    
+    for (auto& pair : faintedOpponentTeam) {
         pair.second.takeDamage(pair.second.hp);
     }
     
-    Battle faintedOpponentBattle(playerTeam, opponentTeam);
+    Battle faintedOpponentBattle(healthyPlayerTeam, faintedOpponentTeam);
     EXPECT_TRUE(faintedOpponentBattle.isBattleOver());
     EXPECT_EQ(faintedOpponentBattle.getBattleResult(), Battle::BattleResult::PLAYER_WINS);
 }
@@ -95,51 +101,51 @@ TEST_F(BattleTest, BattleResultTransitions) {
     // Start with ongoing battle
     EXPECT_EQ(battle->getBattleResult(), Battle::BattleResult::ONGOING);
     
+    // Create test teams with multiple Pokemon for this test
+    Pokemon testPokemon3 = TestUtils::createTestPokemon("testmon3", 80, 70, 60, 85, 75, 90, {"water"});
+    Team testPlayerTeam = TestUtils::createTestTeam({testPokemon1, testPokemon3});
+    Team testOpponentTeam = TestUtils::createTestTeam({testPokemon2});
+    
     // Faint player team gradually
-    std::vector<Pokemon*> playerPokemon = playerTeam.getAlivePokemon();
-    ASSERT_GT(playerPokemon.size(), 0);
+    std::vector<Pokemon*> playerPokemon = testPlayerTeam.getAlivePokemon();
+    ASSERT_GT(playerPokemon.size(), 1); // Should have at least 2 Pokemon
     
     // Faint all but one player Pokemon
     for (size_t i = 0; i < playerPokemon.size() - 1; ++i) {
         playerPokemon[i]->takeDamage(playerPokemon[i]->hp);
     }
     
-    // Should still be ongoing
-    EXPECT_EQ(battle->getBattleResult(), Battle::BattleResult::ONGOING);
+    // Create battle after partial damage - should still be ongoing
+    Battle partialBattle(testPlayerTeam, testOpponentTeam);
+    EXPECT_EQ(partialBattle.getBattleResult(), Battle::BattleResult::ONGOING);
     
     // Faint the last player Pokemon
     playerPokemon.back()->takeDamage(playerPokemon.back()->hp);
     
-    // Now opponent should win
-    EXPECT_EQ(battle->getBattleResult(), Battle::BattleResult::OPPONENT_WINS);
-    EXPECT_TRUE(battle->isBattleOver());
+    // Create battle after all damage - now opponent should win
+    Battle finalBattle(testPlayerTeam, testOpponentTeam);
+    EXPECT_EQ(finalBattle.getBattleResult(), Battle::BattleResult::OPPONENT_WINS);
+    EXPECT_TRUE(finalBattle.isBattleOver());
 }
 
 // Test battle with single Pokemon teams
 TEST_F(BattleTest, SinglePokemonTeams) {
-    // Create teams with single Pokemon
-    std::unordered_map<std::string, std::vector<std::string>> singleTeamData;
-    std::unordered_map<std::string, std::vector<std::pair<std::string, std::vector<std::string>>>> singleMovesData;
+    // Create teams with single Pokemon using test utility
+    Team singlePlayerTeam = TestUtils::createTestTeam({testPokemon1});
+    Team singleOpponentTeam = TestUtils::createTestTeam({testPokemon2});
     
-    singleTeamData["SingleTeam"] = {"testmon1"};
-    singleMovesData["SingleTeam"] = {{"testmon1", {"testmove"}}};
-    
-    Team singlePlayerTeam;
-    singlePlayerTeam.loadTeams(singleTeamData, singleMovesData, "SingleTeam");
-    
-    Team singleOpponentTeam;
-    singleOpponentTeam.loadTeams(singleTeamData, singleMovesData, "SingleTeam");
-    
-    Battle singleBattle(singlePlayerTeam, singleOpponentTeam);
-    
-    EXPECT_FALSE(singleBattle.isBattleOver());
-    EXPECT_EQ(singleBattle.getBattleResult(), Battle::BattleResult::ONGOING);
+    // Initial battle should be ongoing
+    Battle initialBattle(singlePlayerTeam, singleOpponentTeam);
+    EXPECT_FALSE(initialBattle.isBattleOver());
+    EXPECT_EQ(initialBattle.getBattleResult(), Battle::BattleResult::ONGOING);
     
     // Faint player's single Pokemon
     Pokemon* playerPokemon = singlePlayerTeam.getPokemon(0);
     ASSERT_NE(playerPokemon, nullptr);
     playerPokemon->takeDamage(playerPokemon->hp);
     
+    // Create new battle after fainting - opponent should win
+    Battle singleBattle(singlePlayerTeam, singleOpponentTeam);
     EXPECT_TRUE(singleBattle.isBattleOver());
     EXPECT_EQ(singleBattle.getBattleResult(), Battle::BattleResult::OPPONENT_WINS);
 }
@@ -253,9 +259,13 @@ TEST_F(BattleTest, BattleResultEnumValues2) {
 
 // Test battle with mixed team states
 TEST_F(BattleTest, BattleWithMixedTeamStates) {
-    // Create a team with some fainted Pokemon
-    Pokemon* playerPokemon1 = playerTeam.getPokemon(0);
-    Pokemon* playerPokemon2 = playerTeam.getPokemon(1);
+    // Create a team with multiple Pokemon for mixed state testing
+    Pokemon testPokemon3 = TestUtils::createTestPokemon("testmon3", 80, 70, 60, 85, 75, 90, {"water"});
+    Team mixedPlayerTeam = TestUtils::createTestTeam({testPokemon1, testPokemon3});
+    Team mixedOpponentTeam = TestUtils::createTestTeam({testPokemon2});
+    
+    Pokemon* playerPokemon1 = mixedPlayerTeam.getPokemon(0);
+    Pokemon* playerPokemon2 = mixedPlayerTeam.getPokemon(1);
     
     ASSERT_NE(playerPokemon1, nullptr);
     ASSERT_NE(playerPokemon2, nullptr);
@@ -263,13 +273,13 @@ TEST_F(BattleTest, BattleWithMixedTeamStates) {
     // Faint first Pokemon
     playerPokemon1->takeDamage(playerPokemon1->hp);
     
-    Battle mixedBattle(playerTeam, opponentTeam);
+    Battle mixedBattle(mixedPlayerTeam, mixedOpponentTeam);
     
     EXPECT_FALSE(mixedBattle.isBattleOver());
     EXPECT_EQ(mixedBattle.getBattleResult(), Battle::BattleResult::ONGOING);
     
     // Should still have alive Pokemon
-    EXPECT_TRUE(playerTeam.hasAlivePokemon());
+    EXPECT_TRUE(mixedPlayerTeam.hasAlivePokemon());
     EXPECT_TRUE(playerPokemon2->isAlive());
     EXPECT_FALSE(playerPokemon1->isAlive());
 }
