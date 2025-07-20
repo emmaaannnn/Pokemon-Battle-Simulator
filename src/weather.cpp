@@ -72,6 +72,10 @@ int Weather::getWeatherDamage(WeatherCondition weather, int maxHP) {
   switch (weather) {
   case WeatherCondition::SANDSTORM:
   case WeatherCondition::HAIL:
+    // No damage if Pokemon has 0 HP (already fainted)
+    if (maxHP <= 0) {
+      return 0;
+    }
     return std::max(1, maxHP / 16); // 1/16 max HP damage, minimum 1
   case WeatherCondition::RAIN:
   case WeatherCondition::SUN:
