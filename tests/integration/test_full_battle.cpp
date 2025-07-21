@@ -39,25 +39,9 @@ protected:
         grassStarter.moves.push_back(TestUtils::createTestMove("poison-powder", 0, 75, 35, "poison", "status", StatusCondition::POISON, 100));
         grassStarter.moves.push_back(TestUtils::createTestMove("razor-leaf", 55, 95, 25, "grass", "physical"));
         
-        // Create new teams with comprehensive Pokemon
-        std::unordered_map<std::string, std::vector<std::string>> fullTeamData;
-        std::unordered_map<std::string, std::vector<std::pair<std::string, std::vector<std::string>>>> fullMovesData;
-        
-        fullTeamData["PlayerTeam"] = {"charmander", "squirtle"};
-        fullTeamData["OpponentTeam"] = {"bulbasaur", "squirtle"};
-        
-        fullMovesData["PlayerTeam"] = {
-            {"charmander", {"ember", "scratch", "smokescreen", "flamethrower"}},
-            {"squirtle", {"water-gun", "tackle", "withdraw", "bubble-beam"}}
-        };
-        
-        fullMovesData["OpponentTeam"] = {
-            {"bulbasaur", {"vine-whip", "tackle", "poison-powder", "razor-leaf"}},
-            {"squirtle", {"water-gun", "tackle", "withdraw", "bubble-beam"}}
-        };
-        
-        playerTeam.loadTeams(fullTeamData, fullMovesData, "PlayerTeam");
-        opponentTeam.loadTeams(fullTeamData, fullMovesData, "OpponentTeam");
+        // Create teams using the programmatically created Pokemon
+        playerTeam = TestUtils::createTestTeam({fireStarter, waterStarter});
+        opponentTeam = TestUtils::createTestTeam({grassStarter, waterStarter});
     }
     
     std::unique_ptr<Battle> battle;
@@ -90,13 +74,13 @@ TEST_F(FullBattleTest, BattleStateTransitions) {
         }
     }
     
-    // Should transition to opponent wins
-    EXPECT_EQ(battle->getBattleResult(), Battle::BattleResult::OPPONENT_WINS);
-    EXPECT_TRUE(battle->isBattleOver());
+    // Create new battle after fainting - should transition to opponent wins
+    auto faintedPlayerBattle = std::make_unique<Battle>(playerTeam, opponentTeam);
+    EXPECT_EQ(faintedPlayerBattle->getBattleResult(), Battle::BattleResult::OPPONENT_WINS);
+    EXPECT_TRUE(faintedPlayerBattle->isBattleOver());
     
     // Reset and test other direction
     setupComprehensiveTestPokemon();
-    battle = std::make_unique<Battle>(playerTeam, opponentTeam);
     
     // Faint all opponent Pokemon
     for (size_t i = 0; i < opponentTeam.size(); ++i) {
@@ -106,9 +90,10 @@ TEST_F(FullBattleTest, BattleStateTransitions) {
         }
     }
     
-    // Should transition to player wins
-    EXPECT_EQ(battle->getBattleResult(), Battle::BattleResult::PLAYER_WINS);
-    EXPECT_TRUE(battle->isBattleOver());
+    // Create new battle after fainting - should transition to player wins
+    auto faintedOpponentBattle = std::make_unique<Battle>(playerTeam, opponentTeam);
+    EXPECT_EQ(faintedOpponentBattle->getBattleResult(), Battle::BattleResult::PLAYER_WINS);
+    EXPECT_TRUE(faintedOpponentBattle->isBattleOver());
 }
 
 // Test battle with type advantages

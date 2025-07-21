@@ -407,7 +407,7 @@ TEST_F(StatusIntegrationTest, StatusHealingAndRecovery) {
 // Test status condition effects on battle flow
 TEST_F(StatusIntegrationTest, StatusEffectsOnBattleFlow) {
     Pokemon fastPokemon = TestUtils::createTestPokemon("fast", 100, 80, 70, 90, 85, 100, {"electric"});
-    Pokemon slowPokemon = TestUtils::createTestPokemon("slow", 100, 80, 70, 90, 85, 50, {"ground"});
+    Pokemon slowPokemon = TestUtils::createTestPokemon("slow", 100, 80, 70, 90, 85, 60, {"ground"});
     
     // Fast Pokemon has paralysis move
     fastPokemon.moves.clear();
