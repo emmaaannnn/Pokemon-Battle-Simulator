@@ -1,16 +1,17 @@
 #pragma once
 
+#include <iostream>
+#include <memory>
+#include <random>
+
 #include "move.h"
 #include "pokemon.h"
 #include "team.h"
 #include "type_effectiveness.h"
 #include "weather.h"
-#include <iostream>
-#include <memory>
-#include <random>
 
 class Battle {
-public:
+ public:
   // AI Difficulty Levels
   enum class AIDifficulty {
     EASY,   // Random moves, no switching
@@ -32,7 +33,7 @@ public:
 
   BattleResult getBattleResult() const;
 
-private:
+ private:
   Team playerTeam;
   Team opponentTeam;
   Pokemon *selectedPokemon;
