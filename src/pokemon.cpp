@@ -1,24 +1,41 @@
 #include "pokemon.h"
+
 #include <random>
 
 using json = nlohmann::json;
 
 Pokemon::Pokemon()
-    : name(""), id(0), hp(0), attack(0), defense(0), special_attack(0),
-      special_defense(0), speed(0), fainted(false),
-      status(StatusCondition::NONE), status_turns_remaining(0), attack_stage(0),
-      defense_stage(0), special_attack_stage(0), special_defense_stage(0),
+    : name(""),
+      id(0),
+      hp(0),
+      attack(0),
+      defense(0),
+      special_attack(0),
+      special_defense(0),
+      speed(0),
+      fainted(false),
+      status(StatusCondition::NONE),
+      status_turns_remaining(0),
+      attack_stage(0),
+      defense_stage(0),
+      special_attack_stage(0),
+      special_defense_stage(0),
       speed_stage(0) {}
 
-Pokemon::Pokemon(const std::string &pokemonName)
-    : fainted(false), status(StatusCondition::NONE), status_turns_remaining(0),
-      attack_stage(0), defense_stage(0), special_attack_stage(0),
-      special_defense_stage(0), speed_stage(0) {
+Pokemon::Pokemon(const std::string& pokemonName)
+    : fainted(false),
+      status(StatusCondition::NONE),
+      status_turns_remaining(0),
+      attack_stage(0),
+      defense_stage(0),
+      special_attack_stage(0),
+      special_defense_stage(0),
+      speed_stage(0) {
   loadFromJson("data/pokemon/" + pokemonName + ".json");
   // loadMoves(); // Removed - moves are loaded by Team::loadTeams()
 }
 
-void Pokemon::loadFromJson(const std::string &file_path) {
+void Pokemon::loadFromJson(const std::string& file_path) {
   auto file = std::ifstream(file_path);
   if (!file.is_open()) {
     std::cerr << "Error opening file: " << file_path << std::endl;
@@ -33,13 +50,12 @@ void Pokemon::loadFromJson(const std::string &file_path) {
   id = pokemon_json["id"];
 
   // Accessing types which is an array of strings
-  for (const auto &type : pokemon_json["types"]) {
-    types.push_back(
-        type); // No need to access 'type' key inside, as it's already a string
+  for (const auto& type : pokemon_json["types"]) {
+    types.push_back(type);
   }
 
   // Accessing base_stats which is an object
-  const auto &base_stats = pokemon_json["base_stats"];
+  const auto& base_stats = pokemon_json["base_stats"];
   hp = base_stats["hp"];
   current_hp = hp;
   attack = base_stats["attack"];
@@ -53,16 +69,16 @@ void Pokemon::loadFromJson(const std::string &file_path) {
 void Pokemon::loadMoves() {
   auto file = std::ifstream("data/moves/" + name + ".json");
   if (!file.is_open()) {
-    std::cerr << "Error opening file: " << "data/moves/" + name + ".json"
+    std::cerr << "Error opening file: data/moves/" + name + ".json"
               << std::endl;
     return;
   }
   auto move_json = json{};
   file >> move_json;
-  for (const auto &move : move_json) {
+  for (const auto& move : move_json) {
     auto moveName = move["move"]["name"].get<std::string>();
-    auto MoveObj = Move(moveName);
-    moves.push_back(MoveObj);
+    auto moveObj = Move(moveName);
+    moves.push_back(moveObj);
   }
 }
 
@@ -88,7 +104,7 @@ void Pokemon::applyStatusCondition(StatusCondition newStatus) {
   // Flinch can be applied even if Pokemon has another status condition
   if (newStatus == StatusCondition::FLINCH) {
     status = newStatus;
-    status_turns_remaining = 1; // Flinch only lasts 1 turn
+    status_turns_remaining = 1;  // Flinch only lasts 1 turn
     return;
   }
 
@@ -102,137 +118,135 @@ void Pokemon::applyStatusCondition(StatusCondition newStatus) {
 
   // Set duration based on status type
   switch (newStatus) {
-  case StatusCondition::SLEEP:
-    // Sleep lasts 1-3 turns
-    status_turns_remaining = 1 + (std::rand() % 3);
-    break;
-  case StatusCondition::POISON:
-  case StatusCondition::BURN:
-  case StatusCondition::PARALYSIS:
-  case StatusCondition::FREEZE:
-    // These last until cured or switched out
-    status_turns_remaining = -1; // Indefinite
-    break;
-  case StatusCondition::NONE:
-    status_turns_remaining = 0;
-    break;
-  case StatusCondition::FLINCH:
-    // Already handled above
-    break;
+    case StatusCondition::SLEEP:
+      // Sleep lasts 1-3 turns
+      status_turns_remaining = 1 + (std::rand() % 3);
+      break;
+    case StatusCondition::POISON:
+    case StatusCondition::BURN:
+    case StatusCondition::PARALYSIS:
+    case StatusCondition::FREEZE:
+      // These last until cured or switched out
+      status_turns_remaining = -1;  // Indefinite
+      break;
+    case StatusCondition::NONE:
+      status_turns_remaining = 0;
+      break;
+    case StatusCondition::FLINCH:
+      // Already handled above
+      break;
   }
 }
 
 void Pokemon::processStatusCondition() {
-  if (!hasStatusCondition())
-    return;
+  if (!hasStatusCondition()) return;
 
   switch (status) {
-  case StatusCondition::POISON:
-    // Poison deals 1/8 max HP damage each turn
-    {
-      int damage = std::max(1, hp / 8);
-      takeDamage(damage);
-      std::cout << name << " is hurt by poison! (-" << damage << " HP)"
-                << std::endl;
-    }
-    break;
-
-  case StatusCondition::BURN:
-    // Burn deals 1/16 max HP damage each turn
-    {
-      int damage = std::max(1, hp / 16);
-      takeDamage(damage);
-      std::cout << name << " is hurt by burn! (-" << damage << " HP)"
-                << std::endl;
-    }
-    break;
-
-  case StatusCondition::SLEEP:
-    // Sleep countdown
-    if (status_turns_remaining > 0) {
-      status_turns_remaining--;
-      std::cout << name << " is fast asleep!" << std::endl;
-      if (status_turns_remaining == 0) {
-        clearStatusCondition();
-        std::cout << name << " woke up!" << std::endl;
+    case StatusCondition::POISON:
+      // Poison deals 1/8 max HP damage each turn
+      {
+        int damage = std::max(1, hp / 8);
+        takeDamage(damage);
+        std::cout << name << " is hurt by poison! (-" << damage << " HP)"
+                  << std::endl;
       }
-    }
-    break;
+      break;
 
-  case StatusCondition::FREEZE:
-    // 20% chance to thaw out each turn
-    {
-      static std::random_device rd;
-      static std::mt19937 gen(rd());
-      static std::uniform_real_distribution<> dis(0.0, 1.0);
-
-      if (dis(gen) < 0.20) {
-        clearStatusCondition();
-        std::cout << name << " thawed out!" << std::endl;
-      } else {
-        std::cout << name << " is frozen solid!" << std::endl;
+    case StatusCondition::BURN:
+      // Burn deals 1/16 max HP damage each turn
+      {
+        int damage = std::max(1, hp / 16);
+        takeDamage(damage);
+        std::cout << name << " is hurt by burn! (-" << damage << " HP)"
+                  << std::endl;
       }
-    }
-    break;
+      break;
 
-  case StatusCondition::PARALYSIS:
-    // Paralysis persists until cured
-    std::cout << name << " is paralyzed!" << std::endl;
-    break;
+    case StatusCondition::SLEEP:
+      // Sleep countdown
+      if (status_turns_remaining > 0) {
+        status_turns_remaining--;
+        std::cout << name << " is fast asleep!" << std::endl;
+        if (status_turns_remaining == 0) {
+          clearStatusCondition();
+          std::cout << name << " woke up!" << std::endl;
+        }
+      }
+      break;
 
-  case StatusCondition::FLINCH:
-    // Flinch automatically clears after 1 turn
-    std::cout << name << " flinched and couldn't move!" << std::endl;
-    clearStatusCondition();
-    break;
+    case StatusCondition::FREEZE:
+      // 20% chance to thaw out each turn
+      {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_real_distribution<> dis(0.0, 1.0);
 
-  case StatusCondition::NONE:
-    break;
+        if (dis(gen) < 0.20) {
+          clearStatusCondition();
+          std::cout << name << " thawed out!" << std::endl;
+        } else {
+          std::cout << name << " is frozen solid!" << std::endl;
+        }
+      }
+      break;
+
+    case StatusCondition::PARALYSIS:
+      // Paralysis persists until cured
+      std::cout << name << " is paralyzed!" << std::endl;
+      break;
+
+    case StatusCondition::FLINCH:
+      // Flinch automatically clears after 1 turn
+      std::cout << name << " flinched and couldn't move!" << std::endl;
+      clearStatusCondition();
+      break;
+
+    case StatusCondition::NONE:
+      break;
   }
 }
 
 bool Pokemon::canAct() const {
-  if (!isAlive())
-    return false;
+  if (!isAlive()) return false;
 
   switch (status) {
-  case StatusCondition::SLEEP:
-  case StatusCondition::FREEZE:
-  case StatusCondition::FLINCH:
-    return false;
+    case StatusCondition::SLEEP:
+    case StatusCondition::FREEZE:
+    case StatusCondition::FLINCH:
+      return false;
 
-  case StatusCondition::PARALYSIS:
-    // 25% chance to be fully paralyzed
-    {
-      static std::random_device rd;
-      static std::mt19937 gen(rd());
-      static std::uniform_real_distribution<> dis(0.0, 1.0);
-      return dis(gen) >= 0.25;
-    }
+    case StatusCondition::PARALYSIS:
+      // 25% chance to be fully paralyzed
+      {
+        static std::random_device rd;
+        static std::mt19937 gen(rd());
+        static std::uniform_real_distribution<> dis(0.0, 1.0);
+        return dis(gen) >= 0.25;
+      }
 
-  default:
-    return true;
+    default:
+      return true;
   }
 }
 
 std::string Pokemon::getStatusConditionName() const {
   switch (status) {
-  case StatusCondition::POISON:
-    return "Poisoned";
-  case StatusCondition::BURN:
-    return "Burned";
-  case StatusCondition::PARALYSIS:
-    return "Paralyzed";
-  case StatusCondition::SLEEP:
-    return "Asleep";
-  case StatusCondition::FREEZE:
-    return "Frozen";
-  case StatusCondition::FLINCH:
-    return "Flinched";
-  case StatusCondition::NONE:
-    return "";
-  default:
-    return "";
+    case StatusCondition::POISON:
+      return "Poisoned";
+    case StatusCondition::BURN:
+      return "Burned";
+    case StatusCondition::PARALYSIS:
+      return "Paralyzed";
+    case StatusCondition::SLEEP:
+      return "Asleep";
+    case StatusCondition::FREEZE:
+      return "Frozen";
+    case StatusCondition::FLINCH:
+      return "Flinched";
+    case StatusCondition::NONE:
+      return "";
+    default:
+      return "";
   }
 }
 
@@ -242,9 +256,9 @@ double getStatStageMultiplier(int stage) {
   stage = std::max(-6, std::min(6, stage));
 
   if (stage >= 0) {
-    return 1.0 + (stage * 0.5); // +1 stage = 1.5x, +2 = 2.0x, etc.
+    return 1.0 + (stage * 0.5);  // +1 stage = 1.5x, +2 = 2.0x, etc.
   } else {
-    return 1.0 / (1.0 - (stage * 0.5)); // -1 stage = 0.66x, -2 = 0.5x, etc.
+    return 1.0 / (1.0 - (stage * 0.5));  // -1 stage = 0.66x, -2 = 0.5x, etc.
   }
 }
 

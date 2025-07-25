@@ -43,7 +43,7 @@ void Team::loadTeams(
   }
 }
 
-void Team::addPokemon(const Pokemon& pokemon) {
+void Team::addPokemon(const Pokemon &pokemon) {
   int index = pokemonTeam.size();
   pokemonTeam[index] = pokemon;
 }
@@ -71,7 +71,7 @@ std::vector<Pokemon *> Team::getAlivePokemon() {
   auto alivePokemon = std::vector<Pokemon *>{};
   // Iterate in index order to maintain consistent ordering
   for (size_t i = 0; i < size(); ++i) {
-    Pokemon* pokemon = getPokemon(i);
+    Pokemon *pokemon = getPokemon(i);
     if (pokemon && pokemon->isAlive()) {
       alivePokemon.push_back(pokemon);
     }
@@ -82,7 +82,7 @@ std::vector<Pokemon *> Team::getAlivePokemon() {
 Pokemon *Team::getFirstAlivePokemon() {
   // Iterate in index order to get the first Pokemon consistently
   for (size_t i = 0; i < size(); ++i) {
-    Pokemon* pokemon = getPokemon(i);
+    Pokemon *pokemon = getPokemon(i);
     if (pokemon && pokemon->isAlive()) {
       return pokemon;
     }
