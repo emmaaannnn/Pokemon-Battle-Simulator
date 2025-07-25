@@ -1,7 +1,9 @@
 #include "move.h"
+
+#include <algorithm>
+
 #include "move_type_mapping.h"
 #include "pokemon.h"
-#include <algorithm>
 
 using json = nlohmann::json;
 
@@ -35,7 +37,7 @@ void Move::loadFromJson(const std::string &file_path) {
   }
 
   pp = move_json.value("pp", 0);
-  current_pp = pp; // Initialize current PP to maximum PP
+  current_pp = pp;  // Initialize current PP to maximum PP
   priority = move_json.value("priority", 0);
 
   if (move_json["power"].is_null()) {
@@ -58,29 +60,29 @@ void Move::loadFromJson(const std::string &file_path) {
   flinch_chance = move_json["Info"]["flinch_chance"];
   healing = move_json["Info"]["healing"];
 
-  // NULL CHECKS FOR HITS AND TURNS
+  // Null checks for hits and turns
   if (move_json["Info"]["max_hits"].is_null()) {
     max_hits = 1;
   } else {
-    max_hits = move_json["Info"]["max_hits"]; // NULL - RELY ON ISNULL CHECK
+    max_hits = move_json["Info"]["max_hits"];
   }
 
   if (move_json["Info"]["max_turns"].is_null()) {
     max_turns = 1;
   } else {
-    max_turns = move_json["Info"]["max_turns"]; // NULL - RELY ON ISNULL CHECK
+    max_turns = move_json["Info"]["max_turns"];
   }
 
   if (move_json["Info"]["min_hits"].is_null()) {
     min_hits = 1;
   } else {
-    min_hits = move_json["Info"]["min_hits"]; // NULL - RELY ON ISNULL CHECK
+    min_hits = move_json["Info"]["min_hits"];
   }
 
   if (move_json["Info"]["min_turns"].is_null()) {
     min_turns = 1;
   } else {
-    min_turns = move_json["Info"]["min_turns"]; // NULL - RELY ON ISNULL CHECK
+    min_turns = move_json["Info"]["min_turns"];
   }
 
   stat_chance = move_json["Info"]["stat_chance"];
@@ -88,16 +90,11 @@ void Move::loadFromJson(const std::string &file_path) {
 
 // Helper function to convert ailment name to StatusCondition enum
 StatusCondition Move::getStatusCondition() const {
-  if (ailment_name == "poison")
-    return StatusCondition::POISON;
-  if (ailment_name == "burn")
-    return StatusCondition::BURN;
-  if (ailment_name == "paralysis")
-    return StatusCondition::PARALYSIS;
-  if (ailment_name == "sleep")
-    return StatusCondition::SLEEP;
-  if (ailment_name == "freeze")
-    return StatusCondition::FREEZE;
+  if (ailment_name == "poison") return StatusCondition::POISON;
+  if (ailment_name == "burn") return StatusCondition::BURN;
+  if (ailment_name == "paralysis") return StatusCondition::PARALYSIS;
+  if (ailment_name == "sleep") return StatusCondition::SLEEP;
+  if (ailment_name == "freeze") return StatusCondition::FREEZE;
   return StatusCondition::NONE;
 }
 

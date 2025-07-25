@@ -1,27 +1,28 @@
 #pragma once
 
-#include "pokemon.h"
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "pokemon.h"
+
 class Team {
-public:
+ public:
   // Constructor
   Team() = default;
 
   // Team management
-  void
-  loadTeams(const std::unordered_map<std::string, std::vector<std::string>>
-                &selectedTeams,
-            const std::unordered_map<
-                std::string,
-                std::vector<std::pair<std::string, std::vector<std::string>>>>
-                &selectedMoves,
-            const std::string &selectedTeamName);
-  
+  void loadTeams(
+      const std::unordered_map<std::string, std::vector<std::string>>
+          &selectedTeams,
+      const std::unordered_map<
+          std::string,
+          std::vector<std::pair<std::string, std::vector<std::string>>>>
+          &selectedMoves,
+      const std::string &selectedTeamName);
+
   // Add Pokemon directly to team (for testing)
-  void addPokemon(const Pokemon& pokemon);
+  void addPokemon(const Pokemon &pokemon);
 
   // Getters
   Pokemon *getPokemon(int index);
@@ -46,6 +47,6 @@ public:
     return pokemonTeam.end();
   }
 
-private:
+ private:
   std::unordered_map<int, Pokemon> pokemonTeam;
 };

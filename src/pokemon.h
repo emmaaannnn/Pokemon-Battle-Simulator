@@ -1,11 +1,12 @@
 #pragma once
 
-#include "json.hpp"
-#include "move.h"
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "json.hpp"
+#include "move.h"
 
 // Status conditions enum
 enum class StatusCondition {
@@ -19,7 +20,7 @@ enum class StatusCondition {
 };
 
 class Pokemon {
-public:
+ public:
   // Basic info
   std::string name;
   int id;
@@ -86,6 +87,6 @@ public:
   void modifySpeed(int stages);
   void resetStatStages();
 
-private:
+ private:
   void loadFromJson(const std::string &file_path);
 };

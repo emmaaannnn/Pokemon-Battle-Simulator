@@ -4,11 +4,11 @@
 #include <string>
 
 class MoveTypeMapping {
-public:
+ public:
   // Get the type of a move by its name
   static std::string getMoveType(const std::string &moveName);
 
-private:
+ private:
   // Map of move names to their types
   static std::map<std::string, std::string> moveTypeMap;
 

@@ -29,21 +29,20 @@ double TypeEffectiveness::getEffectivenessMultiplier(
   return multiplier;
 }
 
-TypeEffectiveness::Effectiveness
-TypeEffectiveness::getEffectiveness(const std::string &attackingType,
-                                    const std::string &defendingType) {
+TypeEffectiveness::Effectiveness TypeEffectiveness::getEffectiveness(
+    const std::string &attackingType, const std::string &defendingType) {
   ensureInitialised();
 
   // Check if attacking type exists in chart
   auto attackingTypeIt = typeChart.find(attackingType);
   if (attackingTypeIt == typeChart.end()) {
-    return Effectiveness::NORMAL; // Default to normal effectiveness
+    return Effectiveness::NORMAL;  // Default to normal effectiveness
   }
 
   // Check if defending type exists for this attacking type
   auto defendingTypeIt = attackingTypeIt->second.find(defendingType);
   if (defendingTypeIt == attackingTypeIt->second.end()) {
-    return Effectiveness::NORMAL; // Default to normal effectiveness
+    return Effectiveness::NORMAL;  // Default to normal effectiveness
   }
 
   return defendingTypeIt->second;
@@ -51,16 +50,16 @@ TypeEffectiveness::getEffectiveness(const std::string &attackingType,
 
 double TypeEffectiveness::getMultiplier(Effectiveness effectiveness) {
   switch (effectiveness) {
-  case Effectiveness::NO_EFFECT:
-    return 0.0;
-  case Effectiveness::NOT_VERY_EFFECTIVE:
-    return 0.5;
-  case Effectiveness::NORMAL:
-    return 1.0;
-  case Effectiveness::SUPER_EFFECTIVE:
-    return 2.0;
-  default:
-    return 1.0;
+    case Effectiveness::NO_EFFECT:
+      return 0.0;
+    case Effectiveness::NOT_VERY_EFFECTIVE:
+      return 0.5;
+    case Effectiveness::NORMAL:
+      return 1.0;
+    case Effectiveness::SUPER_EFFECTIVE:
+      return 2.0;
+    default:
+      return 1.0;
   }
 }
 

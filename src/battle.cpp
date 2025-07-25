@@ -1,20 +1,28 @@
 #include "battle.h"
-#include "move_type_mapping.h"
-#include "weather.h"
+
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <thread>
+
+#include "move_type_mapping.h"
+#include "weather.h"
 
 Battle::Battle(const Team &playerTeam, const Team &opponentTeam,
                AIDifficulty aiDifficulty)
-    : playerTeam(playerTeam), opponentTeam(opponentTeam),
-      selectedPokemon(nullptr), opponentSelectedPokemon(nullptr),
-      aiDifficulty(aiDifficulty), currentWeather(WeatherCondition::NONE),
-      weatherTurnsRemaining(0), rng(std::random_device{}()),
+    : playerTeam(playerTeam),
+      opponentTeam(opponentTeam),
+      selectedPokemon(nullptr),
+      opponentSelectedPokemon(nullptr),
+      aiDifficulty(aiDifficulty),
+      currentWeather(WeatherCondition::NONE),
+      weatherTurnsRemaining(0),
+      rng(std::random_device{}()),
       criticalDistribution(0.0, 1.0) {
-  srand(time(0)); // Seed random number generator once
+  srand(time(0));  // Seed random number generator once
 }
 
 void Battle::displayHealth(const Pokemon &pokemon) const {
@@ -130,8 +138,8 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
     // In real Pokemon, OHKO accuracy is based on level difference, but we'll
     // use base accuracy
     std::cout << "It's a one-hit KO!" << std::endl;
-    defender.takeDamage(defender.current_hp); // Deal enough damage to KO
-    return; // OHKO moves don't have other effects
+    defender.takeDamage(defender.current_hp);  // Deal enough damage to KO
+    return;  // OHKO moves don't have other effects
   }
 
   // Handle healing moves (Recover, Soft-Boiled, etc.)
@@ -146,7 +154,7 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
     } else {
       std::cout << attacker.name << "'s HP is already full!" << std::endl;
     }
-    return; // Healing moves don't do damage or apply other effects
+    return;  // Healing moves don't do damage or apply other effects
   }
 
   if (move.power == -1 || move.power == 0) {
@@ -232,10 +240,8 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
 
       // Track overall move properties
       totalDamage += damageResult.damage;
-      if (damageResult.hadSTAB)
-        hadSTAB = true;
-      if (damageResult.wasCritical)
-        wasCritical = true;
+      if (damageResult.hadSTAB) hadSTAB = true;
+      if (damageResult.wasCritical) wasCritical = true;
 
       if (damageResult.wasCritical) {
         std::cout << " A critical hit!";
@@ -290,7 +296,7 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
     // Handle recoil moves (Double Edge, Take Down, etc.)
     if (move.drain < 0 && totalDamage > 0) {
       int recoilPercent =
-          -move.drain; // Convert negative drain to positive percentage
+          -move.drain;  // Convert negative drain to positive percentage
       int recoilDamage = (totalDamage * recoilPercent) / 100;
 
       if (recoilDamage > 0) {
@@ -380,7 +386,7 @@ int Battle::calculateDamage(const Pokemon &attacker, const Pokemon &defender,
 
   // Use effective stats (modified by status conditions)
   int effectiveAttack = attacker.getEffectiveAttack();
-  int level = 50; // Assuming level 50
+  int level = 50;  // Assuming level 50
   int defense = defender.defense;
 
   // Determine which attack stat to use
@@ -417,7 +423,7 @@ bool Battle::playerFirst(const Move &playerMove,
     return selectedPokemon->getEffectiveSpeed() >
            opponentSelectedPokemon->getEffectiveSpeed();
   }
-  return rand() % 2; // Randomize if speeds are equal
+  return rand() % 2;  // Randomize if speeds are equal
 }
 
 int Battle::getMoveChoice() const {
@@ -472,13 +478,13 @@ int Battle::getMoveChoice() const {
         continue;
       }
 
-      return choice - 1; // Return 0-based move index
+      return choice - 1;  // Return 0-based move index
     }
 
     // Check if it's a switch choice
     if (canSwitch &&
         choice == static_cast<int>(selectedPokemon->moves.size() + 1)) {
-      return -1; // Special value to indicate switching
+      return -1;  // Special value to indicate switching
     }
 
     std::cout << "Invalid choice. Please select a valid action.\n";
@@ -512,7 +518,7 @@ int Battle::getPokemonChoice() const {
 
   if (availableIndices.empty()) {
     std::cout << "No other Pokémon available!\n";
-    return -1; // No Pokemon to switch to
+    return -1;  // No Pokemon to switch to
   }
 
   int choice;
@@ -525,7 +531,7 @@ int Battle::getPokemonChoice() const {
       const auto *pokemon = playerTeam.getPokemon(pokemonIndex);
 
       if (pokemon && pokemon->isAlive()) {
-        return pokemonIndex; // Return actual team index
+        return pokemonIndex;  // Return actual team index
       }
     }
     std::cout << "Invalid choice. Please select a valid Pokémon.\n";
@@ -551,10 +557,10 @@ bool Battle::isBattleOver() const {
 }
 
 void Battle::startBattle() {
-  std::cout
-      << "\n======================================================== BATTLE "
-         "START ========================================================="
-      << std::endl;
+  std::cout << "\n======================================================== "
+               "BATTLE START "
+            << "========================================================="
+            << std::endl;
 
   // Initial Pokemon selection
   selectOpponentPokemon();
@@ -564,7 +570,7 @@ void Battle::startBattle() {
   while (!isBattleOver()) {
     std::cout
         << "==============================================================="
-           "==============================================================="
+        << "==============================================================="
         << std::endl;
     std::cout << std::endl;
 
@@ -642,10 +648,16 @@ void Battle::startBattle() {
           }
         }
 
+        // Wait a moment to simulate turn processing
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+
         // Always display health after moves, even if fainted
         std::cout << std::endl;
         displayHealth(*opponentSelectedPokemon);
         displayHealth(*selectedPokemon);
+
+        // Wait a moment to simulate turn processing
+        std::this_thread::sleep_for(std::chrono::seconds(1));
       }
     }
 
@@ -675,17 +687,18 @@ void Battle::startBattle() {
   // Display battle result
   BattleResult result = getBattleResult();
   switch (result) {
-  case BattleResult::PLAYER_WINS:
-    std::cout << "\nAll opponent's Pokémon have fainted! You won the battle!\n";
-    break;
-  case BattleResult::OPPONENT_WINS:
-    std::cout << "\nAll your Pokémon have fainted! You lost the battle.\n";
-    break;
-  case BattleResult::DRAW:
-    std::cout << "\nIt's a draw! All Pokémon have fainted.\n";
-    break;
-  default:
-    break;
+    case BattleResult::PLAYER_WINS:
+      std::cout
+          << "\nAll opponent's Pokémon have fainted! You won the battle!\n";
+      break;
+    case BattleResult::OPPONENT_WINS:
+      std::cout << "\nAll your Pokémon have fainted! You lost the battle.\n";
+      break;
+    case BattleResult::DRAW:
+      std::cout << "\nIt's a draw! All Pokémon have fainted.\n";
+      break;
+    default:
+      break;
   }
 }
 
@@ -797,7 +810,7 @@ void Battle::handlePokemonFainted() {
 
     // Check if player has any Pokemon left
     if (!playerTeam.hasAlivePokemon()) {
-      return; // Battle will end
+      return;  // Battle will end
     }
 
     // Let player choose replacement Pokemon
@@ -816,7 +829,7 @@ void Battle::handlePokemonFainted() {
 
     // Check if opponent has any Pokemon left
     if (!opponentTeam.hasAlivePokemon()) {
-      return; // Battle will end
+      return;  // Battle will end
     }
 
     // Opponent automatically sends out next Pokemon (AI behavior)
@@ -904,20 +917,20 @@ void Battle::processWeather() {
 
   // Show current weather boosts
   switch (currentWeather) {
-  case WeatherCondition::RAIN:
-    std::cout << " [Water +50%, Fire -50%]";
-    break;
-  case WeatherCondition::SUN:
-    std::cout << " [Fire +50%, Water -50%]";
-    break;
-  case WeatherCondition::SANDSTORM:
-    std::cout << " [Sandstorm damage]";
-    break;
-  case WeatherCondition::HAIL:
-    std::cout << " [Hail damage]";
-    break;
-  default:
-    break;
+    case WeatherCondition::RAIN:
+      std::cout << " [Water +50%, Fire -50%]";
+      break;
+    case WeatherCondition::SUN:
+      std::cout << " [Fire +50%, Water -50%]";
+      break;
+    case WeatherCondition::SANDSTORM:
+      std::cout << " [Sandstorm damage]";
+      break;
+    case WeatherCondition::HAIL:
+      std::cout << " [Hail damage]";
+      break;
+    default:
+      break;
   }
   std::cout << std::endl;
 
@@ -969,20 +982,20 @@ void Battle::setWeather(WeatherCondition weather, int turns) {
 
     // Show what boost the weather provides
     switch (weather) {
-    case WeatherCondition::RAIN:
-      std::cout << " (Water moves boosted 1.5x, Fire moves weakened 0.5x)";
-      break;
-    case WeatherCondition::SUN:
-      std::cout << " (Fire moves boosted 1.5x, Water moves weakened 0.5x)";
-      break;
-    case WeatherCondition::SANDSTORM:
-      std::cout << " (Non Rock/Ground/Steel types take damage each turn)";
-      break;
-    case WeatherCondition::HAIL:
-      std::cout << " (Non Ice types take damage each turn)";
-      break;
-    default:
-      break;
+      case WeatherCondition::RAIN:
+        std::cout << " (Water moves boosted 1.5x, Fire moves weakened 0.5x)";
+        break;
+      case WeatherCondition::SUN:
+        std::cout << " (Fire moves boosted 1.5x, Water moves weakened 0.5x)";
+        break;
+      case WeatherCondition::SANDSTORM:
+        std::cout << " (Non Rock/Ground/Steel types take damage each turn)";
+        break;
+      case WeatherCondition::HAIL:
+        std::cout << " (Non Ice types take damage each turn)";
+        break;
+      default:
+        break;
     }
     std::cout << std::endl;
   }
