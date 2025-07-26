@@ -34,7 +34,7 @@ MoveEvaluation MediumAI::chooseBestMove(const BattleState& battleState) {
 SwitchEvaluation MediumAI::chooseBestSwitch(const BattleState& battleState) {
   SwitchEvaluation bestSwitch{-1, -1000.0, ""};
 
-  for (int i = 0; i < battleState.aiTeam->getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
     Pokemon* pokemon = battleState.aiTeam->getPokemon(i);
     if (!pokemon || !pokemon->isAlive() || pokemon == battleState.aiPokemon) {
       continue;

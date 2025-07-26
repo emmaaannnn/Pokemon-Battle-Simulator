@@ -32,7 +32,7 @@ MoveEvaluation EasyAI::chooseBestMove(const BattleState& battleState) {
 
 SwitchEvaluation EasyAI::chooseBestSwitch(const BattleState& battleState) {
   // EasyAI only switches to first alive Pokemon (very basic)
-  for (int i = 0; i < battleState.aiTeam->getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
     Pokemon* pokemon = battleState.aiTeam->getPokemon(i);
     if (pokemon && pokemon->isAlive() && pokemon != battleState.aiPokemon) {
       return {i, 50.0, "Easy AI: Switch to first available Pokemon"};
