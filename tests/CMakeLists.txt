@@ -20,6 +20,12 @@ set(CORE_SOURCES
     ${CMAKE_SOURCE_DIR}/src/type_effectiveness.cpp
     ${CMAKE_SOURCE_DIR}/src/move_type_mapping.cpp
     ${CMAKE_SOURCE_DIR}/src/weather.cpp
+    ${CMAKE_SOURCE_DIR}/src/ai_strategy.cpp
+    ${CMAKE_SOURCE_DIR}/src/ai_factory.cpp
+    ${CMAKE_SOURCE_DIR}/src/easy_ai.cpp
+    ${CMAKE_SOURCE_DIR}/src/medium_ai.cpp
+    ${CMAKE_SOURCE_DIR}/src/hard_ai.cpp
+    ${CMAKE_SOURCE_DIR}/src/expert_ai.cpp
 )
 
 # Test utilities
@@ -57,6 +63,7 @@ create_test(test_team unit/test_team.cpp)
 create_test(test_battle unit/test_battle.cpp)
 create_test(test_weather unit/test_weather.cpp)
 create_test(test_ai unit/test_ai.cpp)
+create_test(test_easy_ai unit/test_easy_ai.cpp)
 
 # Integration Tests
 create_test(test_full_battle integration/test_full_battle.cpp)
@@ -70,6 +77,6 @@ create_test(test_weather_integration integration/test_weather_integration.cpp)
 # Create a target to run all tests
 add_custom_target(run_all_tests
     COMMAND ${CMAKE_CTEST_COMMAND} --verbose
-    DEPENDS test_pokemon test_move test_type_effectiveness test_team test_battle test_weather test_ai test_full_battle test_status_integration test_weather_integration
+    DEPENDS test_pokemon test_move test_type_effectiveness test_team test_battle test_weather test_ai test_easy_ai test_full_battle test_status_integration test_weather_integration
     COMMENT "Running all tests"
 )
