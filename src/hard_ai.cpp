@@ -47,7 +47,7 @@ MoveEvaluation HardAI::chooseBestMove(const BattleState& battleState) {
 SwitchEvaluation HardAI::chooseBestSwitch(const BattleState& battleState) {
   SwitchEvaluation bestSwitch{-1, -1000.0, ""};
 
-  for (int i = 0; i < battleState.aiTeam->getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
     Pokemon* pokemon = battleState.aiTeam->getPokemon(i);
     if (!pokemon || !pokemon->isAlive() || pokemon == battleState.aiPokemon) {
       continue;
@@ -107,7 +107,7 @@ bool HardAI::shouldSwitch(const BattleState& battleState) {
   double currentThreatCount =
       countTeamThreats(*battleState.aiPokemon, *battleState.opponentTeam);
 
-  for (int i = 0; i < battleState.aiTeam->getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
     Pokemon* alternative = battleState.aiTeam->getPokemon(i);
     if (!alternative || !alternative->isAlive() ||
         alternative == battleState.aiPokemon) {
@@ -156,7 +156,7 @@ double HardAI::evaluateComplexMove(const Move& move,
 
     // Consider if this move helps against opponent's team
     int threatsHandled = 0;
-    for (int i = 0; i < battleState.opponentTeam->getSize(); ++i) {
+    for (int i = 0; i < static_cast<int>(battleState.opponentTeam->size()); ++i) {
       Pokemon* opponent = battleState.opponentTeam->getPokemon(i);
       if (opponent && opponent->isAlive()) {
         double effectiveness =
@@ -188,7 +188,7 @@ double HardAI::analyzeTeamThreat(const Pokemon& pokemon,
                                  const Team& opponentTeam) const {
   double threatScore = 0.0;
 
-  for (int i = 0; i < opponentTeam.getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(opponentTeam.size()); ++i) {
     const Pokemon* opponent = opponentTeam.getPokemon(i);
     if (!opponent || !opponent->isAlive()) continue;
 
@@ -266,7 +266,7 @@ bool HardAI::canSweepTeam(const Pokemon& sweeper,
                           const Team& opponentTeam) const {
   int threatenedOpponents = 0;
 
-  for (int i = 0; i < opponentTeam.getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(opponentTeam.size()); ++i) {
     const Pokemon* opponent = opponentTeam.getPokemon(i);
     if (!opponent || !opponent->isAlive()) continue;
 
@@ -287,8 +287,17 @@ bool HardAI::canSweepTeam(const Pokemon& sweeper,
   }
 
   // Can sweep if we threaten at least 2/3 of opponent's team
+  // Count alive opponents manually since getAlivePokemon() is not const
+  int aliveOpponents = 0;
+  for (int i = 0; i < static_cast<int>(opponentTeam.size()); ++i) {
+    const Pokemon* pokemon = opponentTeam.getPokemon(i);
+    if (pokemon && pokemon->isAlive()) {
+      aliveOpponents++;
+    }
+  }
+  
   return threatenedOpponents >=
-         std::max(2, opponentTeam.getAliveCount() * 2 / 3);
+         std::max(2, static_cast<int>(aliveOpponents * 2 / 3));
 }
 
 double HardAI::predictOpponentDamage(const BattleState& battleState) const {
@@ -312,7 +321,7 @@ int HardAI::countTeamThreats(const Pokemon& pokemon,
                              const Team& opponentTeam) const {
   int threatCount = 0;
 
-  for (int i = 0; i < opponentTeam.getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(opponentTeam.size()); ++i) {
     const Pokemon* opponent = opponentTeam.getPokemon(i);
     if (!opponent || !opponent->isAlive()) continue;
 

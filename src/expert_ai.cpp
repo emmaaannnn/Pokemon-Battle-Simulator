@@ -75,7 +75,7 @@ SwitchEvaluation ExpertAI::chooseBestSwitch(const BattleState& battleState) {
   double currentTeamSynergy = calculateTeamSynergy(*battleState.aiTeam);
   std::vector<int> keyThreats = identifyKeyThreats(battleState);
 
-  for (int i = 0; i < battleState.aiTeam->getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
     Pokemon* pokemon = battleState.aiTeam->getPokemon(i);
     if (!pokemon || !pokemon->isAlive() || pokemon == battleState.aiPokemon) {
       continue;
@@ -292,7 +292,7 @@ std::vector<ExpertAI::TurnPlan> ExpertAI::generateTurnPlans(
   }
 
   // Generate switch options
-  for (int i = 0; i < battleState.aiTeam->getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
     Pokemon* pokemon = battleState.aiTeam->getPokemon(i);
     if (!pokemon || !pokemon->isAlive() || pokemon == battleState.aiPokemon) {
       continue;
@@ -372,21 +372,21 @@ double ExpertAI::analyzeWinConditions(const BattleState& battleState) const {
   double winScore = 0.0;
 
   // Count alive Pokemon advantage
-  int ourAlive = battleState.aiTeam->getAliveCount();
-  int oppAlive = battleState.opponentTeam->getAliveCount();
+  int ourAlive = battleState.aiTeam->getAlivePokemon().size();
+  int oppAlive = battleState.opponentTeam->getAlivePokemon().size();
   winScore += (ourAlive - oppAlive) * 25.0;
 
   // Health advantage
   double ourTotalHealth = 0.0, oppTotalHealth = 0.0;
 
-  for (int i = 0; i < battleState.aiTeam->getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
     Pokemon* pokemon = battleState.aiTeam->getPokemon(i);
     if (pokemon && pokemon->isAlive()) {
       ourTotalHealth += calculateHealthRatio(*pokemon);
     }
   }
 
-  for (int i = 0; i < battleState.opponentTeam->getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(battleState.opponentTeam->size()); ++i) {
     Pokemon* pokemon = battleState.opponentTeam->getPokemon(i);
     if (pokemon && pokemon->isAlive()) {
       oppTotalHealth += calculateHealthRatio(*pokemon);
@@ -397,11 +397,11 @@ double ExpertAI::analyzeWinConditions(const BattleState& battleState) const {
 
   // Type advantage across teams
   int typeAdvantages = 0;
-  for (int i = 0; i < battleState.aiTeam->getSize(); ++i) {
+  for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
     Pokemon* ourPokemon = battleState.aiTeam->getPokemon(i);
     if (!ourPokemon || !ourPokemon->isAlive()) continue;
 
-    for (int j = 0; j < battleState.opponentTeam->getSize(); ++j) {
+    for (int j = 0; j < static_cast<int>(battleState.opponentTeam->size()); ++j) {
       Pokemon* oppPokemon = battleState.opponentTeam->getPokemon(j);
       if (!oppPokemon || !oppPokemon->isAlive()) continue;
 
@@ -488,8 +488,8 @@ void ExpertAI::updateOpponentModel(const BattleState& battleState) const {
 }
 
 bool ExpertAI::isEndgameScenario(const BattleState& battleState) const {
-  int ourAlive = battleState.aiTeam->getAliveCount();
-  int oppAlive = battleState.opponentTeam->getAliveCount();
+  int ourAlive = battleState.aiTeam->getAlivePokemon().size();
+  int oppAlive = battleState.opponentTeam->getAlivePokemon().size();
 
   return (ourAlive <= 2 && oppAlive <= 2) || (ourAlive + oppAlive <= 3);
 }
