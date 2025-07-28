@@ -68,27 +68,28 @@ TEST_F(EasyAITest, MoveSelectionTypeEffectiveness) {
 
 // Test move selection prioritizes power when type effectiveness is equal
 TEST_F(EasyAITest, MoveSelectionPowerPriority) {
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  // FIXED: Modify the actual Pokemon that battleState points to
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "tackle", 40, 100, 35, "normal", "physical"));  // Low power
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "body-slam", 85, 100, 15, "normal", "physical"));  // High power
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "quick-attack", 40, 100, 30, "normal", "physical"));  // Low power
 
   MoveEvaluation result = easyAI->chooseBestMove(battleState);
 
-  // AI chooses first move due to implementation details
-  EXPECT_EQ(result.moveIndex, 0);  // AI actually chooses tackle
+  // CORRECTED: AI should choose body-slam (index 1) due to higher power
+  EXPECT_EQ(result.moveIndex, 1);  // body-slam has highest power
   EXPECT_GT(result.score, 0);
 }
 
 // Test move selection considers accuracy
 TEST_F(EasyAITest, MoveSelectionAccuracyConsideration) {
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "focus-blast", 120, 70, 5, "fighting", "special"));  // High power, low accuracy
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "brick-break", 75, 100, 15, "fighting", "physical"));  // Lower power, perfect accuracy
 
   MoveEvaluation result = easyAI->chooseBestMove(battleState);
@@ -104,10 +105,10 @@ TEST_F(EasyAITest, MoveSelectionStatusMovesHighHealth) {
   // Opponent at high health (>70%)
   opponentPokemon.current_hp = opponentPokemon.hp;  // Full health
 
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "tackle", 40, 100, 35, "normal", "physical"));
-  aiPokemon.moves.push_back(
+  battleState.aiPokemon->moves.push_back(
       TestUtils::createTestMove("toxic", 0, 90, 10, "poison", "status",
                                 StatusCondition::POISON, 100));
 
@@ -124,10 +125,10 @@ TEST_F(EasyAITest, MoveSelectionStatusMovesLowHealth) {
   // Opponent at low health (no bonus for status moves)
   opponentPokemon.takeDamage(80);  // 20% health remaining
 
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "tackle", 40, 100, 35, "normal", "physical"));
-  aiPokemon.moves.push_back(
+  battleState.aiPokemon->moves.push_back(
       TestUtils::createTestMove("toxic", 0, 90, 10, "poison", "status",
                                 StatusCondition::POISON, 100));
 
@@ -144,43 +145,43 @@ TEST_F(EasyAITest, MoveSelectionNoEffectMoves) {
   // Set opponent to Ghost type
   opponentPokemon.types = {"ghost"};
 
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "tackle", 40, 100, 35, "normal", "physical"));  // No effect vs ghost
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "shadow-ball", 80, 100, 15, "ghost", "special"));  // Neutral vs ghost
 
   MoveEvaluation result = easyAI->chooseBestMove(battleState);
 
-  // AI chooses first move due to implementation details
-  EXPECT_EQ(result.moveIndex, 0);  // AI actually chooses tackle
+  // CORRECTED: AI correctly chooses shadow-ball (index 1) over tackle because tackle has no effect vs ghost
+  EXPECT_EQ(result.moveIndex, 1);  // shadow-ball is effective, tackle is not
   EXPECT_GT(result.score, 0);
 }
 
 // Test move selection when no moves have PP
 TEST_F(EasyAITest, MoveSelectionNoPP) {
-  aiPokemon.moves.clear();
+  battleState.aiPokemon->moves.clear();
   Move noPPMove = TestUtils::createTestMove("tackle", 40, 100, 1, "normal", "physical");
   noPPMove.usePP();  // Exhaust PP
-  aiPokemon.moves.push_back(noPPMove);
+  battleState.aiPokemon->moves.push_back(noPPMove);
 
   MoveEvaluation result = easyAI->chooseBestMove(battleState);
 
-  // AI returns first move even with no PP (implementation behavior)
+  // CORRECTED: AI correctly returns negative score when no PP available
   EXPECT_EQ(result.moveIndex, 0);
-  EXPECT_GT(result.score, 0);  // AI actually returns positive score
+  EXPECT_LT(result.score, 0);  // Should return negative score for no PP
   EXPECT_FALSE(result.reasoning.empty());
 }
 
 // Test move selection with empty move list
 TEST_F(EasyAITest, MoveSelectionEmptyMoveList) {
-  aiPokemon.moves.clear();  // No moves at all
+  battleState.aiPokemon->moves.clear();  // No moves at all
 
   MoveEvaluation result = easyAI->chooseBestMove(battleState);
 
-  // AI returns first move even with empty list (implementation behavior)
+  // CORRECTED: AI correctly returns negative score when no moves available
   EXPECT_EQ(result.moveIndex, 0);
-  EXPECT_GT(result.score, 0);  // AI actually returns positive score
+  EXPECT_LT(result.score, 0);  // Should return negative score for empty move list
   EXPECT_FALSE(result.reasoning.empty());
 }
 
@@ -254,8 +255,8 @@ TEST_F(EasyAITest, SwitchNoAlternatives) {
 
 // Test move scoring consistency
 TEST_F(EasyAITest, MoveScoringConsistency) {
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "flamethrower", 90, 100, 15, "fire", "special"));  // Super effective vs grass
 
   // Test same move multiple times
@@ -276,12 +277,12 @@ TEST_F(EasyAITest, MultipleSuperEffectiveMoves) {
   // Opponent is grass type
   opponentPokemon.types = {"grass"};
 
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "ember", 40, 100, 25, "fire", "special"));  // Super effective, low power
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "flamethrower", 90, 100, 15, "fire", "special"));  // Super effective, high power
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "fire-blast", 110, 85, 5, "fire", "special"));  // Super effective, highest power, lower accuracy
 
   MoveEvaluation result = easyAI->chooseBestMove(battleState);
@@ -297,12 +298,12 @@ TEST_F(EasyAITest, DualTypeOpponent) {
   // Opponent is grass/poison type
   opponentPokemon.types = {"grass", "poison"};
 
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "flamethrower", 90, 100, 15, "fire", "special"));  // Super effective vs grass
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "psychic", 90, 100, 10, "psychic", "special"));  // Super effective vs poison
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "tackle", 40, 100, 35, "normal", "physical"));  // Neutral
 
   MoveEvaluation result = easyAI->chooseBestMove(battleState);
@@ -315,12 +316,12 @@ TEST_F(EasyAITest, DualTypeOpponent) {
 // Test AI behavior with STAB (Same Type Attack Bonus) consideration
 TEST_F(EasyAITest, STABConsideration) {
   // AI Pokemon is fire type
-  aiPokemon.types = {"fire"};
+  battleState.aiPokemon->types = {"fire"};
 
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "flamethrower", 90, 100, 15, "fire", "special"));  // STAB fire move
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "thunderbolt", 90, 100, 15, "electric", "special"));  // Same power, no STAB
 
   MoveEvaluation result = easyAI->chooseBestMove(battleState);
@@ -333,13 +334,13 @@ TEST_F(EasyAITest, STABConsideration) {
 
 // Test AI with priority moves
 TEST_F(EasyAITest, PriorityMoves) {
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "tackle", 40, 100, 35, "normal", "physical"));
   Move quickAttack = TestUtils::createTestMove(
       "quick-attack", 40, 100, 30, "normal", "physical");
   quickAttack.priority = 1;  // Priority move
-  aiPokemon.moves.push_back(quickAttack);
+  battleState.aiPokemon->moves.push_back(quickAttack);
 
   MoveEvaluation result = easyAI->chooseBestMove(battleState);
 
@@ -354,19 +355,19 @@ TEST_F(EasyAITest, ComprehensiveBehaviorValidation) {
   // Test multiple scenarios to ensure consistent Easy AI behavior
   
   // Scenario 1: Type advantage clear winner
-  aiPokemon.moves.clear();
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.clear();
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "tackle", 40, 100, 35, "normal", "physical"));
-  aiPokemon.moves.push_back(TestUtils::createTestMove(
+  battleState.aiPokemon->moves.push_back(TestUtils::createTestMove(
       "flamethrower", 90, 100, 15, "fire", "special"));  // Super effective vs grass
 
   MoveEvaluation typeAdvantageResult = easyAI->chooseBestMove(battleState);
-  EXPECT_EQ(typeAdvantageResult.moveIndex, 0);  // AI chooses first move
+  EXPECT_EQ(typeAdvantageResult.moveIndex, 1);  // AI correctly chooses flamethrower (super effective)
 
   // Scenario 2: Power difference when no type advantage
-  opponentPokemon.types = {"normal"};  // Neutral matchups
+  battleState.opponentPokemon->types = {"normal"};  // Neutral matchups
   MoveEvaluation powerResult = easyAI->chooseBestMove(battleState);
-  EXPECT_EQ(powerResult.moveIndex, 0);  // AI chooses first move
+  EXPECT_EQ(powerResult.moveIndex, 1);  // AI correctly chooses flamethrower (higher power)
 
   // Scenario 3: Switching behavior
   aiPokemon.takeDamage(95);  // Very low health
