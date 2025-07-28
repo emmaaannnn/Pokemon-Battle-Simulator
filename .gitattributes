@@ -1,0 +1,10 @@
+# Exclude build system files from GitHub language statistics
+CMakeLists.txt linguist-vendored
+**/CMakeLists.txt linguist-vendored
+*.cmake linguist-vendored
+build/ linguist-vendored
+
+# Exclude other non-code files that might skew stats
+*.md linguist-documentation
+*.json linguist-data
+data/ linguist-vendored
