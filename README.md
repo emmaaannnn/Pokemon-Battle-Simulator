@@ -47,9 +47,7 @@ Pokemon-Battle-Simulator/
 │   ├── moves/            # 300+ move definitions with status effects
 │   ├── pokemon/          # 150+ Pokémon with authentic stats
 │   └── teams/            # Pre-built team configurations
-├── examples/             # Interactive demos
-│   ├── game-demo.cpp     # Simplified battle interface
-│   └── debug-test.cpp    # Development testing
+├── examples/             # (Empty - demos removed for streamlined experience)
 ├── build/                # Build artefacts (CMake generated)
 ├── CMakeLists.txt        # Build configuration
 └── README.md            # This documentation
@@ -83,19 +81,6 @@ cmake --build . --config Release
 # Start battling!
 ./bin/pokemon_battle (mac)
 ./bin/Release/pokemon_battle.exe (windows)
-```
-
-
-### Quick Demo
-
-```bash
-# Interactive battle demo
-./bin/game-demo
-./bin/Release/game-demo.exe (windows)
-
-# Test specific mechanics
-./bin/debug-test
-./bin/Release/debug-test.exe (windows)
 ```
 
 ## ⚔️ Battle System Deep Dive
@@ -147,15 +132,16 @@ Choose your challenge level with progressively smarter opponents:
 | **🟢 Easy** | Random moves only | Never switches | Pure randomness |
 | **🟡 Medium** | Basic type effectiveness | Switches when low HP | Considers move power + type |
 | **🔴 Hard** | Advanced strategy | Strategic switching | Multi-factor analysis |
-| **⭐ Expert** | *Coming Soon* | *Coming Soon* | *Coming Soon* |
+| **⭐ Expert** | Predictive analysis | Multi-turn planning | Opponent modeling & counter-strategy |
 
-**Hard AI Features**:
-- ✅ **Strategic Move Selection**: Prioritises super-effective moves with 1.8x bonus
-- ✅ **Intelligent Switching**: Switches when disadvantaged or facing super-effective moves
-- ✅ **Status Strategy**: Uses status moves early, focuses damage when opponent is low
-- ✅ **Weather Awareness**: Boosts weather-synergistic moves by 1.3x
-- ✅ **OHKO Timing**: Prioritises one-hit KO moves against weakened opponents
-- ✅ **Weighted Selection**: 50% best move, 30% second best, 20% random for unpredictability
+**Expert AI Features**:
+- ✅ **Multi-turn Planning**: Analyzes 2+ turns ahead with turn plan generation
+- ✅ **Opponent Modeling**: Tracks opponent patterns, move probabilities, and play style
+- ✅ **Predictive Analysis**: Forecasts opponent actions with confidence scoring
+- ✅ **Setup Detection**: Recognizes and disrupts opponent setup attempts
+- ✅ **Win Condition Analysis**: Evaluates long-term advantage and positioning
+- ✅ **Risk Assessment**: Models outcome probabilities and expected utility
+- ✅ **Counter-strategy Recognition**: Adapts to opponent tactics and playstyles
 
 ### 🎯 **Type Effectiveness System**
 Complete implementation with authentic Pokémon type chart:
@@ -338,19 +324,14 @@ echo "1\n1\n3\n3\n3\n3\n3" | ./bin/pokemon_battle  # Hard AI
 
 ## 🎮 Gameplay Modes
 
-### 1. **Main Battle Mode** (`pokemon_battle`)
+### **Main Battle Mode** (`pokemon_battle`)
 Full-featured battle system with:
 - Team selection from 3 pre-built teams
 - 8 Gym Leader opponents with themed teams
-- AI difficulty selection (Easy, Medium, Hard)
+- AI difficulty selection (Easy, Medium, Hard, Expert)
 - Complete status condition mechanics
 - Enhanced visual feedback
 
-### 2. **Quick Demo** (`game-demo`)
-Streamlined experience with:
-- Simplified team selection
-- Direct opponent matchups  
-- Focus on core battle mechanics
 
 ## 🧪 Testing & Quality
 
