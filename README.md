@@ -1,5 +1,8 @@
 # 🎮 Pokémon Battle Simulator
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/5kng/Pokemon-Battle-Simulator)  
+<sup>Click for interactive docs powered by DeepWiki</sup>
+
 A **comprehensive C++ implementation** of a Pokémon battle system that simulates turn-based combat with **authentic game mechanics**. Experience strategic battles with advanced features like status conditions, STAB bonuses, critical hits, and full type effectiveness!
 
 ## ⚡ Latest Features
