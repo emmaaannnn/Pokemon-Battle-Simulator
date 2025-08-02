@@ -62,4 +62,35 @@ coverage.info
 
 # Memory check outputs
 *.memcheck
-valgrind-out.txt 
+valgrind-out.txt
+
+# Additional C++ patterns
+*.obj
+*.lo
+*.slo
+*.lib
+*.cmake
+!CMakeLists.txt
+
+# Visual Studio specific
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Xcode specific
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+project.xcworkspace/
+xcuserdata/
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa 
