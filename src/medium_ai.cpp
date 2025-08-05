@@ -125,7 +125,10 @@ double MediumAI::scoreDamageMove(const Move& move,
       estimateDamage(*battleState.aiPokemon, *battleState.opponentPokemon, move,
                      battleState.currentWeather);
 
-  score += estimatedDamage * 2.0;  // Weight damage heavily
+  // Weight damage, but less heavily if this move can KO (focus on reliability instead)
+  bool canKO = estimatedDamage >= battleState.opponentPokemon->current_hp;
+  double damageWeight = canKO ? 1.0 : 2.0;  // Reduce damage importance for KO moves
+  score += estimatedDamage * damageWeight;
 
   // Weather bonus
   score += scoreWeatherAdvantage(move, battleState.currentWeather);
@@ -133,9 +136,17 @@ double MediumAI::scoreDamageMove(const Move& move,
   // Accuracy consideration
   score += (move.accuracy - 80) * 0.5;  // Penalty for low accuracy moves
 
-  // Prefer moves that can KO
+  // Prefer moves that can KO, with very strong preference for reliable KOs  
   if (estimatedDamage >= battleState.opponentPokemon->current_hp) {
-    score += 100.0;  // Huge bonus for potential KO
+    // For KO moves, accuracy is critical - scale bonus heavily by reliability
+    double accuracyFactor = move.accuracy / 100.0;
+    double koBonus = 200.0 * accuracyFactor;  // Large bonus scaled by accuracy
+    score += koBonus;
+    
+    // Massive additional bonus for guaranteed KOs (perfect accuracy)
+    if (move.accuracy >= 100) {
+      score += 100.0;  // Huge reliability bonus for guaranteed success
+    }
   }
 
   // STAB consideration (already in damage estimate, but small extra bonus)
@@ -151,9 +162,15 @@ double MediumAI::scoreWeatherAdvantage(const Move& move,
                                        WeatherCondition weather) const {
   double multiplier = Weather::getWeatherDamageMultiplier(weather, move.type);
 
-  if (multiplier > 1.0) return 20.0;   // Weather boost
-  if (multiplier < 1.0) return -10.0;  // Weather penalty
-  return 0.0;                          // No weather effect
+  if (multiplier > 1.0) {
+    // Weather boost - bonus proportional to power increase
+    return (multiplier - 1.0) * move.power * 0.5;
+  }
+  if (multiplier < 1.0) {
+    // Weather penalty - penalty proportional to power reduction
+    return (multiplier - 1.0) * move.power * 2.0;  // Stronger penalty to account for damage weighting
+  }
+  return 0.0;  // No weather effect
 }
 
 double MediumAI::evaluatePokemonMatchup(const Pokemon& attacker,
