@@ -62,17 +62,10 @@ set(MAIN_SOURCES ${CORE_SOURCES} src/main.cpp)
 #  Executables
 # ────────────────────────────────
 add_executable(pokemon_battle ${MAIN_SOURCES} ${HEADERS})
-add_executable(game-demo      examples/game-demo.cpp  ${CORE_SOURCES} ${HEADERS})
-add_executable(debug-test     examples/debug-test.cpp ${CORE_SOURCES} ${HEADERS})
 
-foreach(tgt IN LISTS
-        pokemon_battle
-        game-demo
-        debug-test)
-    target_include_directories(${tgt} PRIVATE src include)
-    set_target_properties(${tgt}
-        PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-endforeach()
+target_include_directories(pokemon_battle PRIVATE src include)
+set_target_properties(pokemon_battle
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # ────────────────────────────────
 #  Data-file copying
@@ -84,8 +77,6 @@ add_custom_target(copy_data_files ALL
 )
 
 add_dependencies(pokemon_battle copy_data_files)
-add_dependencies(game-demo      copy_data_files)
-add_dependencies(debug-test     copy_data_files)
 
 # ────────────────────────────────
 #  Testing (GoogleTest + subdir)
@@ -108,7 +99,7 @@ endif()
 # ────────────────────────────────
 #  Install rules
 # ────────────────────────────────
-install(TARGETS pokemon_battle game-demo debug-test
+install(TARGETS pokemon_battle
         RUNTIME DESTINATION bin)
 
 install(DIRECTORY data/      DESTINATION share/pokemon-battle-sim/data)
