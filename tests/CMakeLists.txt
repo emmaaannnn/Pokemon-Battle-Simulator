@@ -64,6 +64,7 @@ create_test(test_battle unit/test_battle.cpp)
 create_test(test_weather unit/test_weather.cpp)
 create_test(test_ai unit/test_ai.cpp)
 create_test(test_easy_ai unit/test_easy_ai.cpp)
+create_test(test_medium_ai unit/test_medium_ai.cpp)
 
 # Integration Tests
 create_test(test_full_battle integration/test_full_battle.cpp)
@@ -77,6 +78,6 @@ create_test(test_weather_integration integration/test_weather_integration.cpp)
 # Create a target to run all tests
 add_custom_target(run_all_tests
     COMMAND ${CMAKE_CTEST_COMMAND} --verbose
-    DEPENDS test_pokemon test_move test_type_effectiveness test_team test_battle test_weather test_ai test_easy_ai test_full_battle test_status_integration test_weather_integration
+    DEPENDS test_pokemon test_move test_type_effectiveness test_team test_battle test_weather test_ai test_easy_ai test_medium_ai test_full_battle test_status_integration test_weather_integration
     COMMENT "Running all tests"
 )
