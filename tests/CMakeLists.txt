@@ -66,6 +66,7 @@ create_test(test_weather            unit/test_weather.cpp)
 create_test(test_ai                 unit/test_ai.cpp)
 create_test(test_easy_ai            unit/test_easy_ai.cpp)
 create_test(test_medium_ai          unit/test_medium_ai.cpp)
+create_test(test_hard_ai            unit/test_hard_ai.cpp)
 
 # ────────────────────────────────
 #  Integration tests
@@ -89,6 +90,7 @@ add_custom_target(run_all_tests
         test_ai
         test_easy_ai
         test_medium_ai
+        test_hard_ai
         test_full_battle
         test_status_integration
         test_weather_integration
