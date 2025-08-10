@@ -1,14 +1,32 @@
 #include <iostream>
+#include <limits>
 #include <unordered_map>
 #include <vector>
+#include <csignal>
 
 #include "battle.h"
 
+// Signal handler for graceful exit
+void signalHandler(int signal) {
+  std::cout << "\n\n🛑 Game interrupted. Thanks for playing!\n" << std::endl;
+  exit(0);
+}
+
 int main() {
+  // Set up signal handler for graceful interruption
+  signal(SIGINT, signalHandler);
+  
   // Get user's name
   std::string userName;
   std::cout << "Enter your name: ";
-  std::cin >> userName;
+  std::getline(std::cin, userName);
+  
+  // Handle empty input gracefully
+  if (userName.empty()) {
+    userName = "Trainer";
+  }
+  
+  std::cout << "\nWelcome, " << userName << "!" << std::endl;
 
   // Available teams - using auto to reduce verbosity
   const auto selectedTeams = std::unordered_map<std::string,
@@ -159,30 +177,38 @@ int main() {
 
   // Show available teams for player selection
   std::cout
-      << "\n================================================== Pokemon Battle "
-         "Simulator ================================================="
+      << "\n╔════════════════════════════════════════════════════════════════════════════════╗\n"
+      << "║                              Pokemon Battle Simulator                          ║\n"
+      << "╚════════════════════════════════════════════════════════════════════════════════╝\n"
       << std::endl;
-  std::cout << "" << std::endl;
-  std::cout << "Choose your team:" << std::endl;
-  std::cout << "1. Team 1 - Balanced Team (Venusaur, Pikachu, Machamp, "
-               "Arcanine, Lapras, Snorlax)"
-            << std::endl;
-  std::cout << "2. Team 2 - Competitive Team (Charizard, Starmie, Snorlax, "
-               "Alakazam, Rhydon, Jolteon)"
-            << std::endl;
-  std::cout << "3. Team 3 - Mixed Team (Venusaur, Zapdos, Nidoking, Gengar, "
-               "Lapras, Tauros)"
-            << std::endl;
+  std::cout << "🎯 Choose your team:\n" << std::endl;
+  std::cout << "  [1] 🌿 Balanced Team\n"
+            << "      → Venusaur, Pikachu, Machamp, Arcanine, Lapras, Snorlax\n" << std::endl;
+  std::cout << "  [2] ⚡ Competitive Team\n"
+            << "      → Charizard, Starmie, Snorlax, Alakazam, Rhydon, Jolteon\n" << std::endl;
+  std::cout << "  [3] 🔥 Mixed Team\n"
+            << "      → Venusaur, Zapdos, Nidoking, Gengar, Lapras, Tauros\n" << std::endl;
 
   // Prompt for team selection
   int chosenTeamNum;
-  std::cout << "\n Enter the number of the team you want to select: ";
-  std::cin >> chosenTeamNum;
-
-  // Validate input
-  if (chosenTeamNum < 1 || chosenTeamNum > 3) {
-    std::cout << "Invalid selection - try again." << std::endl;
-    return 1;
+  while (true) {
+    std::cout << "📝 Enter the number of the team you want to select (1-3): ";
+    std::cin >> chosenTeamNum;
+    
+    // Check for input failure or EOF
+    if (std::cin.fail() || std::cin.eof()) {
+      std::cout << "Invalid input or end of input. Exiting game." << std::endl;
+      return 1;
+    }
+    
+    // Validate range
+    if (chosenTeamNum >= 1 && chosenTeamNum <= 3) {
+      break;
+    }
+    
+    std::cout << "Invalid selection. Please enter 1, 2, or 3." << std::endl;
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 
   const auto chosenTeamKey = "Team " + std::to_string(chosenTeamNum);
@@ -218,25 +244,36 @@ int main() {
   std::cout << "" << std::endl;
 
   // Show available opponent teams
-  std::cout << "Available Opponents:" << std::endl;
-  std::cout << "[1] - Brock (Rock Gym Leader)" << std::endl;
-  std::cout << "[2] - Misty (Water Gym Leader)" << std::endl;
-  std::cout << "[3] - Surge (Electric Gym Leader)" << std::endl;
-  std::cout << "[4] - Erika (Grass Gym Leader)" << std::endl;
-  std::cout << "[5] - Koga (Poison Gym Leader)" << std::endl;
-  std::cout << "[6] - Sabrina (Psychic Gym Leader)" << std::endl;
-  std::cout << "[7] - Blaine (Fire Gym Leader)" << std::endl;
-  std::cout << "[8] - Giovanni (Ground Gym Leader)" << std::endl;
+  std::cout << "🏆 Available Gym Leaders:\n" << std::endl;
+  std::cout << "  [1] 🪨 Brock (Rock Gym Leader)" << std::endl;
+  std::cout << "  [2] 💧 Misty (Water Gym Leader)" << std::endl;
+  std::cout << "  [3] ⚡ Surge (Electric Gym Leader)" << std::endl;
+  std::cout << "  [4] 🌿 Erika (Grass Gym Leader)" << std::endl;
+  std::cout << "  [5] ☠️  Koga (Poison Gym Leader)" << std::endl;
+  std::cout << "  [6] 🔮 Sabrina (Psychic Gym Leader)" << std::endl;
+  std::cout << "  [7] 🔥 Blaine (Fire Gym Leader)" << std::endl;
+  std::cout << "  [8] 🌍 Giovanni (Ground Gym Leader)\n" << std::endl;
 
   // Prompt for opponent selection
   int chosenOpponentNum;
-  std::cout << "\n Enter the number of your chosen opponent: ";
-  std::cin >> chosenOpponentNum;
-
-  // Validate input
-  if (chosenOpponentNum < 1 || chosenOpponentNum > 8) {
-    std::cout << "Invalid selection - try again." << std::endl;
-    return 1;
+  while (true) {
+    std::cout << "⚔️  Enter the number of your chosen opponent (1-8): ";
+    std::cin >> chosenOpponentNum;
+    
+    // Check for input failure or EOF
+    if (std::cin.fail() || std::cin.eof()) {
+      std::cout << "Invalid input or end of input. Exiting game." << std::endl;
+      return 1;
+    }
+    
+    // Validate range
+    if (chosenOpponentNum >= 1 && chosenOpponentNum <= 8) {
+      break;
+    }
+    
+    std::cout << "Invalid selection. Please enter a number between 1 and 8." << std::endl;
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 
   const auto chosenOpponentKey =
@@ -275,22 +312,32 @@ int main() {
                "==============================================================="
             << std::endl;
   std::cout << "" << std::endl;
-  std::cout << "Choose AI Difficulty Level:" << std::endl;
-  std::cout << "[1] - Easy (Random moves, no switching)" << std::endl;
-  std::cout << "[2] - Medium (Basic type effectiveness)" << std::endl;
-  std::cout << "[3] - Hard (Smart strategy with switching)"
-            << std::endl;
-  std::cout << "[4] - Expert (Advanced AI with Bayesian modeling, MiniMax search, and meta-game analysis)"
-            << std::endl;
+  std::cout << "🤖 Choose AI Difficulty Level:\n" << std::endl;
+  std::cout << "  [1] 😊 Easy - Random moves, no switching" << std::endl;
+  std::cout << "  [2] 🎯 Medium - Basic type effectiveness" << std::endl;
+  std::cout << "  [3] 🧠 Hard - Smart strategy with switching" << std::endl;
+  std::cout << "  [4] 🚀 Expert - Advanced AI with prediction & analysis\n" << std::endl;
 
   int chosenDifficulty;
-  std::cout << "\n Enter the difficulty level (1-4): ";
-  std::cin >> chosenDifficulty;
-
-  // Validate input
-  if (chosenDifficulty < 1 || chosenDifficulty > 4) {
-    std::cout << "Invalid selection - defaulting to Easy." << std::endl;
-    chosenDifficulty = 1;
+  while (true) {
+    std::cout << "🎮 Enter the difficulty level (1-4): ";
+    std::cin >> chosenDifficulty;
+    
+    // Check for input failure or EOF
+    if (std::cin.fail() || std::cin.eof()) {
+      std::cout << "Invalid input or end of input. Defaulting to Easy." << std::endl;
+      chosenDifficulty = 1;
+      break;
+    }
+    
+    // Validate range
+    if (chosenDifficulty >= 1 && chosenDifficulty <= 4) {
+      break;
+    }
+    
+    std::cout << "Invalid selection. Please enter a number between 1 and 4." << std::endl;
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
   }
 
   // Convert to AI difficulty enum

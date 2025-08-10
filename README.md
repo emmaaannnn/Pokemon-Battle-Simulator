@@ -81,9 +81,14 @@ mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 
-# Start battling!
-./bin/pokemon_battle (mac)
-./bin/Release/pokemon_battle.exe (windows)
+# Run the game (IMPORTANT: Run from project root directory!)
+cd ..                    # Go back to project root
+./bin/pokemon_battle     # OR use the launcher script
+# OR
+./run_game.sh           # Launcher script (recommended)
+```
+
+**⚠️ Important**: The game must be run from the project root directory where the `data/` folder is located, not from the `build/` directory. The executable looks for data files relative to the current working directory.
 ```
 
 ## ⚔️ Battle System Deep Dive
