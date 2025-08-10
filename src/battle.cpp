@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <limits>
 #include <thread>
 
 #include "move_type_mapping.h"
@@ -75,6 +76,14 @@ void Battle::selectPokemon() {
   while (true) {
     std::cout << "\nEnter the number of the Pokémon you want to send out: ";
     std::cin >> chosenPokemonNum;
+    
+    // Check for input failure (non-numeric input)
+    if (std::cin.fail()) {
+      std::cin.clear(); // Clear error flag
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore bad input
+      std::cout << "Invalid input. Please enter a number.\n";
+      continue;
+    }
 
     if (chosenPokemonNum >= 1 &&
         chosenPokemonNum <= static_cast<int>(playerTeam.size())) {
@@ -465,6 +474,14 @@ int Battle::getMoveChoice() const {
     std::cout << "\nSelect an action (1-"
               << (selectedPokemon->moves.size() + (canSwitch ? 1 : 0)) << "): ";
     std::cin >> choice;
+    
+    // Check for input failure (non-numeric input)
+    if (std::cin.fail()) {
+      std::cin.clear(); // Clear error flag
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore bad input
+      std::cout << "Invalid input. Please enter a number.\n";
+      continue;
+    }
 
     // Check if it's a move choice
     if (choice >= 1 &&
@@ -525,6 +542,14 @@ int Battle::getPokemonChoice() const {
   while (true) {
     std::cout << "\nSelect a Pokémon (1-" << availableIndices.size() << "): ";
     std::cin >> choice;
+    
+    // Check for input failure (non-numeric input)
+    if (std::cin.fail()) {
+      std::cin.clear(); // Clear error flag
+      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore bad input
+      std::cout << "Invalid input. Please enter a number.\n";
+      continue;
+    }
 
     if (choice >= 1 && choice <= static_cast<int>(availableIndices.size())) {
       int pokemonIndex = availableIndices[choice - 1];
