@@ -346,20 +346,8 @@ Battle::DamageResult Battle::calculateDamageWithEffects(
     return {0, false, false};
   }
 
-  // Base damage calculation using effective stats
-  int baseDamage = 0;
-  if (move.damage_class == "physical") {
-    baseDamage =
-        (attacker.getEffectiveAttack() - defender.getEffectiveDefense()) +
-        move.power;
-  } else if (move.damage_class == "special") {
-    baseDamage = (attacker.getEffectiveSpecialAttack() -
-                  defender.getEffectiveSpecialDefense()) +
-                 move.power;
-  }
-
-  // Ensure minimum base damage
-  baseDamage = std::max(1, baseDamage);
+  // Use proper Pokemon damage formula for base damage calculation
+  int baseDamage = calculateDamage(attacker, defender, move);
 
   // Apply type effectiveness
   double typeMultiplier =
@@ -414,10 +402,13 @@ int Battle::calculateDamage(const Pokemon &attacker, const Pokemon &defender,
     defenseStat = defender.special_defense;
   }
 
-  // Basic damage calculation
-  double damage = ((2.0 * level + 10.0) / 250.0) *
-                      (attackStat / (double)defenseStat) * move.power +
-                  2;
+  // Pokemon damage formula (simplified but balanced)
+  // Base calculation: ((2*Level/5+2)*Power*Attack/Defense)/50 + 2
+  double damage = (((2.0 * level / 5.0 + 2.0) * move.power * attackStat / defenseStat) / 50.0) + 2.0;
+  
+  // Add some randomness (85-100% of calculated damage)
+  double randomFactor = 0.85 + (rand() % 16) / 100.0;  // 0.85 to 1.00
+  damage *= randomFactor;
 
   return static_cast<int>(damage);
 }
