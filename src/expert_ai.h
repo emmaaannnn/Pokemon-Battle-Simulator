@@ -90,6 +90,13 @@ class ExpertAI : public AIStrategy {
   std::vector<std::string> suggestCounterStrategies(const MetaGameAnalyzer::TeamArchetype& opponent_archetype) const;
   bool isEndgamePosition(const BattleState& battle_state) const;
   std::string getEndgameEvaluation(const BattleState& battle_state) const;
+  
+  // Advanced evaluation methods (Public for testing)
+  double evaluateLongTermAdvantage(const BattleState& battleState) const;
+  double detectSetupAttempt(const BattleState& battleState) const;
+  double evaluateCounterPlay(const BattleState& battleState) const;
+  double assessPositionalAdvantage(const BattleState& battleState) const;
+  double evaluateResourceManagement(const BattleState& battleState) const;
 
  private:
   // Advanced AI components
@@ -120,7 +127,6 @@ class ExpertAI : public AIStrategy {
 
   // Advanced strategic analysis
   double analyzeWinConditions(const BattleState& battleState) const;
-  double evaluateLongTermAdvantage(const BattleState& battleState) const;
   bool detectOpponentPattern(const BattleState& battleState) const;
 
   // Team composition analysis
@@ -135,16 +141,12 @@ class ExpertAI : public AIStrategy {
   std::vector<int> identifyKeyThreats(const BattleState& battleState) const;
 
   // Counter-strategy systems
-  double detectSetupAttempt(const BattleState& battleState) const;
-  double evaluateCounterPlay(const BattleState& battleState) const;
   bool shouldDisrupt(const BattleState& battleState) const;
 
   // Advanced decision making
   double calculateExpectedValue(const Move& move,
                                 const BattleState& battleState,
                                 int turnsAhead) const;
-  double assessPositionalAdvantage(const BattleState& battleState) const;
-  double evaluateResourceManagement(const BattleState& battleState) const;
 
   // Probability and risk modeling
   struct RiskAssessment {

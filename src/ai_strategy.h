@@ -1,5 +1,6 @@
 #pragma once
 
+#include <random>
 #include <vector>
 
 #include "pokemon.h"
@@ -37,6 +38,10 @@ struct BattleState {
   WeatherCondition currentWeather;  // Current weather condition
   int weatherTurnsRemaining;        // Weather duration left
   int turnNumber;                   // Current turn count
+  
+  // Deterministic RNG seed for Expert AI paralysis checks
+  // Used to ensure consistent behavior during minimax search
+  mutable std::mt19937 deterministicRng{0};
 };
 
 // Abstract base class for AI strategies

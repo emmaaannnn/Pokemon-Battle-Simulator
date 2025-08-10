@@ -68,6 +68,7 @@ create_test(test_easy_ai            unit/test_easy_ai.cpp)
 create_test(test_medium_ai          unit/test_medium_ai.cpp)
 create_test(test_hard_ai            unit/test_hard_ai.cpp)
 create_test(test_expert_ai          unit/test_expert_ai.cpp)
+create_test(test_paralysis_determinism unit/test_paralysis_determinism.cpp)
 
 # ────────────────────────────────
 #  Integration tests
@@ -93,6 +94,7 @@ add_custom_target(run_all_tests
         test_medium_ai
         test_hard_ai
         test_expert_ai
+        test_paralysis_determinism
         test_full_battle
         test_status_integration
         test_weather_integration

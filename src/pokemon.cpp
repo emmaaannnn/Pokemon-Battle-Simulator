@@ -229,6 +229,27 @@ bool Pokemon::canAct() const {
   }
 }
 
+bool Pokemon::canAct(std::mt19937& rng) const {
+  if (!isAlive()) return false;
+
+  switch (status) {
+    case StatusCondition::SLEEP:
+    case StatusCondition::FREEZE:
+    case StatusCondition::FLINCH:
+      return false;
+
+    case StatusCondition::PARALYSIS:
+      // 25% chance to be fully paralyzed using provided seeded RNG
+      {
+        std::uniform_real_distribution<> dis(0.0, 1.0);
+        return dis(rng) >= 0.25;
+      }
+
+    default:
+      return true;
+  }
+}
+
 std::string Pokemon::getStatusConditionName() const {
   switch (status) {
     case StatusCondition::POISON:
