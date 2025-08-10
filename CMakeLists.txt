@@ -17,53 +17,73 @@ endif()
 #  Include paths
 # ────────────────────────────────
 include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/core
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/ai
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/utils
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 # ────────────────────────────────
-#  Source / header lists
+#  Source / header lists (organized)
 # ────────────────────────────────
 set(CORE_SOURCES
-    src/move.cpp
-    src/pokemon.cpp
-    src/team.cpp
-    src/battle.cpp
-    src/type_effectiveness.cpp
-    src/move_type_mapping.cpp
-    src/weather.cpp
-    src/ai_strategy.cpp
-    src/ai_factory.cpp
-    src/easy_ai.cpp
-    src/medium_ai.cpp
-    src/hard_ai.cpp
-    src/expert_ai.cpp
+    src/core/move.cpp
+    src/core/pokemon.cpp
+    src/core/team.cpp
+    src/core/battle.cpp
+    src/core/weather.cpp
 )
 
-set(HEADERS
-    src/move.h
-    src/pokemon.h
-    src/team.h
-    src/battle.h
-    src/type_effectiveness.h
-    src/move_type_mapping.h
-    src/weather.h
-    src/ai_strategy.h
-    src/ai_factory.h
-    src/easy_ai.h
-    src/medium_ai.h
-    src/hard_ai.h
-    src/expert_ai.h
+set(AI_SOURCES
+    src/ai/ai_strategy.cpp
+    src/ai/ai_factory.cpp
+    src/ai/easy_ai.cpp
+    src/ai/medium_ai.cpp
+    src/ai/hard_ai.cpp
+    src/ai/expert_ai.cpp
 )
 
-set(MAIN_SOURCES ${CORE_SOURCES} src/main.cpp)
+set(UTILS_SOURCES
+    src/utils/type_effectiveness.cpp
+    src/utils/move_type_mapping.cpp
+)
+
+set(ALL_SOURCES ${CORE_SOURCES} ${AI_SOURCES} ${UTILS_SOURCES})
+
+set(CORE_HEADERS
+    include/core/move.h
+    include/core/pokemon.h
+    include/core/team.h
+    include/core/battle.h
+    include/core/weather.h
+)
+
+set(AI_HEADERS
+    include/ai/ai_strategy.h
+    include/ai/ai_factory.h
+    include/ai/easy_ai.h
+    include/ai/medium_ai.h
+    include/ai/hard_ai.h
+    include/ai/expert_ai.h
+)
+
+set(UTILS_HEADERS
+    include/utils/type_effectiveness.h
+    include/utils/move_type_mapping.h
+    include/utils/json.hpp
+)
+
+set(ALL_HEADERS ${CORE_HEADERS} ${AI_HEADERS} ${UTILS_HEADERS})
+
+set(MAIN_SOURCES ${ALL_SOURCES} src/main.cpp)
 
 # ────────────────────────────────
 #  Executables
 # ────────────────────────────────
-add_executable(pokemon_battle ${MAIN_SOURCES} ${HEADERS})
+add_executable(pokemon_battle ${MAIN_SOURCES} ${ALL_HEADERS})
 
-target_include_directories(pokemon_battle PRIVATE src include)
+target_include_directories(pokemon_battle PRIVATE 
+    include/core include/ai include/utils src)
 set_target_properties(pokemon_battle
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
