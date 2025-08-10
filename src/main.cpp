@@ -280,7 +280,7 @@ int main() {
   std::cout << "[2] - Medium (Basic type effectiveness)" << std::endl;
   std::cout << "[3] - Hard (Smart strategy with switching)"
             << std::endl;
-  std::cout << "[4] - Expert (TODO: Advanced AI) [Currently same as Easy]"
+  std::cout << "[4] - Expert (Advanced AI with Bayesian modeling, MiniMax search, and meta-game analysis)"
             << std::endl;
 
   int chosenDifficulty;
@@ -312,7 +312,7 @@ int main() {
     break;
   case 4:
     aiDifficulty = Battle::AIDifficulty::EXPERT;
-    std::cout << "\nAI Difficulty set to: Expert (currently uses Easy AI logic)"
+    std::cout << "\nAI Difficulty set to: Expert (Advanced AI with prediction and strategic analysis)"
               << std::endl;
     break;
   default:
