@@ -830,13 +830,81 @@ std::vector<BattleState> ExpertAI::generateLegalMoves(const BattleState& current
   
   if (!active_pokemon || !team) return legal_moves;
   
-  // Generate move options
+  // Generate move options - simulate each legal move
   for (size_t i = 0; i < active_pokemon->moves.size(); ++i) {
-    if (active_pokemon->moves[i].canUse()) {
-      BattleState new_state = current_state;
-      // Simplified state transition - in practice this would simulate the move
-      legal_moves.push_back(new_state);
-      if (legal_moves.size() >= static_cast<size_t>(MiniMaxSearchEngine::kMaxBranchingFactor)) break;
+    const Move& move = active_pokemon->moves[i];
+    
+    // Check move legality: must have PP and Pokemon must be able to act
+    if (!move.canUse()) {
+      continue;
+    }
+    
+    // Check if Pokemon can act (some status conditions prevent acting)
+    if (!active_pokemon->canAct()) {
+      continue;
+    }
+    
+    // Create new state and simulate move execution
+    BattleState new_state = current_state;
+    Pokemon* attacker = for_ai ? new_state.aiPokemon : new_state.opponentPokemon;
+    Pokemon* defender = for_ai ? new_state.opponentPokemon : new_state.aiPokemon;
+    
+    // Consume PP for the move
+    attacker->moves[i].current_pp = std::max(0, attacker->moves[i].current_pp - 1);
+    
+    // Apply move effects if it deals damage
+    if (move.power > 0) {
+      double damage = estimateDamage(*attacker, *defender, move, new_state.currentWeather);
+      int actualDamage = static_cast<int>(damage);
+      defender->current_hp = std::max(0, defender->current_hp - actualDamage);
+      
+      // Update fainted status
+      if (defender->current_hp == 0) {
+        defender->fainted = true;
+      }
+    }
+    
+    // Apply status effects if move has them
+    if (move.ailment_name != "none" && move.ailment_chance > 0) {
+      // Simplified status application - in full implementation would check chance
+      if (move.ailment_name == "paralysis") {
+        defender->status = StatusCondition::PARALYSIS;
+      } else if (move.ailment_name == "poison") {
+        defender->status = StatusCondition::POISON;
+      } else if (move.ailment_name == "burn") {
+        defender->status = StatusCondition::BURN;
+      }
+    }
+    
+    // Progress turn counter
+    new_state.turnNumber++;
+    
+    legal_moves.push_back(new_state);
+    if (legal_moves.size() >= static_cast<size_t>(MiniMaxSearchEngine::kMaxBranchingFactor)) break;
+  }
+  
+  // Generate switch options if we haven't reached the branching factor limit
+  if (legal_moves.size() < static_cast<size_t>(MiniMaxSearchEngine::kMaxBranchingFactor)) {
+    std::vector<Pokemon*> alive_pokemon = team->getAlivePokemon();
+    
+    for (Pokemon* pokemon : alive_pokemon) {
+      // Can only switch to alive Pokemon that aren't currently active
+      if (pokemon != active_pokemon && pokemon->isAlive() && !pokemon->fainted) {
+        BattleState new_state = current_state;
+        
+        // Update active Pokemon pointer
+        if (for_ai) {
+          new_state.aiPokemon = pokemon;
+        } else {
+          new_state.opponentPokemon = pokemon;
+        }
+        
+        // Progress turn counter
+        new_state.turnNumber++;
+        
+        legal_moves.push_back(new_state);
+        if (legal_moves.size() >= static_cast<size_t>(MiniMaxSearchEngine::kMaxBranchingFactor)) break;
+      }
     }
   }
   
