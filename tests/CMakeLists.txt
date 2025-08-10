@@ -13,19 +13,19 @@ set(TEST_INCLUDE_DIRS
 )
 
 set(CORE_SOURCES
-    ${CMAKE_SOURCE_DIR}/src/move.cpp
-    ${CMAKE_SOURCE_DIR}/src/pokemon.cpp
-    ${CMAKE_SOURCE_DIR}/src/team.cpp
-    ${CMAKE_SOURCE_DIR}/src/battle.cpp
-    ${CMAKE_SOURCE_DIR}/src/type_effectiveness.cpp
-    ${CMAKE_SOURCE_DIR}/src/move_type_mapping.cpp
-    ${CMAKE_SOURCE_DIR}/src/weather.cpp
-    ${CMAKE_SOURCE_DIR}/src/ai_strategy.cpp
-    ${CMAKE_SOURCE_DIR}/src/ai_factory.cpp
-    ${CMAKE_SOURCE_DIR}/src/easy_ai.cpp
-    ${CMAKE_SOURCE_DIR}/src/medium_ai.cpp
-    ${CMAKE_SOURCE_DIR}/src/hard_ai.cpp
-    ${CMAKE_SOURCE_DIR}/src/expert_ai.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/move.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/pokemon.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/team.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/battle.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/weather.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/type_effectiveness.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/move_type_mapping.cpp
+    ${CMAKE_SOURCE_DIR}/src/ai/ai_strategy.cpp
+    ${CMAKE_SOURCE_DIR}/src/ai/ai_factory.cpp
+    ${CMAKE_SOURCE_DIR}/src/ai/easy_ai.cpp
+    ${CMAKE_SOURCE_DIR}/src/ai/medium_ai.cpp
+    ${CMAKE_SOURCE_DIR}/src/ai/hard_ai.cpp
+    ${CMAKE_SOURCE_DIR}/src/ai/expert_ai.cpp
 )
 
 # ────────────────────────────────
@@ -47,7 +47,7 @@ function(create_test test_name test_source)
     add_custom_command(TARGET ${test_name} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/data
-                $<TARGET_FILE_DIR:${test_name}>/test_data
+                $<TARGET_FILE_DIR:${test_name}>/data
         COMMENT "Copying test data files"
     )
 
