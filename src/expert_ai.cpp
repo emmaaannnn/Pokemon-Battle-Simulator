@@ -500,16 +500,207 @@ bool ExpertAI::isEndgameScenario(const BattleState& battleState) const {
 // Simplified implementations for remaining methods
 double ExpertAI::evaluateLongTermAdvantage(
     const BattleState& battleState) const {
-  (void)battleState;  // Suppress unused parameter warning
-  return 0.0;
+  double score = 0.0;
+  
+  // HP percentage differential (Weight: 0.3x, Range: 20-50 points)
+  double ourHealthTotal = 0.0, oppHealthTotal = 0.0;
+  int ourAlive = 0, oppAlive = 0;
+  
+  for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
+    Pokemon* pokemon = battleState.aiTeam->getPokemon(i);
+    if (pokemon && pokemon->isAlive()) {
+      ourHealthTotal += calculateHealthRatio(*pokemon);
+      ourAlive++;
+    }
+  }
+  
+  for (int i = 0; i < static_cast<int>(battleState.opponentTeam->size()); ++i) {
+    Pokemon* pokemon = battleState.opponentTeam->getPokemon(i);
+    if (pokemon && pokemon->isAlive()) {
+      oppHealthTotal += calculateHealthRatio(*pokemon);
+      oppAlive++;
+    }
+  }
+  
+  double healthAdvantage = (ourHealthTotal - oppHealthTotal) * 15.0;
+  score += healthAdvantage;
+  
+  // Status duration analysis
+  if (battleState.opponentPokemon->status != StatusCondition::NONE) {
+    score += 25.0; // Opponent has harmful status
+    if (battleState.opponentPokemon->status_turns_remaining > 2) {
+      score += 15.0; // Long-lasting status
+    }
+  }
+  
+  if (battleState.aiPokemon->status != StatusCondition::NONE) {
+    score -= 20.0; // We have harmful status
+  }
+  
+  // Stat stage advantages
+  int ourStatStages = battleState.aiPokemon->attack_stage + 
+                      battleState.aiPokemon->defense_stage +
+                      battleState.aiPokemon->special_attack_stage +
+                      battleState.aiPokemon->special_defense_stage +
+                      battleState.aiPokemon->speed_stage;
+  
+  int oppStatStages = battleState.opponentPokemon->attack_stage +
+                      battleState.opponentPokemon->defense_stage +
+                      battleState.opponentPokemon->special_attack_stage +
+                      battleState.opponentPokemon->special_defense_stage +
+                      battleState.opponentPokemon->speed_stage;
+  
+  score += (ourStatStages - oppStatStages) * 8.0;
+  
+  // Switching opportunities (momentum shifts)
+  if (ourAlive > oppAlive) {
+    score += 20.0; // More switching options available
+  }
+  
+  // Weather advantage considerations
+  if (battleState.currentWeather != WeatherCondition::NONE && 
+      battleState.weatherTurnsRemaining > 0) {
+    // Simple weather benefit estimation based on types
+    bool weatherBenefitsUs = false;
+    if (battleState.currentWeather == WeatherCondition::RAIN) {
+      for (const auto& type : battleState.aiPokemon->types) {
+        if (type == "water") weatherBenefitsUs = true;
+      }
+    }
+    if (weatherBenefitsUs) score += 15.0;
+  }
+  
+  return std::max(-50.0, std::min(50.0, score * 0.3)); // Weight: 0.3x, clamp to range
 }
 double ExpertAI::detectSetupAttempt(const BattleState& battleState) const {
-  (void)battleState;  // Suppress unused parameter warning
-  return 0.0;
+  double setupScore = 0.0;
+  
+  // Detect stat-boosting moves (Weight: 2.0x, Range: 30-60 points)
+  for (const auto& move : battleState.opponentPokemon->moves) {
+    if (!move.canUse()) continue;
+    
+    // Detect setup moves by name patterns
+    std::string moveName = move.name;
+    if (moveName.find("dance") != std::string::npos ||
+        moveName.find("growth") != std::string::npos ||
+        moveName.find("calm-mind") != std::string::npos ||
+        moveName.find("nasty-plot") != std::string::npos ||
+        moveName.find("bulk-up") != std::string::npos ||
+        moveName.find("curse") != std::string::npos) {
+      setupScore += 15.0; // Reduced from 25
+      
+      // Higher score if opponent is healthy (better setup opportunity)
+      double oppHealthRatio = calculateHealthRatio(*battleState.opponentPokemon);
+      if (oppHealthRatio > 0.7) {
+        setupScore += 10.0; // Reduced from 20
+      }
+    }
+    
+    // Detect entry hazards
+    if (moveName.find("stealth-rock") != std::string::npos ||
+        moveName.find("spikes") != std::string::npos ||
+        moveName.find("toxic-spikes") != std::string::npos) {
+      setupScore += 15.0;
+    }
+    
+    // Detect substitute
+    if (moveName.find("substitute") != std::string::npos) {
+      setupScore += 20.0;
+    }
+  }
+  
+  // Multi-turn setup sequence detection
+  if (battleState.opponentPokemon->attack_stage > 0 ||
+      battleState.opponentPokemon->special_attack_stage > 0) {
+    setupScore += 20.0; // Already has setup boosts - reduced base
+    
+    // Higher threat if multiple stages boosted
+    int totalBoosts = battleState.opponentPokemon->attack_stage +
+                      battleState.opponentPokemon->special_attack_stage;
+    setupScore += totalBoosts * 5.0; // Reduced multiplier
+  }
+  
+  // Opponent has defensive boosts suggesting setup strategy
+  if (battleState.opponentPokemon->defense_stage > 0 ||
+      battleState.opponentPokemon->special_defense_stage > 0) {
+    setupScore += 10.0; // Reduced from 15
+  }
+  
+  return std::max(0.0, std::min(60.0, setupScore * 2.0)); // Weight: 2.0x, clamp to range
 }
 double ExpertAI::evaluateCounterPlay(const BattleState& battleState) const {
-  (void)battleState;  // Suppress unused parameter warning
-  return 0.0;
+  double counterScore = 0.0;
+  
+  // Assess type advantages (Weight: 1.5x, Range: 25-45 points)
+  for (const auto& move : battleState.aiPokemon->moves) {
+    if (!move.canUse() || move.power <= 0) continue;
+    
+    double effectiveness = calculateTypeEffectiveness(move.type, battleState.opponentPokemon->types);
+    if (effectiveness >= 2.0) {
+      counterScore += 20.0; // We have super effective moves
+      
+      // Extra points for high-power super effective moves
+      if (move.power >= 90) {
+        counterScore += 15.0;
+      }
+    } else if (effectiveness <= 0.5) {
+      counterScore -= 10.0; // Our moves are not very effective
+    }
+  }
+  
+  // Predicted switches assessment
+  // If opponent is at low health, they might switch
+  double oppHealthRatio = calculateHealthRatio(*battleState.opponentPokemon);
+  if (oppHealthRatio < 0.3) {
+    // Look for moves that can hit common switch-ins
+    for (const auto& move : battleState.aiPokemon->moves) {
+      if (move.canUse() && move.power > 0) {
+        // Coverage moves are valuable for switch prediction
+        if (move.type != battleState.aiPokemon->types[0] && 
+            (battleState.aiPokemon->types.size() == 1 || move.type != battleState.aiPokemon->types[1])) {
+          counterScore += 12.0; // Coverage move for potential switches
+        }
+      }
+    }
+  }
+  
+  // Punishment moves evaluation
+  for (const auto& move : battleState.aiPokemon->moves) {
+    if (!move.canUse()) continue;
+    
+    std::string moveName = move.name;
+    // Moves that punish setup or specific strategies
+    if (moveName.find("haze") != std::string::npos ||
+        moveName.find("clear-smog") != std::string::npos) {
+      if (battleState.opponentPokemon->attack_stage > 0 ||
+          battleState.opponentPokemon->special_attack_stage > 0) {
+        counterScore += 25.0; // Punish stat boosts
+      }
+    }
+    
+    if (moveName.find("taunt") != std::string::npos) {
+      // Check if opponent has status moves to disable
+      int oppStatusMoves = 0;
+      for (const auto& oppMove : battleState.opponentPokemon->moves) {
+        if (oppMove.power == 0) oppStatusMoves++;
+      }
+      if (oppStatusMoves >= 2) {
+        counterScore += 20.0; // Taunt is effective against status-heavy sets
+      }
+    }
+  }
+  
+  // Factor in opponent's likely responses
+  if (battleState.aiPokemon->speed > battleState.opponentPokemon->speed) {
+    counterScore += 10.0; // Speed advantage for counter-play
+  }
+  
+  // Assess if we can force switches
+  if (battleState.opponentPokemon->status != StatusCondition::NONE) {
+    counterScore += 15.0; // Opponent under pressure, more likely to make suboptimal plays
+  }
+  
+  return std::max(0.0, std::min(45.0, counterScore * 1.5)); // Weight: 1.5x, clamp to range
 }
 bool ExpertAI::shouldDisrupt(const BattleState& battleState) const {
   (void)battleState;  // Suppress unused parameter warning
@@ -517,13 +708,189 @@ bool ExpertAI::shouldDisrupt(const BattleState& battleState) const {
 }
 double ExpertAI::assessPositionalAdvantage(
     const BattleState& battleState) const {
-  (void)battleState;  // Suppress unused parameter warning
-  return 0.0;
+  double positionScore = 0.0;
+  
+  // Speed tiers analysis (Weight: 1.2x, Range: 15-35 points)
+  int ourSpeed = battleState.aiPokemon->getEffectiveSpeed();
+  int oppSpeed = battleState.opponentPokemon->getEffectiveSpeed();
+  
+  if (ourSpeed > oppSpeed) {
+    double speedAdvantage = static_cast<double>(ourSpeed - oppSpeed) / oppSpeed;
+    positionScore += std::min(20.0, speedAdvantage * 50.0); // Cap at 20 points
+  } else if (oppSpeed > ourSpeed) {
+    double speedDisadvantage = static_cast<double>(oppSpeed - ourSpeed) / ourSpeed;
+    positionScore -= std::min(15.0, speedDisadvantage * 40.0); // Cap disadvantage
+  }
+  
+  // Switching initiative assessment
+  double ourHealthRatio = calculateHealthRatio(*battleState.aiPokemon);
+  double oppHealthRatio = calculateHealthRatio(*battleState.opponentPokemon);
+  
+  // If we're healthier, we have more switching flexibility
+  if (ourHealthRatio > oppHealthRatio + 0.2) {
+    positionScore += 15.0;
+  }
+  
+  // Type matchup positioning
+  // Evaluate how well-positioned we are type-wise
+  double bestMatchupAdvantage = 0.0;
+  for (const auto& move : battleState.aiPokemon->moves) {
+    if (move.canUse() && move.power > 0) {
+      double effectiveness = calculateTypeEffectiveness(move.type, battleState.opponentPokemon->types);
+      bestMatchupAdvantage = std::max(bestMatchupAdvantage, effectiveness);
+    }
+  }
+  
+  if (bestMatchupAdvantage >= 2.0) {
+    positionScore += 18.0; // Excellent type positioning
+  } else if (bestMatchupAdvantage >= 1.5) {
+    positionScore += 10.0; // Good type positioning
+  } else if (bestMatchupAdvantage <= 0.5) {
+    positionScore -= 12.0; // Poor type positioning
+  }
+  
+  // Consider pivot moves and U-turn mechanics
+  for (const auto& move : battleState.aiPokemon->moves) {
+    if (!move.canUse()) continue;
+    
+    std::string moveName = move.name;
+    if (moveName.find("u-turn") != std::string::npos ||
+        moveName.find("volt-switch") != std::string::npos ||
+        moveName.find("flip-turn") != std::string::npos) {
+      // Pivot moves provide positional flexibility
+      positionScore += 12.0;
+      
+      // Extra value if we have good switch-in options
+      int viableTeammates = 0;
+      for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
+        Pokemon* teammate = battleState.aiTeam->getPokemon(i);
+        if (teammate && teammate != battleState.aiPokemon && 
+            teammate->isAlive() && calculateHealthRatio(*teammate) > 0.5) {
+          viableTeammates++;
+        }
+      }
+      positionScore += viableTeammates * 3.0;
+    }
+  }
+  
+  // Weather positioning
+  if (battleState.currentWeather != WeatherCondition::NONE) {
+    bool weatherFavorsUs = false;
+    if (battleState.currentWeather == WeatherCondition::RAIN) {
+      for (const auto& type : battleState.aiPokemon->types) {
+        if (type == "water") weatherFavorsUs = true;
+      }
+    } else if (battleState.currentWeather == WeatherCondition::SUN) {
+      for (const auto& type : battleState.aiPokemon->types) {
+        if (type == "fire" || type == "grass") weatherFavorsUs = true;
+      }
+    }
+    if (weatherFavorsUs) positionScore += 8.0;
+  }
+  
+  return std::max(-35.0, std::min(35.0, positionScore * 1.2)); // Weight: 1.2x, clamp to range
 }
 double ExpertAI::evaluateResourceManagement(
     const BattleState& battleState) const {
-  (void)battleState;  // Suppress unused parameter warning
-  return 0.0;
+  double resourceScore = 0.0;
+  
+  // PP conservation analysis (Weight: 0.8x, Range: 10-25 points)
+  int totalPPRemaining = 0;
+  int totalPPCapacity = 0;
+  int lowPPMoves = 0;
+  int highPowerLowPPMoves = 0;
+  
+  for (const auto& move : battleState.aiPokemon->moves) {
+    totalPPRemaining += move.current_pp;
+    totalPPCapacity += move.pp;
+    
+    if (move.current_pp <= 2 && move.pp > 5) {
+      lowPPMoves++;
+      if (move.power >= 90) {
+        highPowerLowPPMoves++;
+      }
+    }
+  }
+  
+  double ppRatio = static_cast<double>(totalPPRemaining) / std::max(1, totalPPCapacity);
+  resourceScore += ppRatio * 15.0; // Reward good PP management
+  
+  // Penalty for being low on high-power moves
+  resourceScore -= highPowerLowPPMoves * 8.0;
+  
+  // General penalty for having many low PP moves
+  resourceScore -= lowPPMoves * 3.0;
+  
+  // Avoiding overkill damage assessment
+  double oppHealthRatio = calculateHealthRatio(*battleState.opponentPokemon);
+  if (oppHealthRatio < 0.3) {
+    // Look for efficient finishing moves rather than overkill
+    for (const auto& move : battleState.aiPokemon->moves) {
+      if (move.canUse() && move.power > 0) {
+        double estimatedDamage = estimateDamage(*battleState.aiPokemon, 
+                                               *battleState.opponentPokemon, 
+                                               move, battleState.currentWeather);
+        
+        // Reward efficient finishing moves
+        if (estimatedDamage >= battleState.opponentPokemon->current_hp && 
+            estimatedDamage < battleState.opponentPokemon->current_hp * 1.5) {
+          resourceScore += 10.0; // Efficient KO move available
+        }
+        
+        // Slight penalty for massive overkill (wasting a high-power move)
+        if (estimatedDamage > battleState.opponentPokemon->current_hp * 2.0 && move.power >= 100) {
+          resourceScore -= 3.0;
+        }
+      }
+    }
+  }
+  
+  // Strategic item usage evaluation (simplified - would need item system)
+  // For now, consider status moves as "resource investment"
+  int statusMoves = 0;
+  for (const auto& move : battleState.aiPokemon->moves) {
+    if (move.power == 0) statusMoves++;
+  }
+  
+  // Balance between efficiency and effectiveness
+  if (battleState.turnNumber < 5) {
+    // Early game - value setup/status moves more
+    resourceScore += statusMoves * 2.0;
+  } else {
+    // Late game - prioritize direct effectiveness
+    if (oppHealthRatio < 0.4) {
+      resourceScore -= statusMoves * 1.0; // Status moves less valuable when opponent is low
+    }
+  }
+  
+  // Team resource consideration
+  int aliveTeammates = 0;
+  double averageTeammateHealth = 0.0;
+  for (int i = 0; i < static_cast<int>(battleState.aiTeam->size()); ++i) {
+    Pokemon* teammate = battleState.aiTeam->getPokemon(i);
+    if (teammate && teammate != battleState.aiPokemon && teammate->isAlive()) {
+      aliveTeammates++;
+      averageTeammateHealth += calculateHealthRatio(*teammate);
+    }
+  }
+  
+  if (aliveTeammates > 0) {
+    averageTeammateHealth /= aliveTeammates;
+    // If teammates are healthy, we can be more aggressive with current Pokemon
+    resourceScore += averageTeammateHealth * 8.0;
+    
+    // If we have many teammates, less pressure to conserve
+    if (aliveTeammates >= 2) {
+      resourceScore += 5.0;
+    }
+  } else {
+    // Last Pokemon - maximum conservation needed
+    resourceScore -= 10.0;
+  }
+  
+  // Clamp raw score first, then apply weight
+  double clampedScore = std::max(-25.0, std::min(25.0, resourceScore));
+  return clampedScore * 0.8; // Weight: 0.8x, final range: -20.0 to 20.0
 }
 double ExpertAI::calculateTeamSynergy(const Team& team) const { 
   (void)team;  // Suppress unused parameter warning
@@ -840,7 +1207,8 @@ std::vector<BattleState> ExpertAI::generateLegalMoves(const BattleState& current
     }
     
     // Check if Pokemon can act (some status conditions prevent acting)
-    if (!active_pokemon->canAct()) {
+    // Use deterministic RNG from BattleState for consistent minimax search
+    if (!active_pokemon->canAct(current_state.deterministicRng)) {
       continue;
     }
     

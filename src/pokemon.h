@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -65,6 +66,7 @@ class Pokemon {
   void applyStatusCondition(StatusCondition newStatus);
   void processStatusCondition();
   bool canAct() const;
+  bool canAct(std::mt19937& rng) const;
   std::string getStatusConditionName() const;
   bool hasStatusCondition() const { return status != StatusCondition::NONE; }
   void clearStatusCondition() {
