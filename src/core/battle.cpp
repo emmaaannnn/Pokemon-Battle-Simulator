@@ -77,11 +77,25 @@ void Battle::selectPokemon() {
     std::cout << "\nEnter the number of the Pokémon you want to send out: ";
     std::cin >> chosenPokemonNum;
     
-    // Check for input failure (non-numeric input)
-    if (std::cin.fail()) {
+    // Check for input failure or EOF
+    if (std::cin.fail() || std::cin.eof()) {
       std::cin.clear(); // Clear error flag
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore bad input
-      std::cout << "Invalid input. Please enter a number.\n";
+      std::cout << "Invalid input or end of input. Please enter a number between 1 and " 
+                << playerTeam.size() << ".\n";
+      
+      // If we hit EOF, we can't continue - select the first available Pokemon
+      if (std::cin.eof()) {
+        for (int i = 0; i < static_cast<int>(playerTeam.size()); ++i) {
+          auto *pokemon = playerTeam.getPokemon(i);
+          if (pokemon && pokemon->isAlive()) {
+            selectedPokemon = pokemon;
+            std::cout << "\nAuto-selecting " << selectedPokemon->name 
+                      << " due to end of input!" << std::endl;
+            return;
+          }
+        }
+      }
       continue;
     }
 
@@ -466,11 +480,18 @@ int Battle::getMoveChoice() const {
               << (selectedPokemon->moves.size() + (canSwitch ? 1 : 0)) << "): ";
     std::cin >> choice;
     
-    // Check for input failure (non-numeric input)
-    if (std::cin.fail()) {
+    // Check for input failure or EOF
+    if (std::cin.fail() || std::cin.eof()) {
       std::cin.clear(); // Clear error flag
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore bad input
-      std::cout << "Invalid input. Please enter a number.\n";
+      std::cout << "Invalid input or end of input. Please enter a number between 1 and " 
+                << (selectedPokemon->moves.size() + (canSwitch ? 1 : 0)) << ".\n";
+      
+      // If we hit EOF, auto-select first move
+      if (std::cin.eof()) {
+        std::cout << "Auto-selecting first move due to end of input.\n";
+        return 1; // Return choice 1 (first move)
+      }
       continue;
     }
 
@@ -534,11 +555,18 @@ int Battle::getPokemonChoice() const {
     std::cout << "\nSelect a Pokémon (1-" << availableIndices.size() << "): ";
     std::cin >> choice;
     
-    // Check for input failure (non-numeric input)
-    if (std::cin.fail()) {
+    // Check for input failure or EOF
+    if (std::cin.fail() || std::cin.eof()) {
       std::cin.clear(); // Clear error flag
       std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore bad input
-      std::cout << "Invalid input. Please enter a number.\n";
+      std::cout << "Invalid input or end of input. Please enter a number between 1 and " 
+                << availableIndices.size() << ".\n";
+      
+      // If we hit EOF, auto-select first available Pokemon
+      if (std::cin.eof()) {
+        std::cout << "Auto-selecting first available Pokemon due to end of input.\n";
+        return availableIndices[0];
+      }
       continue;
     }
 
