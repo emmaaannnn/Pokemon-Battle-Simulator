@@ -132,7 +132,7 @@ Dynamic weather conditions that affect battle strategy:
 - **Enhanced Feedback**: "Charizard gets STAB!" and "A critical hit!" messages
 - **Proper Stacking**: All multipliers combine correctly (Type × STAB × Critical × Weather)
 
-### 🧠 **AI Difficulty System** (NEW!)
+### 🧠 **AI Difficulty System**
 Choose your challenge level with progressively smarter opponents:
 
 | Difficulty | Strategy | Switching | Decision Making |
@@ -430,4 +430,7 @@ mkdir build && cd build && cmake .. && make -j4
 ./bin/pokemon_battle
 ```
 
-*Experience the thrill of strategic Pokémon battles with authentic mechanics!* 🎮✨ 
+*Experience the thrill of strategic Pokémon battles with authentic mechanics!* 🎮✨
+
+---
+*Last updated: August 13, 2025* 
