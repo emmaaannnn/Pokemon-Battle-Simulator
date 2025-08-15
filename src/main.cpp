@@ -3,8 +3,10 @@
 #include <unordered_map>
 #include <vector>
 #include <csignal>
+#include <functional>
 
 #include "battle.h"
+#include "input_validator.h"
 
 // Signal handler for graceful exit
 void signalHandler(int signal) {
@@ -16,13 +18,19 @@ int main() {
   // Set up signal handler for graceful interruption
   signal(SIGINT, signalHandler);
   
-  // Get user's name
+  // Get user's name with validation and sanitization
   std::string userName;
-  std::cout << "Enter your name: ";
-  std::getline(std::cin, userName);
+  auto nameResult = InputValidator::getValidatedString(
+    std::cin, 0, 50, true, "Enter your name"
+  );
   
-  // Handle empty input gracefully
-  if (userName.empty()) {
+  if (nameResult.isValid()) {
+    userName = InputValidator::sanitizeString(nameResult.value);
+    if (userName.empty()) {
+      userName = "Trainer";
+    }
+  } else {
+    std::cout << "Using default name due to input error: " << nameResult.errorMessage << std::endl;
     userName = "Trainer";
   }
   
@@ -189,27 +197,25 @@ int main() {
   std::cout << "  [3] 🔥 Mixed Team\n"
             << "      → Venusaur, Zapdos, Nidoking, Gengar, Lapras, Tauros\n" << std::endl;
 
-  // Prompt for team selection
-  int chosenTeamNum;
-  while (true) {
-    std::cout << "📝 Enter the number of the team you want to select (1-3): ";
-    std::cin >> chosenTeamNum;
-    
-    // Check for input failure or EOF
-    if (std::cin.fail() || std::cin.eof()) {
-      std::cout << "Invalid input or end of input. Exiting game." << std::endl;
-      return 1;
-    }
-    
-    // Validate range
-    if (chosenTeamNum >= 1 && chosenTeamNum <= 3) {
-      break;
-    }
-    
-    std::cout << "Invalid selection. Please enter 1, 2, or 3." << std::endl;
-    std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  // Prompt for team selection with secure validation
+  auto teamValidator = [](std::istream& input) -> InputValidator::ValidationResult<int> {
+    return InputValidator::getValidatedInt(input, 1, 3);
+  };
+  
+  auto teamResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "📝 Enter the number of the team you want to select (1-3)",
+    2, teamValidator
+  );
+  
+  if (!teamResult.isValid()) {
+    std::cout << "Failed to get valid team selection after multiple attempts: "
+              << teamResult.errorMessage << std::endl;
+    std::cout << "Defaulting to Team 1." << std::endl;
+    teamResult = InputValidator::ValidationResult<int>(1);
   }
+  
+  int chosenTeamNum = teamResult.value;
 
   const auto chosenTeamKey = "Team " + std::to_string(chosenTeamNum);
 
@@ -254,27 +260,25 @@ int main() {
   std::cout << "  [7] 🔥 Blaine (Fire Gym Leader)" << std::endl;
   std::cout << "  [8] 🌍 Giovanni (Ground Gym Leader)\n" << std::endl;
 
-  // Prompt for opponent selection
-  int chosenOpponentNum;
-  while (true) {
-    std::cout << "⚔️  Enter the number of your chosen opponent (1-8): ";
-    std::cin >> chosenOpponentNum;
-    
-    // Check for input failure or EOF
-    if (std::cin.fail() || std::cin.eof()) {
-      std::cout << "Invalid input or end of input. Exiting game." << std::endl;
-      return 1;
-    }
-    
-    // Validate range
-    if (chosenOpponentNum >= 1 && chosenOpponentNum <= 8) {
-      break;
-    }
-    
-    std::cout << "Invalid selection. Please enter a number between 1 and 8." << std::endl;
-    std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  // Prompt for opponent selection with secure validation
+  auto opponentValidator = [](std::istream& input) -> InputValidator::ValidationResult<int> {
+    return InputValidator::getValidatedInt(input, 1, 8);
+  };
+  
+  auto opponentResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "⚔️  Enter the number of your chosen opponent (1-8)",
+    2, opponentValidator
+  );
+  
+  if (!opponentResult.isValid()) {
+    std::cout << "Failed to get valid opponent selection after multiple attempts: "
+              << opponentResult.errorMessage << std::endl;
+    std::cout << "Defaulting to Opponent 1 (Brock)." << std::endl;
+    opponentResult = InputValidator::ValidationResult<int>(1);
   }
+  
+  int chosenOpponentNum = opponentResult.value;
 
   const auto chosenOpponentKey =
       "Opponent Team " + std::to_string(chosenOpponentNum);
@@ -318,27 +322,25 @@ int main() {
   std::cout << "  [3] 🧠 Hard - Smart strategy with switching" << std::endl;
   std::cout << "  [4] 🚀 Expert - Advanced AI with prediction & analysis\n" << std::endl;
 
-  int chosenDifficulty;
-  while (true) {
-    std::cout << "🎮 Enter the difficulty level (1-4): ";
-    std::cin >> chosenDifficulty;
-    
-    // Check for input failure or EOF
-    if (std::cin.fail() || std::cin.eof()) {
-      std::cout << "Invalid input or end of input. Defaulting to Easy." << std::endl;
-      chosenDifficulty = 1;
-      break;
-    }
-    
-    // Validate range
-    if (chosenDifficulty >= 1 && chosenDifficulty <= 4) {
-      break;
-    }
-    
-    std::cout << "Invalid selection. Please enter a number between 1 and 4." << std::endl;
-    std::cin.clear();
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  // Prompt for difficulty selection with secure validation
+  auto difficultyValidator = [](std::istream& input) -> InputValidator::ValidationResult<int> {
+    return InputValidator::getValidatedInt(input, 1, 4);
+  };
+  
+  auto difficultyResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "🎮 Enter the difficulty level (1-4)",
+    2, difficultyValidator
+  );
+  
+  if (!difficultyResult.isValid()) {
+    std::cout << "Failed to get valid difficulty selection after multiple attempts: "
+              << difficultyResult.errorMessage << std::endl;
+    std::cout << "Defaulting to Easy difficulty." << std::endl;
+    difficultyResult = InputValidator::ValidationResult<int>(1);
   }
+  
+  int chosenDifficulty = difficultyResult.value;
 
   // Convert to AI difficulty enum
   Battle::AIDifficulty aiDifficulty;

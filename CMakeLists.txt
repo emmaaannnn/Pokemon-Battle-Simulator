@@ -46,6 +46,7 @@ set(AI_SOURCES
 set(UTILS_SOURCES
     src/utils/type_effectiveness.cpp
     src/utils/move_type_mapping.cpp
+    src/utils/input_validator.cpp
 )
 
 set(ALL_SOURCES ${CORE_SOURCES} ${AI_SOURCES} ${UTILS_SOURCES})
@@ -70,6 +71,7 @@ set(AI_HEADERS
 set(UTILS_HEADERS
     include/utils/type_effectiveness.h
     include/utils/move_type_mapping.h
+    include/utils/input_validator.h
     include/utils/json.hpp
 )
 

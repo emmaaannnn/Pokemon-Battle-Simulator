@@ -1,6 +1,8 @@
 #include "pokemon.h"
 
 #include <random>
+#include <set>
+#include "input_validator.h"
 
 using json = nlohmann::json;
 
@@ -31,11 +33,26 @@ Pokemon::Pokemon(const std::string& pokemonName)
       special_attack_stage(0),
       special_defense_stage(0),
       speed_stage(0) {
-  loadFromJson("data/pokemon/" + pokemonName + ".json");
+  
+  // Secure file path validation and construction
+  auto pathResult = InputValidator::validateDataFilePath(pokemonName, "pokemon", ".json");
+  if (!pathResult.isValid()) {
+    std::cerr << "Pokemon loading failed - " << pathResult.errorMessage << std::endl;
+    return;
+  }
+  
+  loadFromJson(pathResult.value);
   // loadMoves(); // Removed - moves are loaded by Team::loadTeams()
 }
 
 void Pokemon::loadFromJson(const std::string& file_path) {
+  // Additional security validation for the file path
+  auto accessValidation = InputValidator::validateFileAccessibility(file_path);
+  if (!accessValidation.isValid()) {
+    std::cerr << "Pokemon file accessibility check failed: " << accessValidation.errorMessage << std::endl;
+    return;
+  }
+
   auto file = std::ifstream(file_path);
   if (!file.is_open()) {
     std::cerr << "Error opening file: " << file_path << std::endl;
@@ -43,26 +60,121 @@ void Pokemon::loadFromJson(const std::string& file_path) {
   }
 
   auto pokemon_json = json{};
-  file >> pokemon_json;
-
-  // Map JSON data to class members
-  name = pokemon_json["name"];
-  id = pokemon_json["id"];
-
-  // Accessing types which is an array of strings
-  for (const auto& type : pokemon_json["types"]) {
-    types.push_back(type);
+  try {
+    file >> pokemon_json;
+  } catch (const json::parse_error& e) {
+    std::cerr << "JSON parse error in " << file_path << ": " << e.what() << std::endl;
+    return;
   }
 
-  // Accessing base_stats which is an object
+  // Define valid Pokemon types for validation
+  static const std::set<std::string> validTypes = {
+    "bug", "dragon", "electric", "fairy", "fighting", "fire", 
+    "flying", "ghost", "grass", "ground", "ice", "normal", 
+    "poison", "psychic", "rock", "water"
+  };
+
+  // Validate and extract name (1-50 characters, alphanumeric and common symbols)
+  auto nameResult = InputValidator::getJsonString(pokemon_json, "name", 1, 50);
+  if (!nameResult.isValid()) {
+    std::cerr << "Pokemon name validation failed: " << nameResult.errorMessage << std::endl;
+    return;
+  }
+  name = nameResult.value;
+
+  // Validate and extract ID (1-999 range for Pokemon IDs)
+  auto idResult = InputValidator::getJsonInt(pokemon_json, "id", 1, 999);
+  if (!idResult.isValid()) {
+    std::cerr << "Pokemon ID validation failed: " << idResult.errorMessage << std::endl;
+    return;
+  }
+  id = idResult.value;
+
+  // Validate types array (must exist and be an array)
+  if (pokemon_json.find("types") == pokemon_json.end() || !pokemon_json["types"].is_array()) {
+    std::cerr << "Pokemon types field missing or invalid in " << file_path << std::endl;
+    return;
+  }
+
+  // Clear existing types and validate each type
+  types.clear();
+  const auto& typesArray = pokemon_json["types"];
+  if (typesArray.empty() || typesArray.size() > 2) {
+    std::cerr << "Pokemon must have 1-2 types in " << file_path << std::endl;
+    return;
+  }
+
+  for (const auto& typeElement : typesArray) {
+    if (!typeElement.is_string()) {
+      std::cerr << "Invalid type format in " << file_path << std::endl;
+      return;
+    }
+    
+    std::string typeStr = typeElement.get<std::string>();
+    if (validTypes.find(typeStr) == validTypes.end()) {
+      std::cerr << "Invalid Pokemon type '" << typeStr << "' in " << file_path << std::endl;
+      return;
+    }
+    types.push_back(typeStr);
+  }
+
+  // Validate base_stats object exists
+  if (pokemon_json.find("base_stats") == pokemon_json.end() || !pokemon_json["base_stats"].is_object()) {
+    std::cerr << "Pokemon base_stats field missing or invalid in " << file_path << std::endl;
+    return;
+  }
+
   const auto& base_stats = pokemon_json["base_stats"];
-  hp = base_stats["hp"];
+
+  // Validate and extract HP (1-255 typical range for Pokemon stats)
+  auto hpResult = InputValidator::getJsonInt(base_stats, "hp", 1, 255);
+  if (!hpResult.isValid()) {
+    std::cerr << "Pokemon HP validation failed: " << hpResult.errorMessage << std::endl;
+    return;
+  }
+  hp = hpResult.value;
   current_hp = hp;
-  attack = base_stats["attack"];
-  defense = base_stats["defense"];
-  special_attack = base_stats["special-attack"];
-  special_defense = base_stats["special-defense"];
-  speed = base_stats["speed"];
+
+  // Validate and extract Attack (1-255 range)
+  auto attackResult = InputValidator::getJsonInt(base_stats, "attack", 1, 255);
+  if (!attackResult.isValid()) {
+    std::cerr << "Pokemon Attack validation failed: " << attackResult.errorMessage << std::endl;
+    return;
+  }
+  attack = attackResult.value;
+
+  // Validate and extract Defense (1-255 range)
+  auto defenseResult = InputValidator::getJsonInt(base_stats, "defense", 1, 255);
+  if (!defenseResult.isValid()) {
+    std::cerr << "Pokemon Defense validation failed: " << defenseResult.errorMessage << std::endl;
+    return;
+  }
+  defense = defenseResult.value;
+
+  // Validate and extract Special Attack (1-255 range)
+  auto specialAttackResult = InputValidator::getJsonInt(base_stats, "special-attack", 1, 255);
+  if (!specialAttackResult.isValid()) {
+    std::cerr << "Pokemon Special Attack validation failed: " << specialAttackResult.errorMessage << std::endl;
+    return;
+  }
+  special_attack = specialAttackResult.value;
+
+  // Validate and extract Special Defense (1-255 range)
+  auto specialDefenseResult = InputValidator::getJsonInt(base_stats, "special-defense", 1, 255);
+  if (!specialDefenseResult.isValid()) {
+    std::cerr << "Pokemon Special Defense validation failed: " << specialDefenseResult.errorMessage << std::endl;
+    return;
+  }
+  special_defense = specialDefenseResult.value;
+
+  // Validate and extract Speed (1-255 range)
+  auto speedResult = InputValidator::getJsonInt(base_stats, "speed", 1, 255);
+  if (!speedResult.isValid()) {
+    std::cerr << "Pokemon Speed validation failed: " << speedResult.errorMessage << std::endl;
+    return;
+  }
+  speed = speedResult.value;
+
   fainted = false;
 }
 

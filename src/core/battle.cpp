@@ -8,9 +8,11 @@
 #include <iostream>
 #include <limits>
 #include <thread>
+#include <functional>
 
 #include "move_type_mapping.h"
 #include "weather.h"
+#include "input_validator.h"
 
 Battle::Battle(const Team &playerTeam, const Team &opponentTeam,
                AIDifficulty aiDifficulty)
@@ -72,46 +74,50 @@ void Battle::selectPokemon() {
     }
   }
 
-  int chosenPokemonNum;
-  while (true) {
-    std::cout << "\nEnter the number of the Pokémon you want to send out: ";
-    std::cin >> chosenPokemonNum;
-    
-    // Check for input failure or EOF
-    if (std::cin.fail() || std::cin.eof()) {
-      std::cin.clear(); // Clear error flag
-      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore bad input
-      std::cout << "Invalid input or end of input. Please enter a number between 1 and " 
-                << playerTeam.size() << ".\n";
-      
-      // If we hit EOF, we can't continue - select the first available Pokemon
-      if (std::cin.eof()) {
-        for (int i = 0; i < static_cast<int>(playerTeam.size()); ++i) {
-          auto *pokemon = playerTeam.getPokemon(i);
-          if (pokemon && pokemon->isAlive()) {
-            selectedPokemon = pokemon;
-            std::cout << "\nAuto-selecting " << selectedPokemon->name 
-                      << " due to end of input!" << std::endl;
-            return;
-          }
-        }
-      }
-      continue;
+  // Secure Pokemon selection with validation
+  auto pokemonValidator = [this](std::istream& input) -> InputValidator::ValidationResult<int> {
+    auto result = InputValidator::getValidatedInt(input, 1, static_cast<int>(playerTeam.size()));
+    if (!result.isValid()) {
+      return result;
     }
-
-    if (chosenPokemonNum >= 1 &&
-        chosenPokemonNum <= static_cast<int>(playerTeam.size())) {
-      auto *pokemon = playerTeam.getPokemon(chosenPokemonNum - 1);
+    
+    // Validate that the selected Pokemon exists and is alive
+    auto *pokemon = playerTeam.getPokemon(result.value - 1);
+    if (!pokemon || !pokemon->isAlive()) {
+      return InputValidator::ValidationResult<int>(
+        InputValidator::ValidationError::INVALID_INPUT,
+        "Selected Pokemon is not available or has fainted"
+      );
+    }
+    
+    return result;
+  };
+  
+  auto pokemonResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "\nEnter the number of the Pokémon you want to send out",
+    2, pokemonValidator
+  );
+  
+  if (!pokemonResult.isValid()) {
+    std::cout << "Failed to get valid Pokemon selection: " << pokemonResult.errorMessage << std::endl;
+    // Auto-select first available Pokemon as fallback
+    for (int i = 0; i < static_cast<int>(playerTeam.size()); ++i) {
+      auto *pokemon = playerTeam.getPokemon(i);
       if (pokemon && pokemon->isAlive()) {
         selectedPokemon = pokemon;
-        std::cout << "\nYou have selected " << selectedPokemon->name
-                  << " to send out!" << std::endl;
-        std::cout << std::endl;
-        break;
+        std::cout << "Auto-selecting " << selectedPokemon->name << " as fallback!" << std::endl;
+        return;
       }
     }
-    std::cout << "Invalid selection - try again." << std::endl;
+    return; // No valid Pokemon available
   }
+  
+  int chosenPokemonNum = pokemonResult.value;
+  selectedPokemon = playerTeam.getPokemon(chosenPokemonNum - 1);
+  std::cout << "\nYou have selected " << selectedPokemon->name
+            << " to send out!" << std::endl;
+  std::cout << std::endl;
 }
 
 void Battle::selectOpponentPokemon() {
@@ -474,50 +480,74 @@ int Battle::getMoveChoice() const {
               << ". Switch Pokémon\n";
   }
 
-  int choice;
-  while (true) {
-    std::cout << "\nSelect an action (1-"
-              << (selectedPokemon->moves.size() + (canSwitch ? 1 : 0)) << "): ";
-    std::cin >> choice;
+  // Secure action selection with validation
+  int maxChoice = static_cast<int>(selectedPokemon->moves.size() + (canSwitch ? 1 : 0));
+  
+  auto actionValidator = [this, canSwitch, maxChoice](std::istream& input) -> InputValidator::ValidationResult<int> {
+    auto result = InputValidator::getValidatedInt(input, 1, maxChoice);
+    if (!result.isValid()) {
+      return result;
+    }
     
-    // Check for input failure or EOF
-    if (std::cin.fail() || std::cin.eof()) {
-      std::cin.clear(); // Clear error flag
-      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore bad input
-      std::cout << "Invalid input or end of input. Please enter a number between 1 and " 
-                << (selectedPokemon->moves.size() + (canSwitch ? 1 : 0)) << ".\n";
-      
-      // If we hit EOF, auto-select first move
-      if (std::cin.eof()) {
-        std::cout << "Auto-selecting first move due to end of input.\n";
-        return 1; // Return choice 1 (first move)
-      }
-      continue;
-    }
-
-    // Check if it's a move choice
-    if (choice >= 1 &&
-        choice <= static_cast<int>(selectedPokemon->moves.size())) {
+    int choice = result.value;
+    
+    // Check if it's a move choice and validate PP
+    if (choice >= 1 && choice <= static_cast<int>(selectedPokemon->moves.size())) {
       const Move &selectedMove = selectedPokemon->moves[choice - 1];
-
-      // Check if the move has PP remaining
       if (!selectedMove.canUse()) {
-        std::cout << selectedMove.name
-                  << " has no PP left! Choose another action.\n";
-        continue;
+        return InputValidator::ValidationResult<int>(
+          InputValidator::ValidationError::INVALID_INPUT,
+          selectedMove.name + " has no PP left! Choose another action"
+        );
       }
-
-      return choice - 1;  // Return 0-based move index
     }
-
-    // Check if it's a switch choice
-    if (canSwitch &&
-        choice == static_cast<int>(selectedPokemon->moves.size() + 1)) {
-      return -1;  // Special value to indicate switching
+    
+    // Validate switch choice
+    if (choice == static_cast<int>(selectedPokemon->moves.size() + 1) && !canSwitch) {
+      return InputValidator::ValidationResult<int>(
+        InputValidator::ValidationError::INVALID_INPUT,
+        "No Pokemon available to switch to"
+      );
     }
-
-    std::cout << "Invalid choice. Please select a valid action.\n";
+    
+    return result;
+  };
+  
+  auto actionResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "\nSelect an action (1-" + std::to_string(maxChoice) + ")",
+    2, actionValidator
+  );
+  
+  if (!actionResult.isValid()) {
+    std::cout << "Failed to get valid action selection: " << actionResult.errorMessage << std::endl;
+    std::cout << "Auto-selecting first available move as fallback.\n";
+    
+    // Find first usable move as fallback
+    for (size_t i = 0; i < selectedPokemon->moves.size(); ++i) {
+      if (selectedPokemon->moves[i].canUse()) {
+        return static_cast<int>(i);  // Return 0-based move index
+      }
+    }
+    
+    // If no moves are usable, return first move anyway (battle system should handle this)
+    return 0;
   }
+  
+  int choice = actionResult.value;
+  
+  // Check if it's a move choice
+  if (choice >= 1 && choice <= static_cast<int>(selectedPokemon->moves.size())) {
+    return choice - 1;  // Return 0-based move index
+  }
+
+  // Check if it's a switch choice
+  if (canSwitch && choice == static_cast<int>(selectedPokemon->moves.size() + 1)) {
+    return -1;  // Special value to indicate switching
+  }
+
+  // This should never happen due to validation, but safety fallback
+  return 0;
 }
 
 int Battle::getPokemonChoice() const {
@@ -550,36 +580,47 @@ int Battle::getPokemonChoice() const {
     return -1;  // No Pokemon to switch to
   }
 
-  int choice;
-  while (true) {
-    std::cout << "\nSelect a Pokémon (1-" << availableIndices.size() << "): ";
-    std::cin >> choice;
+  // Secure Pokemon switching selection with validation
+  auto switchValidator = [this, &availableIndices](std::istream& input) -> InputValidator::ValidationResult<int> {
+    auto result = InputValidator::getValidatedInt(input, 1, static_cast<int>(availableIndices.size()));
+    if (!result.isValid()) {
+      return result;
+    }
     
-    // Check for input failure or EOF
-    if (std::cin.fail() || std::cin.eof()) {
-      std::cin.clear(); // Clear error flag
-      std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Ignore bad input
-      std::cout << "Invalid input or end of input. Please enter a number between 1 and " 
-                << availableIndices.size() << ".\n";
-      
-      // If we hit EOF, auto-select first available Pokemon
-      if (std::cin.eof()) {
-        std::cout << "Auto-selecting first available Pokemon due to end of input.\n";
-        return availableIndices[0];
-      }
-      continue;
+    int choice = result.value;
+    int pokemonIndex = availableIndices[choice - 1];
+    const auto *pokemon = playerTeam.getPokemon(pokemonIndex);
+    
+    // Double-check that the Pokemon is still alive and valid
+    if (!pokemon || !pokemon->isAlive() || pokemon == selectedPokemon) {
+      return InputValidator::ValidationResult<int>(
+        InputValidator::ValidationError::INVALID_INPUT,
+        "Selected Pokemon is not available for switching"
+      );
     }
-
-    if (choice >= 1 && choice <= static_cast<int>(availableIndices.size())) {
-      int pokemonIndex = availableIndices[choice - 1];
-      const auto *pokemon = playerTeam.getPokemon(pokemonIndex);
-
-      if (pokemon && pokemon->isAlive()) {
-        return pokemonIndex;  // Return actual team index
-      }
+    
+    return InputValidator::ValidationResult<int>(pokemonIndex);
+  };
+  
+  auto switchResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "\nSelect a Pokémon (1-" + std::to_string(availableIndices.size()) + ")",
+    2, switchValidator
+  );
+  
+  if (!switchResult.isValid()) {
+    std::cout << "Failed to get valid Pokemon switch selection: " << switchResult.errorMessage << std::endl;
+    std::cout << "Auto-selecting first available Pokemon as fallback.\n";
+    
+    // Return first available Pokemon as fallback
+    if (!availableIndices.empty()) {
+      return availableIndices[0];
     }
-    std::cout << "Invalid choice. Please select a valid Pokémon.\n";
+    
+    return -1; // No Pokemon available
   }
+  
+  return switchResult.value;  // Return actual team index
 }
 
 Battle::BattleResult Battle::getBattleResult() const {

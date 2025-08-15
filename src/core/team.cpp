@@ -1,4 +1,5 @@
 #include "team.h"
+#include "input_validator.h"
 
 using json = nlohmann::json;
 
@@ -19,6 +20,18 @@ void Team::loadTeams(
 
     // Loop over each Pokémon in the selected team
     for (const auto &pokemonName : teamPokemons) {
+      // Validate Pokemon name before creating object
+      if (!InputValidator::isValidPokemonName(pokemonName)) {
+        std::cerr << "Invalid Pokemon name detected: " << pokemonName << std::endl;
+        continue; // Skip this Pokemon
+      }
+      
+      // Additional filename security check
+      if (!InputValidator::isSecureFileName(pokemonName)) {
+        std::cerr << "Unsafe Pokemon name detected: " << pokemonName << std::endl;
+        continue; // Skip this Pokemon
+      }
+      
       // Create a Pokémon object and load its details from JSON
       auto pokeObj = Pokemon(pokemonName);
 
@@ -28,6 +41,18 @@ void Team::loadTeams(
         for (const auto &movePair : movesIt->second) {
           if (movePair.first == pokemonName) {
             for (const auto &move : movePair.second) {
+              // Validate move name before creating object
+              if (!InputValidator::isValidMoveName(move)) {
+                std::cerr << "Invalid move name detected: " << move << std::endl;
+                continue; // Skip this move
+              }
+              
+              // Additional filename security check
+              if (!InputValidator::isSecureFileName(move)) {
+                std::cerr << "Unsafe move name detected: " << move << std::endl;
+                continue; // Skip this move
+              }
+              
               // Load moves for this Pokémon
               auto moveObj = Move(move);
               pokeObj.moves.push_back(moveObj);
