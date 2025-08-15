@@ -20,6 +20,7 @@ set(CORE_SOURCES
     ${CMAKE_SOURCE_DIR}/src/core/weather.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/type_effectiveness.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/move_type_mapping.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/input_validator.cpp
     ${CMAKE_SOURCE_DIR}/src/ai/ai_strategy.cpp
     ${CMAKE_SOURCE_DIR}/src/ai/ai_factory.cpp
     ${CMAKE_SOURCE_DIR}/src/ai/easy_ai.cpp
@@ -60,6 +61,7 @@ endfunction()
 create_test(test_pokemon            unit/test_pokemon.cpp)
 create_test(test_move               unit/test_move.cpp)
 create_test(test_type_effectiveness unit/test_type_effectiveness.cpp)
+create_test(test_input_validator    unit/test_input_validator.cpp)
 create_test(test_team               unit/test_team.cpp)
 create_test(test_battle             unit/test_battle.cpp)
 create_test(test_weather            unit/test_weather.cpp)
@@ -86,6 +88,7 @@ add_custom_target(run_all_tests
         test_pokemon
         test_move
         test_type_effectiveness
+        test_input_validator
         test_team
         test_battle
         test_weather
