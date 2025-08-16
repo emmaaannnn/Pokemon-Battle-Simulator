@@ -8,18 +8,18 @@ protected:
         TestUtils::PokemonTestFixture::SetUp();
         
         // Create test Pokemon
-        testPokemon1 = TestUtils::createTestPokemon("testmon1", 100, 80, 70, 90, 85, 75, {"normal"});
-        testPokemon2 = TestUtils::createTestPokemon("testmon2", 90, 85, 65, 95, 80, 85, {"fire"});
-        testPokemon3 = TestUtils::createTestPokemon("testmon3", 110, 75, 80, 85, 90, 70, {"water"});
+        testPokemon1 = TestUtils::createTestPokemon("testmona", 100, 80, 70, 90, 85, 75, {"normal"});
+        testPokemon2 = TestUtils::createTestPokemon("testmonb", 90, 85, 65, 95, 80, 85, {"fire"});
+        testPokemon3 = TestUtils::createTestPokemon("testmonc", 110, 75, 80, 85, 90, 70, {"water"});
         
         // Create test team data
-        teamData["TestTeam"] = {"testmon1", "testmon2", "testmon3"};
+        teamData["TestTeam"] = {"testmona", "testmonb", "testmonc"};
         
         // Create moves data
         movesData["TestTeam"] = {
-            {"testmon1", {"testmove"}},
-            {"testmon2", {"testmove"}},
-            {"testmon3", {"testmove"}}
+            {"testmona", {"testmove"}},
+            {"testmonb", {"testmove"}},
+            {"testmonc", {"testmove"}}
         };
     }
     
@@ -57,9 +57,9 @@ TEST_F(TeamTest, LoadTeamFromConfiguration) {
     ASSERT_NE(pokemon2, nullptr);
     ASSERT_NE(pokemon3, nullptr);
     
-    EXPECT_EQ(pokemon1->name, "testmon1");
-    EXPECT_EQ(pokemon2->name, "testmon2");
-    EXPECT_EQ(pokemon3->name, "testmon3");
+    EXPECT_EQ(pokemon1->name, "testmona");
+    EXPECT_EQ(pokemon2->name, "testmonb");
+    EXPECT_EQ(pokemon3->name, "testmonc");
 }
 
 // Test getPokemon method
@@ -70,15 +70,15 @@ TEST_F(TeamTest, GetPokemon) {
     // Test valid indices
     Pokemon* pokemon = team.getPokemon(0);
     ASSERT_NE(pokemon, nullptr);
-    EXPECT_EQ(pokemon->name, "testmon1");
+    EXPECT_EQ(pokemon->name, "testmona");
     
     pokemon = team.getPokemon(1);
     ASSERT_NE(pokemon, nullptr);
-    EXPECT_EQ(pokemon->name, "testmon2");
+    EXPECT_EQ(pokemon->name, "testmonb");
     
     pokemon = team.getPokemon(2);
     ASSERT_NE(pokemon, nullptr);
-    EXPECT_EQ(pokemon->name, "testmon3");
+    EXPECT_EQ(pokemon->name, "testmonc");
     
     // Test invalid index
     pokemon = team.getPokemon(10);
@@ -99,7 +99,7 @@ TEST_F(TeamTest, GetPokemonConst) {
     // Test valid indices
     const Pokemon* pokemon = constTeam.getPokemon(0);
     ASSERT_NE(pokemon, nullptr);
-    EXPECT_EQ(pokemon->name, "testmon1");
+    EXPECT_EQ(pokemon->name, "testmona");
     
     // Test invalid index
     pokemon = constTeam.getPokemon(10);
@@ -144,8 +144,8 @@ TEST_F(TeamTest, GetAlivePokemon) {
     EXPECT_EQ(alivePokemon.size(), 2);
     
     // Verify the alive Pokemon are correct
-    EXPECT_EQ(alivePokemon[0]->name, "testmon2");
-    EXPECT_EQ(alivePokemon[1]->name, "testmon3");
+    EXPECT_EQ(alivePokemon[0]->name, "testmonb");
+    EXPECT_EQ(alivePokemon[1]->name, "testmonc");
     
     // Faint all Pokemon
     for (size_t i = 0; i < team.size(); ++i) {
@@ -168,7 +168,7 @@ TEST_F(TeamTest, GetFirstAlivePokemon) {
     // First Pokemon should be alive
     Pokemon* firstAlive = team.getFirstAlivePokemon();
     ASSERT_NE(firstAlive, nullptr);
-    EXPECT_EQ(firstAlive->name, "testmon1");
+    EXPECT_EQ(firstAlive->name, "testmona");
     
     // Faint first Pokemon
     Pokemon* pokemon1 = team.getPokemon(0);
@@ -178,7 +178,7 @@ TEST_F(TeamTest, GetFirstAlivePokemon) {
     // Second Pokemon should now be first alive
     firstAlive = team.getFirstAlivePokemon();
     ASSERT_NE(firstAlive, nullptr);
-    EXPECT_EQ(firstAlive->name, "testmon2");
+    EXPECT_EQ(firstAlive->name, "testmonb");
     
     // Faint all Pokemon
     for (size_t i = 0; i < team.size(); ++i) {
@@ -282,13 +282,13 @@ TEST_F(TeamTest, MixedAliveAndFaintedPokemon) {
     
     std::vector<Pokemon*> alivePokemon = team.getAlivePokemon();
     EXPECT_EQ(alivePokemon.size(), 2);
-    EXPECT_EQ(alivePokemon[0]->name, "testmon1");
-    EXPECT_EQ(alivePokemon[1]->name, "testmon3");
+    EXPECT_EQ(alivePokemon[0]->name, "testmona");
+    EXPECT_EQ(alivePokemon[1]->name, "testmonc");
     
     // First alive should still be testmon1
     Pokemon* firstAlive = team.getFirstAlivePokemon();
     ASSERT_NE(firstAlive, nullptr);
-    EXPECT_EQ(firstAlive->name, "testmon1");
+    EXPECT_EQ(firstAlive->name, "testmona");
 }
 
 // Test team with Pokemon that have moves
