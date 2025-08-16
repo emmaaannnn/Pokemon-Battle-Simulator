@@ -47,6 +47,7 @@ set(UTILS_SOURCES
     src/utils/type_effectiveness.cpp
     src/utils/move_type_mapping.cpp
     src/utils/input_validator.cpp
+    src/utils/health_bar_animator.cpp
 )
 
 set(ALL_SOURCES ${CORE_SOURCES} ${AI_SOURCES} ${UTILS_SOURCES})
@@ -72,6 +73,7 @@ set(UTILS_HEADERS
     include/utils/type_effectiveness.h
     include/utils/move_type_mapping.h
     include/utils/input_validator.h
+    include/utils/health_bar_animator.h
     include/utils/json.hpp
 )
 
