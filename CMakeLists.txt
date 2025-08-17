@@ -32,6 +32,7 @@ set(CORE_SOURCES
     src/core/team.cpp
     src/core/battle.cpp
     src/core/weather.cpp
+    src/core/battle_events.cpp
 )
 
 set(AI_SOURCES
@@ -48,6 +49,7 @@ set(UTILS_SOURCES
     src/utils/move_type_mapping.cpp
     src/utils/input_validator.cpp
     src/utils/health_bar_animator.cpp
+    src/utils/health_bar_event_listener.cpp
 )
 
 set(ALL_SOURCES ${CORE_SOURCES} ${AI_SOURCES} ${UTILS_SOURCES})
@@ -58,6 +60,7 @@ set(CORE_HEADERS
     include/core/team.h
     include/core/battle.h
     include/core/weather.h
+    include/core/battle_events.h
 )
 
 set(AI_HEADERS
@@ -74,6 +77,8 @@ set(UTILS_HEADERS
     include/utils/move_type_mapping.h
     include/utils/input_validator.h
     include/utils/health_bar_animator.h
+    include/utils/health_bar_event_listener.h
+    include/utils/input_validator_templates.hpp
     include/utils/json.hpp
 )
 
