@@ -284,10 +284,10 @@ TEST_F(HardAITest, SwitchingPreemptiveCounterStrategy) {
   battleState.opponentTeam = &extendedOpponentTeam;
   battleState.aiPokemon = aiTeam.getPokemon(0);
 
-  bool shouldSwitch = hardAI->shouldSwitch(battleState);
-
   // Hard AI makes complex strategic decisions - may or may not switch based on evaluation
   // The key is that it evaluates switching options intelligently
+  bool shouldSwitch = hardAI->shouldSwitch(battleState);
+  (void)shouldSwitch; // Suppress unused variable warning
   SwitchEvaluation switchResult = hardAI->chooseBestSwitch(battleState);
   EXPECT_GE(switchResult.pokemonIndex, 0);  // Should find a valid switch option
   EXPECT_GT(switchResult.score, -100.0);   // Should have reasonable evaluation
