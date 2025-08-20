@@ -61,6 +61,13 @@ struct BattleEndEvent {
     int totalTurns;
 };
 
+struct MultiTurnMoveEvent {
+    Pokemon* pokemon;
+    const Move* move;
+    enum class Phase { CHARGING, EXECUTING, RECHARGING } phase;
+    std::string message;  // Display message for the UI
+};
+
 // Abstract observer interface
 class BattleEventListener {
 public:
@@ -76,6 +83,7 @@ public:
     virtual void onBattleEnd(const BattleEndEvent& /*event*/) {}
     virtual void onTurnStart(int /*turnNumber*/) {}
     virtual void onTurnEnd(int /*turnNumber*/) {}
+    virtual void onMultiTurnMove(const MultiTurnMoveEvent& /*event*/) {}
 };
 
 // Event manager - handles subscription and notification
@@ -98,6 +106,7 @@ public:
     void notifyBattleEnd(const BattleEndEvent& event);
     void notifyTurnStart(int turnNumber);
     void notifyTurnEnd(int turnNumber);
+    void notifyMultiTurnMove(const MultiTurnMoveEvent& event);
     
     // Utility methods
     size_t getListenerCount() const { return listeners_.size(); }
@@ -111,6 +120,9 @@ public:
                                             const std::string& source);
     MoveUsedEvent createMoveUsedEvent(Pokemon* user, const Move* move, Pokemon* target, 
                                     bool successful, bool critical, double effectiveness);
+    MultiTurnMoveEvent createMultiTurnMoveEvent(Pokemon* pokemon, const Move* move, 
+                                              MultiTurnMoveEvent::Phase phase, 
+                                              const std::string& message);
 
 private:
     std::vector<ListenerPtr> listeners_;

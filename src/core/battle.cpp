@@ -13,6 +13,7 @@
 #include "move_type_mapping.h"
 #include "weather.h"
 #include "input_validator.h"
+#include "battle_events.h"
 
 Battle::Battle(const Team &playerTeam, const Team &opponentTeam,
                AIDifficulty aiDifficulty)
@@ -131,8 +132,15 @@ void Battle::selectOpponentPokemon() {
 }
 
 void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
+  // Check if attacker must recharge this turn
+  if (attacker.mustRecharge()) {
+    std::cout << attacker.name << " must recharge and cannot move!" << std::endl;
+    attacker.finishRecharge();
+    return;
+  }
+  
   // Check if attacker can act (not asleep, frozen, or fully paralyzed)
-  if (!attacker.canAct()) {
+  if (!attacker.canActThisTurn()) {
     if (attacker.status == StatusCondition::PARALYSIS) {
       std::cout << attacker.name << " is paralyzed and can't move!"
                 << std::endl;
@@ -149,11 +157,74 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
     return;
   }
 
-  // Announce the move attempt
-  std::cout << attacker.name << " used " << move.name << "!" << std::endl;
-
-  // Consume PP
-  move.usePP();
+  // Handle multi-turn move state transitions
+  if (attacker.isCharging() && attacker.getChargingMoveIndex() == moveIndex) {
+    // Pokemon is finishing a charging move
+    std::cout << attacker.name << " unleashed " << move.name << "!" << std::endl;
+    attacker.finishCharging();
+    
+    // Notify event system
+    auto event = eventManager.createMultiTurnMoveEvent(
+      &attacker, &move, BattleEvents::MultiTurnMoveEvent::Phase::EXECUTING,
+      attacker.name + " unleashed " + move.name + "!"
+    );
+    eventManager.notifyMultiTurnMove(event);
+    
+    // Consume PP when actually executing the move
+    move.usePP();
+  } else if (move.requiresCharging()) {
+    // Pokemon is starting to charge a move
+    bool skipCharge = false;
+    
+    // Check for Solar Beam sunny weather skip
+    if (move.skipChargeInSunnyWeather() && currentWeather == WeatherCondition::SUN) {
+      std::cout << attacker.name << " used " << move.name << "!" << std::endl;
+      std::cout << "The sunlight is strong! " << attacker.name << " doesn't need to charge!" << std::endl;
+      
+      // Notify event system for weather skip
+      auto event = eventManager.createMultiTurnMoveEvent(
+        &attacker, &move, BattleEvents::MultiTurnMoveEvent::Phase::EXECUTING,
+        "The sunlight is strong! " + attacker.name + " doesn't need to charge!"
+      );
+      eventManager.notifyMultiTurnMove(event);
+      
+      skipCharge = true;
+      move.usePP();
+    } else {
+      std::cout << attacker.name << " began charging " << move.name << "!" << std::endl;
+      attacker.startCharging(moveIndex, move.name);
+      
+      // Notify event system
+      auto event = eventManager.createMultiTurnMoveEvent(
+        &attacker, &move, BattleEvents::MultiTurnMoveEvent::Phase::CHARGING,
+        attacker.name + " began charging " + move.name + "!"
+      );
+      eventManager.notifyMultiTurnMove(event);
+      
+      move.usePP();
+      return; // Charging turn, no damage dealt
+    }
+    
+    if (!skipCharge) {
+      return;
+    }
+  } else {
+    // Regular move execution
+    std::cout << attacker.name << " used " << move.name << "!" << std::endl;
+    move.usePP();
+    
+    // Handle recharge moves
+    if (move.requiresRecharge()) {
+      attacker.startRecharge();
+      
+      // Notify event system
+      auto event = eventManager.createMultiTurnMoveEvent(
+        &attacker, &move, BattleEvents::MultiTurnMoveEvent::Phase::RECHARGING,
+        attacker.name + " must recharge next turn!"
+      );
+      eventManager.notifyMultiTurnMove(event);
+    }
+  }
 
   // Check if the move hits
   if (!checkMoveAccuracy(move)) {
@@ -449,6 +520,20 @@ bool Battle::playerFirst(const Move &playerMove,
 int Battle::getMoveChoice() const {
   std::cout << "\nChoose an action:\n";
 
+  // Check if Pokemon must recharge
+  if (selectedPokemon->mustRecharge()) {
+    std::cout << "\n" << selectedPokemon->name << " must recharge this turn and cannot act!\n";
+    return -2; // Special value to indicate forced recharge
+  }
+  
+  // Check if Pokemon is charging a move
+  if (selectedPokemon->isCharging()) {
+    int chargingMoveIndex = selectedPokemon->getChargingMoveIndex();
+    std::string chargingMoveName = selectedPokemon->getChargingMoveName();
+    std::cout << "\n" << selectedPokemon->name << " is charging " << chargingMoveName << " and must execute it!\n";
+    return chargingMoveIndex; // Must execute the charging move
+  }
+
   // Show moves
   for (size_t i = 0; i < selectedPokemon->moves.size(); ++i) {
     const Move &move = selectedPokemon->moves[i];
@@ -461,6 +546,16 @@ int Battle::getMoveChoice() const {
     // Show "No PP!" if move can't be used
     if (!move.canUse()) {
       std::cout << " [No PP!]";
+    }
+    
+    // Show multi-turn information
+    if (move.requiresCharging()) {
+      std::cout << " [Charging move - takes 2 turns]";
+      if (move.skipChargeInSunnyWeather() && currentWeather == WeatherCondition::SUN) {
+        std::cout << " [Sunny weather: no charge needed!]";
+      }
+    } else if (move.requiresRecharge()) {
+      std::cout << " [Recharge move - requires rest turn after use]";
     }
     std::cout << "\n";
   }
@@ -491,13 +586,33 @@ int Battle::getMoveChoice() const {
     
     int choice = result.value;
     
-    // Check if it's a move choice and validate PP
+    // Check if it's a move choice and validate PP and multi-turn constraints
     if (choice >= 1 && choice <= static_cast<int>(selectedPokemon->moves.size())) {
       const Move &selectedMove = selectedPokemon->moves[choice - 1];
+      
+      // Validate PP
       if (!selectedMove.canUse()) {
         return InputValidator::ValidationResult<int>(
           InputValidator::ValidationError::INVALID_INPUT,
           selectedMove.name + " has no PP left! Choose another action"
+        );
+      }
+      
+      // Validate multi-turn move constraints
+      if (selectedPokemon->isCharging()) {
+        int chargingMoveIndex = selectedPokemon->getChargingMoveIndex();
+        if (choice - 1 != chargingMoveIndex) {
+          return InputValidator::ValidationResult<int>(
+            InputValidator::ValidationError::INVALID_INPUT,
+            selectedPokemon->name + " is charging " + selectedPokemon->getChargingMoveName() + " and must execute it!"
+          );
+        }
+      }
+      
+      if (selectedPokemon->mustRecharge()) {
+        return InputValidator::ValidationResult<int>(
+          InputValidator::ValidationError::INVALID_INPUT,
+          selectedPokemon->name + " must recharge this turn and cannot use moves!"
         );
       }
     }
@@ -508,6 +623,22 @@ int Battle::getMoveChoice() const {
         InputValidator::ValidationError::INVALID_INPUT,
         "No Pokemon available to switch to"
       );
+    }
+    
+    // Multi-turn moves prevent switching
+    if (choice == static_cast<int>(selectedPokemon->moves.size() + 1)) {
+      if (selectedPokemon->isCharging()) {
+        return InputValidator::ValidationResult<int>(
+          InputValidator::ValidationError::INVALID_INPUT,
+          selectedPokemon->name + " is charging a move and cannot switch!"
+        );
+      }
+      if (selectedPokemon->mustRecharge()) {
+        return InputValidator::ValidationResult<int>(
+          InputValidator::ValidationError::INVALID_INPUT,
+          selectedPokemon->name + " must recharge and cannot switch!"
+        );
+      }
     }
     
     return result;
@@ -521,6 +652,18 @@ int Battle::getMoveChoice() const {
   
   if (!actionResult.isValid()) {
     std::cout << "Failed to get valid action selection: " << actionResult.errorMessage << std::endl;
+    
+    // Handle multi-turn move constraints in fallback
+    if (selectedPokemon->mustRecharge()) {
+      std::cout << "Pokemon must recharge - returning recharge indicator.\n";
+      return -2; // Special value for forced recharge
+    }
+    
+    if (selectedPokemon->isCharging()) {
+      std::cout << "Pokemon is charging - returning charging move index.\n";
+      return selectedPokemon->getChargingMoveIndex();
+    }
+    
     std::cout << "Auto-selecting first available move as fallback.\n";
     
     // Find first usable move as fallback
@@ -685,7 +828,31 @@ void Battle::startBattle() {
       // Player chooses action (move or switch)
       int playerChoice = getMoveChoice();
 
-      if (playerChoice == -1) {
+      if (playerChoice == -2) {
+        // Pokemon must recharge - skip turn
+        selectedPokemon->finishRecharge();
+        std::cout << selectedPokemon->name << " is recharging and cannot move!" << std::endl;
+        
+        // Opponent still gets to attack
+        int opponentMoveIndex = getAIMoveChoice();
+        
+        // Handle opponent recharge state
+        if (opponentMoveIndex == -2) {
+          opponentSelectedPokemon->finishRecharge();
+          std::cout << opponentSelectedPokemon->name << " is recharging and cannot move!" << std::endl;
+        } else {
+          executeMove(*opponentSelectedPokemon, *selectedPokemon, opponentMoveIndex);
+        }
+        
+        // Display health after opponent's move
+        std::cout << std::endl;
+        if (opponentSelectedPokemon->isAlive()) {
+          displayHealth(*opponentSelectedPokemon);
+        }
+        if (selectedPokemon->isAlive()) {
+          displayHealth(*selectedPokemon);
+        }
+      } else if (playerChoice == -1) {
         // Player wants to switch Pokemon
         int chosenIndex = getPokemonChoice();
         if (chosenIndex >= 0) {
@@ -697,8 +864,15 @@ void Battle::startBattle() {
 
           // Opponent still gets to attack (switching takes a turn)
           int opponentMoveIndex = getAIMoveChoice();
-          executeMove(*opponentSelectedPokemon, *selectedPokemon,
-                      opponentMoveIndex);
+          
+          // Handle opponent recharge state
+          if (opponentMoveIndex == -2) {
+            opponentSelectedPokemon->finishRecharge();
+            std::cout << opponentSelectedPokemon->name << " is recharging and cannot move!" << std::endl;
+          } else {
+            executeMove(*opponentSelectedPokemon, *selectedPokemon,
+                        opponentMoveIndex);
+          }
 
           // Display health after opponent's move
           std::cout << std::endl;
@@ -715,21 +889,33 @@ void Battle::startBattle() {
 
         // Opponent chooses move based on AI difficulty
         int opponentMoveIndex = getAIMoveChoice();
-        Move opponentMove = opponentSelectedPokemon->moves[opponentMoveIndex];
-
-        // Determine turn order and execute moves
-        if (playerFirst(playerMove, opponentMove)) {
+        
+        // Handle special AI states
+        if (opponentMoveIndex == -2) {
+          // AI must recharge
+          opponentSelectedPokemon->finishRecharge();
+          std::cout << opponentSelectedPokemon->name << " is recharging and cannot move!" << std::endl;
+          
+          // Only player moves
           executeMove(*selectedPokemon, *opponentSelectedPokemon, playerChoice);
-          if (opponentSelectedPokemon->isAlive()) {
+        } else {
+          // Normal move execution
+          Move opponentMove = opponentSelectedPokemon->moves[opponentMoveIndex];
+
+          // Determine turn order and execute moves
+          if (playerFirst(playerMove, opponentMove)) {
+            executeMove(*selectedPokemon, *opponentSelectedPokemon, playerChoice);
+            if (opponentSelectedPokemon->isAlive()) {
+              executeMove(*opponentSelectedPokemon, *selectedPokemon,
+                          opponentMoveIndex);
+            }
+          } else {
             executeMove(*opponentSelectedPokemon, *selectedPokemon,
                         opponentMoveIndex);
-          }
-        } else {
-          executeMove(*opponentSelectedPokemon, *selectedPokemon,
-                      opponentMoveIndex);
-          if (selectedPokemon->isAlive()) {
-            executeMove(*selectedPokemon, *opponentSelectedPokemon,
-                        playerChoice);
+            if (selectedPokemon->isAlive()) {
+              executeMove(*selectedPokemon, *opponentSelectedPokemon,
+                          playerChoice);
+            }
           }
         }
 
@@ -1098,6 +1284,16 @@ void Battle::displayWeather() const {
 
 // AI Move Selection Implementation
 int Battle::getAIMoveChoice() const {
+  // Check if AI Pokemon must recharge
+  if (opponentSelectedPokemon->mustRecharge()) {
+    return -2; // Special value for forced recharge
+  }
+  
+  // Check if AI Pokemon is charging a move
+  if (opponentSelectedPokemon->isCharging()) {
+    return opponentSelectedPokemon->getChargingMoveIndex(); // Must execute charging move
+  }
+  
   switch (aiDifficulty) {
   case AIDifficulty::EASY:
     return getAIMoveEasy();

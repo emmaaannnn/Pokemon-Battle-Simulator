@@ -18,6 +18,7 @@ set(CORE_SOURCES
     ${CMAKE_SOURCE_DIR}/src/core/team.cpp
     ${CMAKE_SOURCE_DIR}/src/core/battle.cpp
     ${CMAKE_SOURCE_DIR}/src/core/weather.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/battle_events.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/type_effectiveness.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/move_type_mapping.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/input_validator.cpp

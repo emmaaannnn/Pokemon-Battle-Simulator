@@ -9,6 +9,7 @@
 #include "team.h"
 #include "type_effectiveness.h"
 #include "weather.h"
+#include "battle_events.h"
 
 class Battle {
  public:
@@ -113,4 +114,11 @@ class Battle {
   // Random number generation for critical hits
   mutable std::mt19937 rng;
   mutable std::uniform_real_distribution<double> criticalDistribution;
+  
+  // Battle event system
+  BattleEvents::BattleEventManager eventManager;
+  
+public:
+  // Event system access
+  BattleEvents::BattleEventManager& getEventManager() { return eventManager; }
 };
