@@ -41,6 +41,12 @@ class Pokemon {
   StatusCondition status;
   int status_turns_remaining;
 
+  // Multi-turn move state
+  bool is_charging;
+  bool must_recharge;
+  int charging_move_index;          // Index of the move being charged
+  std::string charging_move_name;   // Name of move being charged for display
+
   // Stat modifications (stages: -6 to +6, like in real Pokemon)
   int attack_stage;
   int defense_stage;
@@ -88,6 +94,17 @@ class Pokemon {
   void modifySpecialDefense(int stages);
   void modifySpeed(int stages);
   void resetStatStages();
+
+  // Multi-turn move state management
+  void startCharging(int moveIndex, const std::string& moveName);
+  void finishCharging();
+  void startRecharge();
+  void finishRecharge();
+  bool isCharging() const { return is_charging; }
+  bool mustRecharge() const { return must_recharge; }
+  int getChargingMoveIndex() const { return charging_move_index; }
+  std::string getChargingMoveName() const { return charging_move_name; }
+  bool canActThisTurn() const;  // Combines status and multi-turn restrictions
 
  private:
   void loadFromJson(const std::string &file_path);

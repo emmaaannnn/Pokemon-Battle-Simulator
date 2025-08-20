@@ -262,6 +262,26 @@ void Move::loadFromJson(const std::string &file_path) {
     return;
   }
   stat_chance = statChanceResult.value;
+
+  // Initialize multi-turn behavior based on move name and characteristics
+  multi_turn_behavior = MultiTurnBehavior::NONE;
+  is_weather_dependent = false;
+  boosts_defense_on_charge = false;
+  
+  // Configure multi-turn behavior for specific moves
+  if (name == "hyper-beam" || name == "giga-impact" || name == "blast-burn" || 
+      name == "frenzy-plant" || name == "hydro-cannon" || name == "rock-wrecker") {
+    multi_turn_behavior = MultiTurnBehavior::RECHARGE;
+  } else if (name == "solar-beam" || name == "solarbeam") {
+    multi_turn_behavior = MultiTurnBehavior::CHARGE;
+    is_weather_dependent = true;
+  } else if (name == "sky-attack" || name == "razor-wind" || name == "freeze-shock" || 
+             name == "ice-burn" || name == "geomancy") {
+    multi_turn_behavior = MultiTurnBehavior::CHARGE;
+  } else if (name == "skull-bash") {
+    multi_turn_behavior = MultiTurnBehavior::CHARGE_BOOST;
+    boosts_defense_on_charge = true;
+  }
 }
 
 // Helper function to convert ailment name to StatusCondition enum
@@ -298,3 +318,29 @@ void Move::restorePP(int amount) {
 int Move::getRemainingPP() const { return current_pp; }
 
 int Move::getMaxPP() const { return pp; }
+
+// Multi-turn move utility implementations
+bool Move::isMultiTurnMove() const {
+  return multi_turn_behavior != MultiTurnBehavior::NONE;
+}
+
+bool Move::requiresCharging() const {
+  return multi_turn_behavior == MultiTurnBehavior::CHARGE || 
+         multi_turn_behavior == MultiTurnBehavior::CHARGE_BOOST;
+}
+
+bool Move::requiresRecharge() const {
+  return multi_turn_behavior == MultiTurnBehavior::RECHARGE;
+}
+
+bool Move::skipChargeInSunnyWeather() const {
+  return is_weather_dependent && (name == "solar-beam" || name == "solarbeam");
+}
+
+bool Move::boostsDefenseOnCharge() const {
+  return boosts_defense_on_charge;
+}
+
+MultiTurnBehavior Move::getMultiTurnBehavior() const {
+  return multi_turn_behavior;
+}

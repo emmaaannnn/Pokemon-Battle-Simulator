@@ -18,6 +18,10 @@ Pokemon::Pokemon()
       fainted(false),
       status(StatusCondition::NONE),
       status_turns_remaining(0),
+      is_charging(false),
+      must_recharge(false),
+      charging_move_index(-1),
+      charging_move_name(""),
       attack_stage(0),
       defense_stage(0),
       special_attack_stage(0),
@@ -28,6 +32,10 @@ Pokemon::Pokemon(const std::string& pokemonName)
     : fainted(false),
       status(StatusCondition::NONE),
       status_turns_remaining(0),
+      is_charging(false),
+      must_recharge(false),
+      charging_move_index(-1),
+      charging_move_name(""),
       attack_stage(0),
       defense_stage(0),
       special_attack_stage(0),
@@ -465,4 +473,53 @@ void Pokemon::resetStatStages() {
   special_attack_stage = 0;
   special_defense_stage = 0;
   speed_stage = 0;
+}
+
+// Multi-turn move state management implementations
+void Pokemon::startCharging(int moveIndex, const std::string& moveName) {
+  is_charging = true;
+  must_recharge = false;
+  charging_move_index = moveIndex;
+  charging_move_name = moveName;
+  
+  // Apply any charging effects (like Skull Bash defense boost)
+  if (moveIndex >= 0 && moveIndex < static_cast<int>(moves.size())) {
+    const Move& move = moves[moveIndex];
+    if (move.boostsDefenseOnCharge()) {
+      modifyDefense(1);
+      std::cout << name << "'s Defense rose while charging " << moveName << "!" << std::endl;
+    }
+  }
+}
+
+void Pokemon::finishCharging() {
+  is_charging = false;
+  charging_move_index = -1;
+  charging_move_name = "";
+}
+
+void Pokemon::startRecharge() {
+  must_recharge = true;
+  is_charging = false;
+  charging_move_index = -1;
+  charging_move_name = "";
+}
+
+void Pokemon::finishRecharge() {
+  must_recharge = false;
+}
+
+bool Pokemon::canActThisTurn() const {
+  // Check basic action ability (status conditions)
+  if (!canAct()) {
+    return false;
+  }
+  
+  // Check multi-turn move restrictions
+  if (must_recharge) {
+    return false;  // Cannot act during recharge turn
+  }
+  
+  // Pokemon can act normally (including during charging turn for move execution)
+  return true;
 }

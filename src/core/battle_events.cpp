@@ -82,6 +82,12 @@ void BattleEventManager::notifyTurnEnd(int turnNumber) {
     }
 }
 
+void BattleEventManager::notifyMultiTurnMove(const MultiTurnMoveEvent& event) {
+    notifyAll(event, [](ListenerPtr listener, const MultiTurnMoveEvent& e) {
+        listener->onMultiTurnMove(e);
+    });
+}
+
 // Convenience event creation methods
 
 HealthChangeEvent BattleEventManager::createHealthChangeEvent(Pokemon* pokemon, int oldHp, int newHp, 
@@ -116,6 +122,17 @@ MoveUsedEvent BattleEventManager::createMoveUsedEvent(Pokemon* user, const Move*
         successful,
         critical,
         effectiveness
+    };
+}
+
+MultiTurnMoveEvent BattleEventManager::createMultiTurnMoveEvent(Pokemon* pokemon, const Move* move, 
+                                                              MultiTurnMoveEvent::Phase phase, 
+                                                              const std::string& message) {
+    return MultiTurnMoveEvent{
+        pokemon,
+        move,
+        phase,
+        message
     };
 }
 
