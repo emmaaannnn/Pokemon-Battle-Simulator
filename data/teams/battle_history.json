@@ -31,6 +31,24 @@
     ],
     "ben's Team": [
       {
+        "battle_date": "2025-08-21 16:45:12",
+        "difficulty_level": "Medium",
+        "opponent_team": "Water Storm",
+        "team_effectiveness_score": 85.0,
+        "team_name": "ben's Team",
+        "turns_taken": 18,
+        "victory": true
+      },
+      {
+        "battle_date": "2025-08-21 17:12:30",
+        "difficulty_level": "Hard",
+        "opponent_team": "Fire Blaze",
+        "team_effectiveness_score": 88.0,
+        "team_name": "ben's Team",
+        "turns_taken": 22,
+        "victory": false
+      },
+      {
         "battle_date": "2025-08-21 17:58:21",
         "difficulty_level": "Expert",
         "opponent_team": "Ground Earthquake",
@@ -62,12 +80,12 @@
     },
     "ben's Team": {
       "average_battle_length": 20.0,
-      "average_effectiveness_score": 90.0,
-      "defeats": 0,
+      "average_effectiveness_score": 88.25,
+      "defeats": 1,
       "team_name": "ben's Team",
-      "total_battles": 2,
-      "victories": 2,
-      "win_rate": 100.0
+      "total_battles": 4,
+      "victories": 3,
+      "win_rate": 75.0
     }
   }
 }
