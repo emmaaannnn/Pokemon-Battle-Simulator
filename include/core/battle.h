@@ -91,6 +91,9 @@ class Battle {
   void processWeather();
   void setWeather(WeatherCondition weather, int turns = 5);
   void displayWeather() const;
+  
+  // Status condition handling with events
+  void processStatusConditionWithEvents(Pokemon& pokemon);
 
   // Input handling
   int getMoveChoice() const;
@@ -125,8 +128,6 @@ class Battle {
   std::shared_ptr<HealthBarAnimator> healthBarAnimator;
   std::shared_ptr<HealthBarEventListener> healthBarListener;
   
-  // Health state tracking for smooth transitions
-  mutable std::unordered_map<Pokemon*, int> previousHealthState;
   
 public:
   // Event system access
