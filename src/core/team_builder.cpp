@@ -465,10 +465,18 @@ TeamBuilder::Team TeamBuilder::generateRandomTeam(const std::string& team_name, 
     
     auto selected_pokemon = selectRandomPokemon(team_size, available_pokemon);
     
+    // Temporarily disable validation for random team generation
+    auto original_settings = validation_settings;
+    validation_settings.enforce_min_moves = false;
+    validation_settings.enforce_min_team_size = false;
+    
     for (const auto& pokemon_name : selected_pokemon) {
         auto moves = generateMovesForPokemon(pokemon_name);
         addPokemonToTeam(team, pokemon_name, moves);
     }
+    
+    // Restore validation settings
+    validation_settings = original_settings;
     
     validateTeam(team);
     return team;
@@ -481,6 +489,11 @@ TeamBuilder::Team TeamBuilder::generateBalancedTeam(const std::string& team_name
     // Try to get diverse types
     std::vector<std::string> preferred_types = {"fire", "water", "grass", "electric", "psychic", "dragon"};
     std::set<std::string> used_types;
+    
+    // Temporarily disable validation for balanced team generation
+    auto original_settings = validation_settings;
+    validation_settings.enforce_min_moves = false;
+    validation_settings.enforce_min_team_size = false;
     
     for (int i = 0; i < team_size && i < static_cast<int>(preferred_types.size()); ++i) {
         auto type_pokemon = pokemon_data->getPokemonByType(preferred_types[i]);
@@ -519,6 +532,9 @@ TeamBuilder::Team TeamBuilder::generateBalancedTeam(const std::string& team_name
             addPokemonToTeam(team, selected, moves);
         }
     }
+    
+    // Restore validation settings
+    validation_settings = original_settings;
     
     validateTeam(team);
     return team;
@@ -1117,7 +1133,8 @@ TeamBuilder::Team TeamBuilder::generateAdvancedRandomTeam(const RandomGeneration
     std::mt19937 gen(rd());
     std::shuffle(available_pokemon.begin(), available_pokemon.end(), gen);
     
-    for (int i = 0; i < settings.team_size && i < static_cast<int>(available_pokemon.size()); ++i) {
+    int pokemon_added = 0;
+    for (int i = 0; i < static_cast<int>(available_pokemon.size()) && pokemon_added < settings.team_size; ++i) {
         const auto& pokemon_name = available_pokemon[i];
         
         // Skip duplicates if not allowed
@@ -1149,7 +1166,17 @@ TeamBuilder::Team TeamBuilder::generateAdvancedRandomTeam(const RandomGeneration
             }
         }
         
-        addPokemonToTeam(team, pokemon_name, moves);
+        // Temporarily disable validation for random team generation
+        auto original_settings = validation_settings;
+        validation_settings.enforce_min_moves = false;
+        validation_settings.enforce_min_team_size = false;
+        
+        if (addPokemonToTeam(team, pokemon_name, moves)) {
+            pokemon_added++;
+        }
+        
+        // Restore validation settings
+        validation_settings = original_settings;
     }
     
     return team;
