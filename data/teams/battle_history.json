@@ -1,0 +1,26 @@
+{
+  "battle_history": {
+    "Invalid_Team_Name": [
+      {
+        "battle_date": "2025-08-21 11:07:31",
+        "difficulty_level": "Easy",
+        "opponent_team": "Rock Fortress",
+        "team_effectiveness_score": 90.0,
+        "team_name": "Invalid_Team_Name",
+        "turns_taken": 1,
+        "victory": true
+      }
+    ]
+  },
+  "team_statistics": {
+    "Invalid_Team_Name": {
+      "average_battle_length": 1.0,
+      "average_effectiveness_score": 90.0,
+      "defeats": 0,
+      "team_name": "Invalid_Team_Name",
+      "total_battles": 1,
+      "victories": 1,
+      "win_rate": 100.0
+    }
+  }
+}

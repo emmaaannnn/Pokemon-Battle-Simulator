@@ -6,6 +6,9 @@
 #include <set>
 #include <filesystem>
 #include <cstdlib>
+#include <chrono>
+#include <iomanip>
+#include <map>
 
 using json = nlohmann::json;
 
@@ -1409,4 +1412,1429 @@ bool TeamBuilder::teamMeetsRoleRequirements(const Team& /* team */,
     // This would need role detection logic based on Pokemon stats/movesets
     // For now, return true (simplified implementation)
     return true;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Tournament/Draft Mode System Implementation
+// ═══════════════════════════════════════════════════════════════════════════════
+
+TeamBuilder::DraftSession TeamBuilder::createDraftSession(const DraftSettings& settings, 
+                                                          const std::vector<std::string>& player_names) {
+    DraftSession session;
+    session.settings = settings;
+    session.session_id = generateSessionId();
+    session.is_active = true;
+    session.current_phase = 0; // Start with ban phase
+    session.current_player = 0;
+    session.current_turn = 1;
+    
+    // Validate player count
+    if (static_cast<int>(player_names.size()) != settings.player_count) {
+        session.is_active = false;
+        return session;
+    }
+    
+    // Initialize player data
+    session.player_names = player_names;
+    session.player_teams.resize(settings.player_count);
+    session.player_bans.resize(settings.player_count);
+    session.teams_valid.resize(settings.player_count, false);
+    session.team_errors.resize(settings.player_count);
+    
+    // Initialize available Pokemon pool (exclude globally banned)
+    session.available_pokemon = pokemon_data->getAvailablePokemon();
+    for (const auto& banned : settings.banned_pokemon) {
+        auto it = std::find(session.available_pokemon.begin(), session.available_pokemon.end(), banned);
+        if (it != session.available_pokemon.end()) {
+            session.available_pokemon.erase(it);
+        }
+    }
+    
+    // Remove Pokemon of banned types
+    for (const auto& banned_type : settings.banned_types) {
+        session.available_pokemon.erase(
+            std::remove_if(session.available_pokemon.begin(), session.available_pokemon.end(),
+                [this, &banned_type](const std::string& pokemon_name) {
+                    auto types = getCachedPokemonTypes(pokemon_name);
+                    return std::find(types.begin(), types.end(), banned_type) != types.end();
+                }),
+            session.available_pokemon.end()
+        );
+    }
+    
+    // Store session for management
+    active_draft_sessions[session.session_id] = session;
+    
+    return session;
+}
+
+bool TeamBuilder::executeDraftBan(DraftSession& session, int player_id, const std::string& pokemon_name) {
+    if (!isDraftActionValid(session, player_id, "ban", pokemon_name)) {
+        return false;
+    }
+    
+    // Add to banned list
+    session.banned_pokemon.push_back(pokemon_name);
+    session.player_bans[player_id].push_back(pokemon_name);
+    
+    // Remove from available pool
+    auto it = std::find(session.available_pokemon.begin(), session.available_pokemon.end(), pokemon_name);
+    if (it != session.available_pokemon.end()) {
+        session.available_pokemon.erase(it);
+    }
+    
+    // Record action in history
+    DraftSession::DraftAction action;
+    action.player_id = player_id;
+    action.action_type = "ban";
+    action.pokemon_name = pokemon_name;
+    action.turn_number = session.current_turn;
+    action.timestamp = getCurrentTimestamp();
+    action.strategy_note = "Banned to prevent opponent strategy";
+    session.draft_history.push_back(action);
+    
+    return true;
+}
+
+bool TeamBuilder::executeDraftPick(DraftSession& session, int player_id, const std::string& pokemon_name) {
+    if (!isDraftActionValid(session, player_id, "pick", pokemon_name)) {
+        return false;
+    }
+    
+    // Add to player team
+    session.player_teams[player_id].push_back(pokemon_name);
+    
+    // Remove from available pool
+    auto it = std::find(session.available_pokemon.begin(), session.available_pokemon.end(), pokemon_name);
+    if (it != session.available_pokemon.end()) {
+        session.available_pokemon.erase(it);
+    }
+    
+    // Record action in history
+    DraftSession::DraftAction action;
+    action.player_id = player_id;
+    action.action_type = "pick";
+    action.pokemon_name = pokemon_name;
+    action.turn_number = session.current_turn;
+    action.timestamp = getCurrentTimestamp();
+    action.strategy_note = "Strategic pick for team composition";
+    session.draft_history.push_back(action);
+    
+    return true;
+}
+
+std::vector<std::string> TeamBuilder::getAvailablePicks(const DraftSession& session, int /* player_id */,
+                                                       const std::string& filter_by_strategy) const {
+    std::vector<std::string> available = session.available_pokemon;
+    
+    if (filter_by_strategy.empty()) {
+        return available;
+    }
+    
+    // Filter by strategy (simplified implementation)
+    std::vector<std::string> filtered;
+    for (const auto& pokemon : available) {
+        bool matches_strategy = false;
+        
+        if (filter_by_strategy == "offensive") {
+            // High attack Pokemon
+            auto types = getCachedPokemonTypes(pokemon);
+            if (std::find(types.begin(), types.end(), "fire") != types.end() ||
+                std::find(types.begin(), types.end(), "dragon") != types.end() ||
+                std::find(types.begin(), types.end(), "fighting") != types.end()) {
+                matches_strategy = true;
+            }
+        } else if (filter_by_strategy == "defensive") {
+            // Tank-like Pokemon
+            if (pokemon == "snorlax" || pokemon == "chansey" || pokemon == "cloyster") {
+                matches_strategy = true;
+            }
+        } else if (filter_by_strategy == "utility") {
+            // Support Pokemon
+            auto types = getCachedPokemonTypes(pokemon);
+            if (std::find(types.begin(), types.end(), "psychic") != types.end() ||
+                std::find(types.begin(), types.end(), "grass") != types.end()) {
+                matches_strategy = true;
+            }
+        }
+        
+        if (matches_strategy) {
+            filtered.push_back(pokemon);
+        }
+    }
+    
+    return filtered;
+}
+
+std::vector<std::pair<std::string, std::string>> TeamBuilder::getDraftSuggestions(
+    const DraftSession& session, int suggestion_count) const {
+    std::vector<std::pair<std::string, std::string>> suggestions;
+    
+    if (session.current_player >= static_cast<int>(session.player_teams.size())) {
+        return suggestions;
+    }
+    
+    auto current_team = session.player_teams[session.current_player];
+    auto available = session.available_pokemon;
+    
+    // Analyze current team composition
+    std::vector<std::string> team_types;
+    for (const auto& pokemon : current_team) {
+        auto types = getCachedPokemonTypes(pokemon);
+        team_types.insert(team_types.end(), types.begin(), types.end());
+    }
+    
+    // Suggest Pokemon that fill gaps
+    for (const auto& pokemon : available) {
+        if (suggestions.size() >= static_cast<size_t>(suggestion_count)) break;
+        
+        auto types = getCachedPokemonTypes(pokemon);
+        std::string reasoning;
+        
+        // Check for type coverage
+        bool fills_gap = false;
+        for (const auto& type : types) {
+            if (std::find(team_types.begin(), team_types.end(), type) == team_types.end()) {
+                fills_gap = true;
+                reasoning = "Adds " + type + " type coverage";
+                break;
+            }
+        }
+        
+        // Check for legendary status
+        if (isPokemonLegendary(pokemon) && !exceedsLegendaryLimit(session, session.current_player, pokemon)) {
+            reasoning += " (Legendary - high power)";
+            fills_gap = true;
+        }
+        
+        if (fills_gap) {
+            suggestions.emplace_back(pokemon, reasoning);
+        }
+    }
+    
+    // If we don't have enough suggestions, add some top-tier Pokemon
+    if (suggestions.size() < static_cast<size_t>(suggestion_count)) {
+        std::vector<std::string> meta_picks = {"mewtwo", "alakazam", "gengar", "dragonite", "snorlax"};
+        for (const auto& pokemon : meta_picks) {
+            if (suggestions.size() >= static_cast<size_t>(suggestion_count)) break;
+            if (std::find(available.begin(), available.end(), pokemon) != available.end()) {
+                suggestions.emplace_back(pokemon, "Meta pick - strong overall Pokemon");
+            }
+        }
+    }
+    
+    return suggestions;
+}
+
+bool TeamBuilder::advanceDraftTurn(DraftSession& session) {
+    // Move to next player
+    if (session.settings.snake_draft && session.current_turn % 2 == 0) {
+        // Snake draft: reverse direction on even turns
+        session.current_player = (session.current_player == 0) ? 
+            session.settings.player_count - 1 : session.current_player - 1;
+    } else {
+        // Linear draft or odd turns in snake draft
+        session.current_player = (session.current_player + 1) % session.settings.player_count;
+    }
+    
+    // Check if we need to advance phase
+    updateDraftPhase(session);
+    
+    session.current_turn++;
+    
+    // Check if draft is complete
+    bool all_teams_full = true;
+    for (const auto& team : session.player_teams) {
+        if (static_cast<int>(team.size()) < session.settings.team_size) {
+            all_teams_full = false;
+            break;
+        }
+    }
+    
+    if (all_teams_full) {
+        session.current_phase = 3; // Complete
+        session.is_active = false;
+    }
+    
+    return true;
+}
+
+InputValidator::ValidationResult<bool> TeamBuilder::validateDraftTeam(const DraftSession& session, 
+                                                                     int player_id) const {
+    if (player_id < 0 || player_id >= static_cast<int>(session.player_teams.size())) {
+        return InputValidator::ValidationResult<bool>(InputValidator::ValidationError::OUT_OF_RANGE, 
+                                                     "Invalid player ID");
+    }
+    
+    const auto& team = session.player_teams[player_id];
+    
+    // Check team size
+    if (static_cast<int>(team.size()) != session.settings.team_size) {
+        return InputValidator::ValidationResult<bool>(InputValidator::ValidationError::INVALID_INPUT,
+                                                     "Team size does not match requirements");
+    }
+    
+    // Check legendary limit
+    int legendary_count = 0;
+    for (const auto& pokemon : team) {
+        if (isPokemonLegendary(pokemon)) {
+            legendary_count++;
+        }
+    }
+    if (legendary_count > session.settings.max_legendaries_per_team) {
+        return InputValidator::ValidationResult<bool>(InputValidator::ValidationError::INVALID_INPUT,
+                                                     "Too many legendary Pokemon");
+    }
+    
+    // Check type limits
+    std::map<std::string, int> type_counts;
+    for (const auto& pokemon : team) {
+        auto types = getCachedPokemonTypes(pokemon);
+        for (const auto& type : types) {
+            type_counts[type]++;
+        }
+    }
+    
+    for (const auto& [type, count] : type_counts) {
+        if (count > session.settings.max_same_type_per_team) {
+            return InputValidator::ValidationResult<bool>(InputValidator::ValidationError::INVALID_INPUT,
+                                                         "Too many " + type + " type Pokemon");
+        }
+    }
+    
+    return InputValidator::ValidationResult<bool>(true);
+}
+
+std::vector<TeamBuilder::Team> TeamBuilder::finalizeDraftTeams(const DraftSession& session) {
+    std::vector<Team> teams;
+    
+    for (size_t i = 0; i < session.player_teams.size(); ++i) {
+        const auto& player_pokemon = session.player_teams[i];
+        const auto& player_name = session.player_names[i];
+        
+        Team team = const_cast<TeamBuilder*>(this)->createTeam(player_name + "'s Draft Team");
+        
+        for (const auto& pokemon_name : player_pokemon) {
+            auto moves = generateMovesForPokemon(pokemon_name);
+            const_cast<TeamBuilder*>(this)->addPokemonToTeam(team, pokemon_name, moves);
+        }
+        
+        teams.push_back(team);
+    }
+    
+    return teams;
+}
+
+std::map<int, std::vector<std::string>> TeamBuilder::analyzeDraftStrategy(const DraftSession& session) const {
+    std::map<int, std::vector<std::string>> analysis;
+    
+    for (size_t player_id = 0; player_id < session.player_teams.size(); ++player_id) {
+        std::vector<std::string> player_analysis;
+        const auto& team = session.player_teams[player_id];
+        const auto& bans = session.player_bans[player_id];
+        
+        // Analyze team composition
+        std::map<std::string, int> type_distribution;
+        for (const auto& pokemon : team) {
+            auto types = getCachedPokemonTypes(pokemon);
+            for (const auto& type : types) {
+                type_distribution[type]++;
+            }
+        }
+        
+        // Determine strategy
+        std::string primary_strategy = "Balanced";
+        int max_type_count = 0;
+        std::string dominant_type;
+        
+        for (const auto& [type, count] : type_distribution) {
+            if (count > max_type_count) {
+                max_type_count = count;
+                dominant_type = type;
+            }
+        }
+        
+        if (max_type_count >= 3) {
+            primary_strategy = dominant_type + " specialist";
+        }
+        
+        player_analysis.push_back("Primary Strategy: " + primary_strategy);
+        player_analysis.push_back("Team Type Distribution: " + std::to_string(type_distribution.size()) + " unique types");
+        
+        // Analyze bans
+        if (!bans.empty()) {
+            player_analysis.push_back("Banned " + std::to_string(bans.size()) + " Pokemon to disrupt opponents");
+        }
+        
+        // Check for legendary usage
+        int legendary_count = 0;
+        for (const auto& pokemon : team) {
+            if (isPokemonLegendary(pokemon)) {
+                legendary_count++;
+            }
+        }
+        if (legendary_count > 0) {
+            player_analysis.push_back("Using " + std::to_string(legendary_count) + " legendary Pokemon");
+        }
+        
+        analysis[static_cast<int>(player_id)] = player_analysis;
+    }
+    
+    return analysis;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Team Sharing System Implementation
+// ═══════════════════════════════════════════════════════════════════════════════
+
+std::string TeamBuilder::exportTeamShareCode(const Team& team, const std::string& creator_name,
+                                            const std::string& description) const {
+    TeamShareCode share_code;
+    share_code.team_name = team.name;
+    share_code.pokemon = team.pokemon;
+    share_code.creator_name = InputValidator::sanitizeString(creator_name);
+    share_code.creation_date = getCurrentTimestamp();
+    share_code.description = InputValidator::sanitizeString(description);
+    share_code.format_version = "1.0";
+    
+    return encodeTeamToBase64(share_code);
+}
+
+TeamBuilder::Team TeamBuilder::importTeamFromShareCode(const std::string& share_code, bool validate_team) {
+    try {
+        TeamShareCode decoded = decodeTeamFromBase64(share_code);
+        
+        Team team = const_cast<TeamBuilder*>(this)->createTeam(decoded.team_name);
+        
+        for (const auto& pokemon : decoded.pokemon) {
+            const_cast<TeamBuilder*>(this)->addPokemonToTeam(team, pokemon.name, pokemon.moves);
+        }
+        
+        if (validate_team) {
+            const_cast<TeamBuilder*>(this)->validateTeam(team);
+        }
+        
+        return team;
+    } catch (const std::exception& e) {
+        return Team("Import_Failed");
+    }
+}
+
+bool TeamBuilder::saveCustomTeam(const Team& team, const std::string& custom_filename) {
+    if (!ensureCustomTeamsDirectoryExists()) {
+        return false;
+    }
+    
+    std::string filename = custom_filename;
+    if (filename.empty()) {
+        filename = sanitizeCustomFilename(team.name) + ".json";
+    } else {
+        filename = sanitizeCustomFilename(filename);
+        if (filename.find(".json") == std::string::npos) {
+            filename += ".json";
+        }
+    }
+    
+    std::string file_path = getCustomTeamsDirectory() + "/" + filename;
+    return saveTeamToFile(team, file_path);
+}
+
+TeamBuilder::Team TeamBuilder::loadCustomTeam(const std::string& filename) {
+    std::string safe_filename = sanitizeCustomFilename(filename);
+    if (safe_filename.find(".json") == std::string::npos) {
+        safe_filename += ".json";
+    }
+    
+    std::string file_path = getCustomTeamsDirectory() + "/" + safe_filename;
+    return loadTeamFromFile(file_path);
+}
+
+std::vector<std::string> TeamBuilder::getCustomTeamsList() const {
+    std::vector<std::string> team_files;
+    
+    try {
+        std::string custom_dir = getCustomTeamsDirectory();
+        if (!std::filesystem::exists(custom_dir)) {
+            return team_files;
+        }
+        
+        for (const auto& entry : std::filesystem::directory_iterator(custom_dir)) {
+            if (entry.is_regular_file() && entry.path().extension() == ".json") {
+                team_files.push_back(entry.path().filename().string());
+            }
+        }
+    } catch (const std::exception& e) {
+        // Return empty list on error
+    }
+    
+    return team_files;
+}
+
+bool TeamBuilder::deleteCustomTeam(const std::string& filename) {
+    std::string safe_filename = sanitizeCustomFilename(filename);
+    if (safe_filename.find(".json") == std::string::npos) {
+        safe_filename += ".json";
+    }
+    
+    std::string file_path = getCustomTeamsDirectory() + "/" + safe_filename;
+    
+    try {
+        return std::filesystem::remove(file_path);
+    } catch (const std::exception& e) {
+        return false;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Team Comparison and Analysis Implementation
+// ═══════════════════════════════════════════════════════════════════════════════
+
+TeamBuilder::TeamComparison TeamBuilder::compareTeams(const Team& team1, const Team& team2) const {
+    TeamComparison comparison;
+    comparison.team1_name = team1.name;
+    comparison.team2_name = team2.name;
+    
+    // Calculate type effectiveness between teams
+    comparison.team1_vs_team2_effectiveness = {};
+    comparison.team2_vs_team1_effectiveness = {};
+    
+    // Simplified type effectiveness calculation
+    double team1_advantage = calculateTypeMatchupAdvantage(team1, team2);
+    double team2_advantage = calculateTypeMatchupAdvantage(team2, team1);
+    
+    comparison.team1_vs_team2_effectiveness["overall"] = team1_advantage;
+    comparison.team2_vs_team1_effectiveness["overall"] = team2_advantage;
+    
+    // Balance comparison
+    auto analysis1 = analyzeTeam(team1);
+    auto analysis2 = analyzeTeam(team2);
+    comparison.team1_balance_score = analysis1.balance_score;
+    comparison.team2_balance_score = analysis2.balance_score;
+    
+    // Coverage analysis
+    comparison.team1_coverage_advantages = findCoverageStrengths(team1);
+    comparison.team2_coverage_advantages = findCoverageStrengths(team2);
+    comparison.mutual_weaknesses = findCoverageGaps(team1);
+    
+    // Filter mutual weaknesses to only include those shared by both teams
+    auto team2_gaps = findCoverageGaps(team2);
+    comparison.mutual_weaknesses.erase(
+        std::remove_if(comparison.mutual_weaknesses.begin(), comparison.mutual_weaknesses.end(),
+            [&team2_gaps](const std::string& gap) {
+                return std::find(team2_gaps.begin(), team2_gaps.end(), gap) == team2_gaps.end();
+            }),
+        comparison.mutual_weaknesses.end()
+    );
+    
+    // Predict battle outcome
+    comparison.team1_win_probability = predictBattleOutcome(team1, team2);
+    
+    if (comparison.team1_win_probability > 0.6) {
+        comparison.battle_prediction_reasoning = team1.name + " has significant type and balance advantages";
+    } else if (comparison.team1_win_probability < 0.4) {
+        comparison.battle_prediction_reasoning = team2.name + " has significant type and balance advantages";
+    } else {
+        comparison.battle_prediction_reasoning = "Teams are well-matched, battle outcome depends on strategy";
+    }
+    
+    // Generate improvement suggestions
+    comparison.team1_improvement_suggestions = getTeamSuggestions(team1);
+    comparison.team2_improvement_suggestions = getTeamSuggestions(team2);
+    
+    return comparison;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Battle History and Statistics Implementation
+// ═══════════════════════════════════════════════════════════════════════════════
+
+void TeamBuilder::recordBattleResult(const std::string& team_name, const std::string& opponent_name,
+                                     bool victory, int turns_taken, const std::string& difficulty,
+                                     double effectiveness_score) {
+    // Load existing battle history
+    loadBattleHistory();
+    
+    // Create battle record
+    BattleRecord record;
+    record.team_name = InputValidator::sanitizeString(team_name);
+    record.opponent_team = InputValidator::sanitizeString(opponent_name);
+    record.battle_date = getCurrentTimestamp();
+    record.victory = victory;
+    record.turns_taken = turns_taken;
+    record.difficulty_level = difficulty;
+    record.team_effectiveness_score = std::max(0.0, std::min(100.0, effectiveness_score));
+    
+    // Add to history
+    battle_history[record.team_name].push_back(record);
+    
+    // Update statistics
+    updateTeamStatistics(record.team_name);
+    
+    // Save to file
+    saveBattleHistory();
+}
+
+std::optional<TeamBuilder::TeamStatistics> TeamBuilder::getTeamStatistics(const std::string& team_name) const {
+    loadBattleHistory();
+    
+    auto it = team_statistics.find(team_name);
+    if (it != team_statistics.end()) {
+        return it->second;
+    }
+    
+    return std::nullopt;
+}
+
+std::vector<TeamBuilder::BattleRecord> TeamBuilder::getTeamBattleHistory(const std::string& team_name, 
+                                                                        int max_records) const {
+    loadBattleHistory();
+    
+    auto it = battle_history.find(team_name);
+    if (it == battle_history.end()) {
+        return {};
+    }
+    
+    const auto& records = it->second;
+    if (max_records <= 0 || static_cast<int>(records.size()) <= max_records) {
+        return records;
+    }
+    
+    // Return most recent records
+    auto start_it = records.end() - max_records;
+    return std::vector<BattleRecord>(start_it, records.end());
+}
+
+bool TeamBuilder::clearTeamBattleHistory(const std::string& team_name) {
+    loadBattleHistory();
+    
+    auto history_it = battle_history.find(team_name);
+    if (history_it != battle_history.end()) {
+        battle_history.erase(history_it);
+    }
+    
+    auto stats_it = team_statistics.find(team_name);
+    if (stats_it != team_statistics.end()) {
+        team_statistics.erase(stats_it);
+    }
+    
+    saveBattleHistory();
+    return true;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Enhanced Random Generation Implementation
+// ═══════════════════════════════════════════════════════════════════════════════
+
+TeamBuilder::Team TeamBuilder::generateMetaOptimizedTeam(const RandomGenerationSettings& settings,
+                                                         bool meta_analysis) const {
+    std::string team_name = "Meta-Optimized Team";
+    Team team = const_cast<TeamBuilder*>(this)->createTeam(team_name);
+    
+    std::vector<std::string> selected_pokemon;
+    
+    if (meta_analysis) {
+        // Get meta-tier Pokemon
+        auto meta_tier_pokemon = getMetaTierPokemon("S");
+        auto high_tier_pokemon = getMetaTierPokemon("A");
+        
+        // Combine tiers with preference for meta tier
+        std::vector<std::string> priority_pokemon = meta_tier_pokemon;
+        priority_pokemon.insert(priority_pokemon.end(), high_tier_pokemon.begin(), high_tier_pokemon.end());
+        
+        // Select from priority list first
+        int priority_picks = std::min(settings.team_size / 2, static_cast<int>(priority_pokemon.size()));
+        for (int i = 0; i < priority_picks && selected_pokemon.size() < static_cast<size_t>(settings.team_size); ++i) {
+            if (std::find(selected_pokemon.begin(), selected_pokemon.end(), priority_pokemon[i]) == selected_pokemon.end()) {
+                selected_pokemon.push_back(priority_pokemon[i]);
+            }
+        }
+    }
+    
+    // Fill remaining slots with balanced selection
+    auto all_pokemon = pokemon_data->getAvailablePokemon();
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::shuffle(all_pokemon.begin(), all_pokemon.end(), gen);
+    
+    for (const auto& pokemon : all_pokemon) {
+        if (static_cast<int>(selected_pokemon.size()) >= settings.team_size) {
+            break;
+        }
+        
+        if (std::find(selected_pokemon.begin(), selected_pokemon.end(), pokemon) != selected_pokemon.end()) {
+            continue;
+        }
+        
+        // Check constraints
+        if (!settings.allow_legendaries && isPokemonLegendary(pokemon)) {
+            continue;
+        }
+        
+        // Check banned types
+        bool is_banned_type = false;
+        auto types = getCachedPokemonTypes(pokemon);
+        for (const auto& type : types) {
+            if (std::find(settings.banned_types.begin(), settings.banned_types.end(), type) != settings.banned_types.end()) {
+                is_banned_type = true;
+                break;
+            }
+        }
+        if (is_banned_type) {
+            continue;
+        }
+        
+        selected_pokemon.push_back(pokemon);
+    }
+    
+    // Optimize team composition
+    selected_pokemon = optimizeTeamComposition(selected_pokemon);
+    
+    // Add Pokemon to team with optimized movesets
+    for (const auto& pokemon_name : selected_pokemon) {
+        auto moves = generateMovesForPokemon(pokemon_name);
+        const_cast<TeamBuilder*>(this)->addPokemonToTeam(team, pokemon_name, moves);
+    }
+    
+    return team;
+}
+
+TeamBuilder::Team TeamBuilder::generateCounterTeam(const Team& target_team, const std::string& team_name,
+                                                   double strictness) const {
+    Team counter_team = const_cast<TeamBuilder*>(this)->createTeam(team_name);
+    
+    // Analyze target team weaknesses
+    std::vector<std::string> target_weaknesses;
+    for (const auto& pokemon : target_team.pokemon) {
+        auto types = getCachedPokemonTypes(pokemon.name);
+        for (const auto& type : types) {
+            // Add types that are weak to common attacking types
+            if (type == "grass") target_weaknesses.push_back("fire");
+            if (type == "fire") target_weaknesses.push_back("water");
+            if (type == "water") target_weaknesses.push_back("electric");
+            if (type == "psychic") target_weaknesses.push_back("ghost");
+            if (type == "fighting") target_weaknesses.push_back("psychic");
+        }
+    }
+    
+    // Remove duplicates
+    std::sort(target_weaknesses.begin(), target_weaknesses.end());
+    target_weaknesses.erase(std::unique(target_weaknesses.begin(), target_weaknesses.end()), target_weaknesses.end());
+    
+    // Select counter Pokemon
+    auto all_pokemon = pokemon_data->getAvailablePokemon();
+    std::vector<std::string> counter_pokemon;
+    
+    for (const auto& weakness_type : target_weaknesses) {
+        for (const auto& pokemon : all_pokemon) {
+            if (counter_pokemon.size() >= 6) break;
+            
+            auto types = getCachedPokemonTypes(pokemon);
+            if (std::find(types.begin(), types.end(), weakness_type) != types.end()) {
+                if (std::find(counter_pokemon.begin(), counter_pokemon.end(), pokemon) == counter_pokemon.end()) {
+                    counter_pokemon.push_back(pokemon);
+                }
+            }
+        }
+    }
+    
+    // If we need more Pokemon or strictness is low, add balanced picks
+    if (strictness < 0.8) {
+        std::vector<std::string> balanced_picks = {"snorlax", "alakazam", "gengar", "dragonite"};
+        for (const auto& pokemon : balanced_picks) {
+            if (counter_pokemon.size() >= 6) break;
+            if (std::find(counter_pokemon.begin(), counter_pokemon.end(), pokemon) == counter_pokemon.end()) {
+                counter_pokemon.push_back(pokemon);
+            }
+        }
+    }
+    
+    // Ensure we have enough Pokemon
+    while (counter_pokemon.size() < 6 && counter_pokemon.size() < all_pokemon.size()) {
+        for (const auto& pokemon : all_pokemon) {
+            if (counter_pokemon.size() >= 6) break;
+            if (std::find(counter_pokemon.begin(), counter_pokemon.end(), pokemon) == counter_pokemon.end()) {
+                counter_pokemon.push_back(pokemon);
+            }
+        }
+    }
+    
+    // Add to team
+    for (size_t i = 0; i < std::min(counter_pokemon.size(), size_t(6)); ++i) {
+        auto moves = generateMovesForPokemon(counter_pokemon[i]);
+        const_cast<TeamBuilder*>(this)->addPokemonToTeam(counter_team, counter_pokemon[i], moves);
+    }
+    
+    return counter_team;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Helper Methods Implementation
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Draft system helper methods
+std::string TeamBuilder::generateSessionId() const {
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss;
+    ss << "draft_" << time_t << "_" << (rand() % 10000);
+    return ss.str();
+}
+
+bool TeamBuilder::isDraftActionValid(const DraftSession& session, int player_id, 
+                                     const std::string& action_type, const std::string& pokemon_name) const {
+    // Check if session is active
+    if (!session.is_active) return false;
+    
+    // Check if it's the player's turn
+    if (player_id != session.current_player) return false;
+    
+    // Check if Pokemon exists and is available
+    if (!pokemon_data->hasPokemon(pokemon_name)) return false;
+    
+    if (action_type == "pick") {
+        // Check if Pokemon is available for picking
+        if (std::find(session.available_pokemon.begin(), session.available_pokemon.end(), pokemon_name) 
+            == session.available_pokemon.end()) {
+            return false;
+        }
+        
+        // Check if adding this Pokemon would exceed limits
+        if (exceedsLegendaryLimit(session, player_id, pokemon_name)) return false;
+        if (exceedsTypeLimit(session, player_id, pokemon_name)) return false;
+        
+    } else if (action_type == "ban") {
+        // Check if in ban phase
+        if (session.current_phase != 0) return false;
+        
+        // Check if Pokemon is available for banning
+        if (std::find(session.available_pokemon.begin(), session.available_pokemon.end(), pokemon_name) 
+            == session.available_pokemon.end()) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+void TeamBuilder::updateDraftPhase(DraftSession& session) const {
+    // Count total bans
+    int total_bans = 0;
+    for (const auto& player_bans : session.player_bans) {
+        total_bans += static_cast<int>(player_bans.size());
+    }
+    
+    int expected_bans = session.settings.player_count * session.settings.ban_phase_picks_per_player;
+    
+    if (session.current_phase == 0 && total_bans >= expected_bans) {
+        session.current_phase = 1; // Move to pick phase
+    }
+}
+
+int TeamBuilder::getNextPlayer(const DraftSession& session) const {
+    if (session.settings.snake_draft && session.current_turn % 2 == 0) {
+        return (session.current_player == 0) ? 
+            session.settings.player_count - 1 : session.current_player - 1;
+    } else {
+        return (session.current_player + 1) % session.settings.player_count;
+    }
+}
+
+std::vector<std::string> TeamBuilder::getPlayerTeamTypes(const DraftSession& session, int player_id) const {
+    std::vector<std::string> types;
+    if (player_id < 0 || player_id >= static_cast<int>(session.player_teams.size())) {
+        return types;
+    }
+    
+    for (const auto& pokemon_name : session.player_teams[player_id]) {
+        auto pokemon_types = getCachedPokemonTypes(pokemon_name);
+        types.insert(types.end(), pokemon_types.begin(), pokemon_types.end());
+    }
+    
+    return types;
+}
+
+bool TeamBuilder::exceedsTypeLimit(const DraftSession& session, int player_id, const std::string& pokemon_name) const {
+    auto pokemon_types = getCachedPokemonTypes(pokemon_name);
+    auto current_types = getPlayerTeamTypes(session, player_id);
+    
+    for (const auto& type : pokemon_types) {
+        int type_count = std::count(current_types.begin(), current_types.end(), type);
+        if (type_count >= session.settings.max_same_type_per_team) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool TeamBuilder::exceedsLegendaryLimit(const DraftSession& session, int player_id, const std::string& pokemon_name) const {
+    if (!isPokemonLegendary(pokemon_name)) {
+        return false;
+    }
+    
+    if (player_id < 0 || player_id >= static_cast<int>(session.player_teams.size())) {
+        return true;
+    }
+    
+    int legendary_count = 0;
+    for (const auto& team_pokemon : session.player_teams[player_id]) {
+        if (isPokemonLegendary(team_pokemon)) {
+            legendary_count++;
+        }
+    }
+    
+    return legendary_count >= session.settings.max_legendaries_per_team;
+}
+
+std::string TeamBuilder::getCurrentTimestamp() const {
+    auto now = std::chrono::system_clock::now();
+    auto time_t = std::chrono::system_clock::to_time_t(now);
+    std::stringstream ss;
+    ss << std::put_time(std::localtime(&time_t), "%Y-%m-%d %H:%M:%S");
+    return ss.str();
+}
+
+// Team sharing helper methods
+std::string TeamBuilder::encodeTeamToBase64(const TeamShareCode& share_code) const {
+    // Create JSON representation
+    json j;
+    j["team_name"] = share_code.team_name;
+    j["creator_name"] = share_code.creator_name;
+    j["creation_date"] = share_code.creation_date;
+    j["description"] = share_code.description;
+    j["format_version"] = share_code.format_version;
+    
+    j["pokemon"] = json::array();
+    for (const auto& pokemon : share_code.pokemon) {
+        json pokemon_json;
+        pokemon_json["name"] = pokemon.name;
+        pokemon_json["moves"] = pokemon.moves;
+        j["pokemon"].push_back(pokemon_json);
+    }
+    
+    std::string json_str = j.dump();
+    
+    // Simple base64 encoding (for demonstration - in production, use a proper base64 library)
+    std::string encoded;
+    const std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    
+    for (size_t i = 0; i < json_str.length(); i += 3) {
+        unsigned char b1 = json_str[i];
+        unsigned char b2 = (i + 1 < json_str.length()) ? json_str[i + 1] : 0;
+        unsigned char b3 = (i + 2 < json_str.length()) ? json_str[i + 2] : 0;
+        
+        encoded += chars[b1 >> 2];
+        encoded += chars[((b1 & 0x03) << 4) | ((b2 & 0xf0) >> 4)];
+        encoded += (i + 1 < json_str.length()) ? chars[((b2 & 0x0f) << 2) | ((b3 & 0xc0) >> 6)] : '=';
+        encoded += (i + 2 < json_str.length()) ? chars[b3 & 0x3f] : '=';
+    }
+    
+    return encoded;
+}
+
+TeamBuilder::TeamShareCode TeamBuilder::decodeTeamFromBase64(const std::string& base64_data) const {
+    TeamShareCode share_code;
+    
+    try {
+        // Simple base64 decoding (for demonstration)
+        std::string decoded;
+        const std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+        
+        for (size_t i = 0; i < base64_data.length(); i += 4) {
+            unsigned char c1 = chars.find(base64_data[i]);
+            unsigned char c2 = chars.find(base64_data[i + 1]);
+            unsigned char c3 = (base64_data[i + 2] != '=') ? chars.find(base64_data[i + 2]) : 0;
+            unsigned char c4 = (base64_data[i + 3] != '=') ? chars.find(base64_data[i + 3]) : 0;
+            
+            decoded += static_cast<char>((c1 << 2) | (c2 >> 4));
+            if (base64_data[i + 2] != '=') {
+                decoded += static_cast<char>((c2 << 4) | (c3 >> 2));
+            }
+            if (base64_data[i + 3] != '=') {
+                decoded += static_cast<char>((c3 << 6) | c4);
+            }
+        }
+        
+        // Parse JSON
+        json j = json::parse(decoded);
+        
+        share_code.team_name = j["team_name"];
+        share_code.creator_name = j["creator_name"];
+        share_code.creation_date = j["creation_date"];
+        share_code.description = j["description"];
+        share_code.format_version = j["format_version"];
+        
+        for (const auto& pokemon_json : j["pokemon"]) {
+            TeamPokemon pokemon;
+            pokemon.name = pokemon_json["name"];
+            pokemon.moves = pokemon_json["moves"].get<std::vector<std::string>>();
+            share_code.pokemon.push_back(pokemon);
+        }
+    } catch (const std::exception& e) {
+        // Return empty share code on error
+        share_code = TeamShareCode();
+    }
+    
+    return share_code;
+}
+
+std::string TeamBuilder::getCustomTeamsDirectory() const {
+    return "data/teams/custom";
+}
+
+std::string TeamBuilder::sanitizeCustomFilename(const std::string& filename) const {
+    return InputValidator::sanitizeFileName(filename);
+}
+
+bool TeamBuilder::ensureCustomTeamsDirectoryExists() const {
+    try {
+        std::string dir = getCustomTeamsDirectory();
+        if (!std::filesystem::exists(dir)) {
+            return std::filesystem::create_directories(dir);
+        }
+        return true;
+    } catch (const std::exception& e) {
+        return false;
+    }
+}
+
+// Team comparison helper methods
+double TeamBuilder::calculateTypeMatchupAdvantage(const Team& attacker, const Team& defender) const {
+    double total_advantage = 0.0;
+    int comparisons = 0;
+    
+    for (const auto& attacker_pokemon : attacker.pokemon) {
+        auto attacker_types = getCachedPokemonTypes(attacker_pokemon.name);
+        
+        for (const auto& defender_pokemon : defender.pokemon) {
+            auto defender_types = getCachedPokemonTypes(defender_pokemon.name);
+            
+            // Simplified type effectiveness calculation
+            for (const auto& attack_type : attacker_types) {
+                for (const auto& defend_type : defender_types) {
+                    double effectiveness = 1.0;
+                    
+                    // Basic type effectiveness rules
+                    if (attack_type == "fire" && defend_type == "grass") effectiveness = 2.0;
+                    else if (attack_type == "water" && defend_type == "fire") effectiveness = 2.0;
+                    else if (attack_type == "grass" && defend_type == "water") effectiveness = 2.0;
+                    else if (attack_type == "electric" && defend_type == "water") effectiveness = 2.0;
+                    else if (attack_type == "psychic" && defend_type == "fighting") effectiveness = 2.0;
+                    else if (attack_type == "ghost" && defend_type == "psychic") effectiveness = 2.0;
+                    // Add more type matchups as needed
+                    
+                    total_advantage += effectiveness;
+                    comparisons++;
+                }
+            }
+        }
+    }
+    
+    return comparisons > 0 ? total_advantage / comparisons : 1.0;
+}
+
+std::vector<std::string> TeamBuilder::findCoverageGaps(const Team& team) const {
+    std::vector<std::string> gaps;
+    std::vector<std::string> team_types;
+    
+    // Collect all types in the team
+    for (const auto& pokemon : team.pokemon) {
+        auto types = getCachedPokemonTypes(pokemon.name);
+        team_types.insert(team_types.end(), types.begin(), types.end());
+    }
+    
+    // Check for common types that are missing
+    std::vector<std::string> common_types = {
+        "fire", "water", "grass", "electric", "psychic", "fighting", 
+        "rock", "ground", "flying", "poison", "bug", "ghost", "ice", "dragon"
+    };
+    
+    for (const auto& type : common_types) {
+        if (std::find(team_types.begin(), team_types.end(), type) == team_types.end()) {
+            gaps.push_back(type);
+        }
+    }
+    
+    return gaps;
+}
+
+std::vector<std::string> TeamBuilder::findCoverageStrengths(const Team& team) const {
+    std::vector<std::string> strengths;
+    std::map<std::string, int> type_counts;
+    
+    // Count type occurrences
+    for (const auto& pokemon : team.pokemon) {
+        auto types = getCachedPokemonTypes(pokemon.name);
+        for (const auto& type : types) {
+            type_counts[type]++;
+        }
+    }
+    
+    // Types with multiple Pokemon are strengths
+    for (const auto& [type, count] : type_counts) {
+        if (count >= 2) {
+            strengths.push_back(type);
+        }
+    }
+    
+    return strengths;
+}
+
+double TeamBuilder::predictBattleOutcome(const Team& team1, const Team& team2) const {
+    double team1_score = 0.0;
+    double team2_score = 0.0;
+    
+    // Factor in type advantages
+    team1_score += calculateTypeMatchupAdvantage(team1, team2) * 0.4;
+    team2_score += calculateTypeMatchupAdvantage(team2, team1) * 0.4;
+    
+    // Factor in team balance
+    auto analysis1 = analyzeTeam(team1);
+    auto analysis2 = analyzeTeam(team2);
+    team1_score += (analysis1.balance_score / 100.0) * 0.3;
+    team2_score += (analysis2.balance_score / 100.0) * 0.3;
+    
+    // Factor in legendary Pokemon count
+    int team1_legendaries = 0, team2_legendaries = 0;
+    for (const auto& pokemon : team1.pokemon) {
+        if (isPokemonLegendary(pokemon.name)) team1_legendaries++;
+    }
+    for (const auto& pokemon : team2.pokemon) {
+        if (isPokemonLegendary(pokemon.name)) team2_legendaries++;
+    }
+    
+    team1_score += (team1_legendaries * 0.05);
+    team2_score += (team2_legendaries * 0.05);
+    
+    // Convert to probability for team1
+    double total_score = team1_score + team2_score;
+    return total_score > 0 ? team1_score / total_score : 0.5;
+}
+
+// Battle history helper methods
+void TeamBuilder::loadBattleHistory() const {
+    try {
+        std::string history_file = getBattleHistoryFilePath();
+        if (!std::filesystem::exists(history_file)) {
+            return;
+        }
+        
+        std::ifstream file(history_file);
+        if (!file.is_open()) {
+            return;
+        }
+        
+        json j;
+        file >> j;
+        
+        battle_history.clear();
+        team_statistics.clear();
+        
+        if (j.contains("battle_history")) {
+            for (const auto& [team_name, records] : j["battle_history"].items()) {
+                std::vector<BattleRecord> team_records;
+                for (const auto& record_json : records) {
+                    BattleRecord record;
+                    record.team_name = record_json["team_name"];
+                    record.opponent_team = record_json["opponent_team"];
+                    record.battle_date = record_json["battle_date"];
+                    record.victory = record_json["victory"];
+                    record.turns_taken = record_json["turns_taken"];
+                    record.difficulty_level = record_json["difficulty_level"];
+                    record.team_effectiveness_score = record_json["team_effectiveness_score"];
+                    team_records.push_back(record);
+                }
+                battle_history[team_name] = team_records;
+            }
+        }
+        
+        if (j.contains("team_statistics")) {
+            for (const auto& [team_name, stats_json] : j["team_statistics"].items()) {
+                TeamStatistics stats;
+                stats.team_name = stats_json["team_name"];
+                stats.total_battles = stats_json["total_battles"];
+                stats.victories = stats_json["victories"];
+                stats.defeats = stats_json["defeats"];
+                stats.win_rate = stats_json["win_rate"];
+                stats.average_battle_length = stats_json["average_battle_length"];
+                stats.average_effectiveness_score = stats_json["average_effectiveness_score"];
+                team_statistics[team_name] = stats;
+            }
+        }
+    } catch (const std::exception& e) {
+        // Ignore errors in loading
+    }
+}
+
+void TeamBuilder::saveBattleHistory() const {
+    try {
+        json j;
+        
+        // Save battle history
+        j["battle_history"] = json::object();
+        for (const auto& [team_name, records] : battle_history) {
+            j["battle_history"][team_name] = json::array();
+            for (const auto& record : records) {
+                json record_json;
+                record_json["team_name"] = record.team_name;
+                record_json["opponent_team"] = record.opponent_team;
+                record_json["battle_date"] = record.battle_date;
+                record_json["victory"] = record.victory;
+                record_json["turns_taken"] = record.turns_taken;
+                record_json["difficulty_level"] = record.difficulty_level;
+                record_json["team_effectiveness_score"] = record.team_effectiveness_score;
+                j["battle_history"][team_name].push_back(record_json);
+            }
+        }
+        
+        // Save team statistics
+        j["team_statistics"] = json::object();
+        for (const auto& [team_name, stats] : team_statistics) {
+            json stats_json;
+            stats_json["team_name"] = stats.team_name;
+            stats_json["total_battles"] = stats.total_battles;
+            stats_json["victories"] = stats.victories;
+            stats_json["defeats"] = stats.defeats;
+            stats_json["win_rate"] = stats.win_rate;
+            stats_json["average_battle_length"] = stats.average_battle_length;
+            stats_json["average_effectiveness_score"] = stats.average_effectiveness_score;
+            j["team_statistics"][team_name] = stats_json;
+        }
+        
+        std::string history_file = getBattleHistoryFilePath();
+        std::ofstream file(history_file);
+        if (file.is_open()) {
+            file << j.dump(2);
+        }
+    } catch (const std::exception& e) {
+        // Ignore save errors
+    }
+}
+
+void TeamBuilder::updateTeamStatistics(const std::string& team_name) const {
+    auto it = battle_history.find(team_name);
+    if (it == battle_history.end()) {
+        return;
+    }
+    
+    const auto& records = it->second;
+    TeamStatistics stats;
+    stats.team_name = team_name;
+    stats.total_battles = static_cast<int>(records.size());
+    stats.victories = 0;
+    stats.defeats = 0;
+    
+    double total_turns = 0.0;
+    double total_effectiveness = 0.0;
+    
+    for (const auto& record : records) {
+        if (record.victory) {
+            stats.victories++;
+        } else {
+            stats.defeats++;
+        }
+        total_turns += record.turns_taken;
+        total_effectiveness += record.team_effectiveness_score;
+    }
+    
+    stats.win_rate = stats.total_battles > 0 ? 
+        (static_cast<double>(stats.victories) / stats.total_battles) * 100.0 : 0.0;
+    stats.average_battle_length = stats.total_battles > 0 ? 
+        total_turns / stats.total_battles : 0.0;
+    stats.average_effectiveness_score = stats.total_battles > 0 ? 
+        total_effectiveness / stats.total_battles : 0.0;
+    
+    team_statistics[team_name] = stats;
+}
+
+std::string TeamBuilder::getBattleHistoryFilePath() const {
+    return "data/teams/battle_history.json";
+}
+
+std::string TeamBuilder::getTeamStatisticsFilePath() const {
+    return "data/teams/team_statistics.json";
+}
+
+// Performance optimization helper methods
+void TeamBuilder::preloadPokemonData() const {
+    auto all_pokemon = pokemon_data->getAvailablePokemon();
+    for (const auto& pokemon : all_pokemon) {
+        getCachedPokemonTypes(pokemon);
+        getCachedPokemonMoves(pokemon);
+    }
+}
+
+void TeamBuilder::clearPerformanceCaches() const {
+    pokemon_type_cache.clear();
+    pokemon_moves_cache.clear();
+}
+
+std::vector<std::string> TeamBuilder::getCachedPokemonTypes(const std::string& pokemon_name) const {
+    auto it = pokemon_type_cache.find(pokemon_name);
+    if (it != pokemon_type_cache.end()) {
+        return it->second;
+    }
+    
+    // Load from Pokemon data and cache
+    std::vector<std::string> types;
+    if (pokemon_data->hasPokemon(pokemon_name)) {
+        auto pokemon_info = pokemon_data->getPokemonInfo(pokemon_name);
+        if (pokemon_info) {
+            types = pokemon_info->types;
+        }
+    }
+    
+    pokemon_type_cache[pokemon_name] = types;
+    return types;
+}
+
+std::vector<std::string> TeamBuilder::getCachedPokemonMoves(const std::string& pokemon_name) const {
+    auto it = pokemon_moves_cache.find(pokemon_name);
+    if (it != pokemon_moves_cache.end()) {
+        return it->second;
+    }
+    
+    // Generate moves and cache
+    std::vector<std::string> moves = generateMovesForPokemon(pokemon_name);
+    pokemon_moves_cache[pokemon_name] = moves;
+    return moves;
+}
+
+// Enhanced generation helper methods
+std::vector<std::string> TeamBuilder::getMetaTierPokemon(const std::string& tier) const {
+    std::vector<std::string> meta_pokemon;
+    
+    if (tier == "S") {
+        // S-tier Pokemon (strongest in meta)
+        meta_pokemon = {"mewtwo", "alakazam", "gengar", "dragonite", "snorlax"};
+    } else if (tier == "A") {
+        // A-tier Pokemon (very strong)
+        meta_pokemon = {"charizard", "blastoise", "venusaur", "gyarados", "lapras", "articuno", "zapdos", "moltres"};
+    } else if (tier == "B") {
+        // B-tier Pokemon (good)
+        meta_pokemon = {"machamp", "golem", "arcanine", "cloyster", "starmie", "jolteon", "vaporeon", "flareon"};
+    }
+    
+    // Filter to only include Pokemon that exist in the data
+    std::vector<std::string> available_meta;
+    for (const auto& pokemon : meta_pokemon) {
+        if (pokemon_data->hasPokemon(pokemon)) {
+            available_meta.push_back(pokemon);
+        }
+    }
+    
+    return available_meta;
+}
+
+std::vector<std::string> TeamBuilder::getCounterPokemon(const std::string& target_pokemon) const {
+    std::vector<std::string> counters;
+    auto target_types = getCachedPokemonTypes(target_pokemon);
+    
+    auto all_pokemon = pokemon_data->getAvailablePokemon();
+    for (const auto& pokemon : all_pokemon) {
+        auto pokemon_types = getCachedPokemonTypes(pokemon);
+        
+        // Check if this Pokemon has type advantage
+        bool has_advantage = false;
+        for (const auto& attack_type : pokemon_types) {
+            for (const auto& defend_type : target_types) {
+                // Simplified type effectiveness check
+                if ((attack_type == "fire" && defend_type == "grass") ||
+                    (attack_type == "water" && defend_type == "fire") ||
+                    (attack_type == "electric" && defend_type == "water") ||
+                    (attack_type == "psychic" && defend_type == "fighting") ||
+                    (attack_type == "ghost" && defend_type == "psychic")) {
+                    has_advantage = true;
+                    break;
+                }
+            }
+            if (has_advantage) break;
+        }
+        
+        if (has_advantage) {
+            counters.push_back(pokemon);
+        }
+    }
+    
+    return counters;
+}
+
+double TeamBuilder::calculatePokemonSynergy(const std::vector<std::string>& team_pokemon) const {
+    if (team_pokemon.empty()) return 0.0;
+    
+    double synergy_score = 0.0;
+    
+    // Calculate type diversity bonus
+    std::set<std::string> unique_types;
+    for (const auto& pokemon : team_pokemon) {
+        auto types = getCachedPokemonTypes(pokemon);
+        unique_types.insert(types.begin(), types.end());
+    }
+    
+    synergy_score += unique_types.size() * 10.0; // Bonus for type diversity
+    
+    // Calculate coverage bonus
+    std::vector<std::string> important_types = {"fire", "water", "grass", "electric", "psychic"};
+    int coverage_count = 0;
+    for (const auto& type : important_types) {
+        if (unique_types.count(type) > 0) {
+            coverage_count++;
+        }
+    }
+    
+    synergy_score += coverage_count * 15.0; // Bonus for important type coverage
+    
+    return std::min(synergy_score, 100.0);
+}
+
+std::vector<std::string> TeamBuilder::optimizeTeamComposition(const std::vector<std::string>& base_team) const {
+    std::vector<std::string> optimized = base_team;
+    
+    // Ensure we have good type coverage
+    std::set<std::string> team_types;
+    for (const auto& pokemon : optimized) {
+        auto types = getCachedPokemonTypes(pokemon);
+        team_types.insert(types.begin(), types.end());
+    }
+    
+    // If we're missing important types, try to replace some Pokemon
+    std::vector<std::string> important_types = {"fire", "water", "electric", "psychic"};
+    auto all_pokemon = pokemon_data->getAvailablePokemon();
+    
+    for (const auto& needed_type : important_types) {
+        if (team_types.count(needed_type) == 0 && optimized.size() < 6) {
+            // Find a Pokemon with this type
+            for (const auto& pokemon : all_pokemon) {
+                if (std::find(optimized.begin(), optimized.end(), pokemon) != optimized.end()) {
+                    continue;
+                }
+                
+                auto types = getCachedPokemonTypes(pokemon);
+                if (std::find(types.begin(), types.end(), needed_type) != types.end()) {
+                    if (optimized.size() < 6) {
+                        optimized.push_back(pokemon);
+                    } else {
+                        // Replace a duplicate type if possible
+                        for (size_t i = 0; i < optimized.size(); ++i) {
+                            auto existing_types = getCachedPokemonTypes(optimized[i]);
+                            bool has_duplicate = false;
+                            for (const auto& existing_type : existing_types) {
+                                if (existing_type != needed_type && team_types.count(existing_type) > 1) {
+                                    has_duplicate = true;
+                                    break;
+                                }
+                            }
+                            if (has_duplicate) {
+                                optimized[i] = pokemon;
+                                break;
+                            }
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    
+    return optimized;
 }

@@ -409,6 +409,350 @@ public:
     std::vector<std::pair<std::string, std::string>> searchTemplates(
         const std::vector<std::string>& keywords) const;
 
+    // ────────────────────────────────────────────────────────────────────────
+    // Tournament/Draft Mode System
+    // ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * @brief Draft session settings and rules
+     */
+    struct DraftSettings {
+        int team_size;                                  // Number of Pokemon per team (1-6)
+        int player_count;                              // Number of players (2-8)
+        
+        // Ban/Pick rules
+        int ban_phase_picks_per_player;                // Bans per player (0-5)
+        int pick_phase_picks_per_turn;                 // Picks per turn (1-3)
+        bool allow_pick_same_turn;                     // Allow multiple picks in one turn
+        
+        // Team restrictions
+        int max_legendaries_per_team;                  // Maximum legendary Pokemon (0-6)
+        int max_same_type_per_team;                    // Maximum Pokemon of same type (0-6)
+        std::vector<std::string> banned_pokemon;       // Globally banned Pokemon
+        std::vector<std::string> banned_types;         // Globally banned types
+        
+        // Draft format
+        bool snake_draft;                              // Snake draft (true) vs linear (false)
+        bool reveal_picks;                             // Show picks to all players
+        bool allow_trade_phase;                        // Allow trading after draft
+        
+        DraftSettings() 
+            : team_size(6), player_count(2), ban_phase_picks_per_player(2),
+              pick_phase_picks_per_turn(1), allow_pick_same_turn(false),
+              max_legendaries_per_team(1), max_same_type_per_team(2),
+              snake_draft(true), reveal_picks(true), allow_trade_phase(false) {}
+    };
+
+    /**
+     * @brief Draft session state and history
+     */
+    struct DraftSession {
+        DraftSettings settings;
+        
+        // Session state
+        std::string session_id;
+        bool is_active;
+        int current_phase;                             // 0=ban, 1=pick, 2=trade, 3=complete
+        int current_player;
+        int current_turn;
+        
+        // Draft pools
+        std::vector<std::string> available_pokemon;    // Available for picking
+        std::vector<std::string> banned_pokemon;       // Banned during session
+        
+        // Player teams and data
+        std::vector<std::string> player_names;
+        std::vector<std::vector<std::string>> player_teams;  // Pokemon picked by each player
+        std::vector<std::vector<std::string>> player_bans;   // Pokemon banned by each player
+        
+        // Draft history for strategy analysis
+        struct DraftAction {
+            int player_id;
+            std::string action_type;                   // "ban", "pick", "trade"
+            std::string pokemon_name;
+            int turn_number;
+            std::string timestamp;
+            std::string strategy_note;                 // Optional strategy explanation
+        };
+        std::vector<DraftAction> draft_history;
+        
+        // Team validation results
+        std::vector<bool> teams_valid;
+        std::vector<std::vector<std::string>> team_errors;
+        
+        DraftSession() : is_active(false), current_phase(0), current_player(0), current_turn(0) {}
+    };
+
+    /**
+     * @brief Team sharing and import/export functionality
+     */
+    struct TeamShareCode {
+        std::string team_name;
+        std::vector<TeamPokemon> pokemon;
+        std::string creator_name;
+        std::string creation_date;
+        std::string description;
+        std::string format_version;                    // For backward compatibility
+        
+        TeamShareCode() : format_version("1.0") {}
+    };
+
+    /**
+     * @brief Battle history tracking for team performance
+     */
+    struct BattleRecord {
+        std::string team_name;
+        std::string opponent_team;
+        std::string battle_date;
+        bool victory;
+        int turns_taken;
+        std::string difficulty_level;
+        std::vector<std::string> strategies_used;
+        double team_effectiveness_score;               // 0-100 based on performance
+        
+        BattleRecord() : victory(false), turns_taken(0), team_effectiveness_score(0.0) {}
+    };
+
+    /**
+     * @brief Team statistics and performance metrics
+     */
+    struct TeamStatistics {
+        std::string team_name;
+        int total_battles;
+        int victories;
+        int defeats;
+        double win_rate;
+        double average_battle_length;
+        double average_effectiveness_score;
+        
+        // Type matchup performance
+        std::map<std::string, double> type_matchup_performance;
+        
+        // Most/least effective Pokemon
+        std::vector<std::pair<std::string, double>> pokemon_effectiveness;
+        
+        // Recommended improvements
+        std::vector<std::string> improvement_suggestions;
+        
+        TeamStatistics() : total_battles(0), victories(0), defeats(0), win_rate(0.0),
+                          average_battle_length(0.0), average_effectiveness_score(0.0) {}
+    };
+
+    // Tournament/Draft Mode Methods
+    /**
+     * @brief Create a new draft session with specified settings
+     * @param settings Draft configuration and rules
+     * @param player_names Names of participating players
+     * @return New draft session ready to start
+     */
+    DraftSession createDraftSession(const DraftSettings& settings, 
+                                   const std::vector<std::string>& player_names);
+
+    /**
+     * @brief Execute a ban action in the current draft session
+     * @param session Draft session to modify
+     * @param player_id Player making the ban (0-based index)
+     * @param pokemon_name Pokemon to ban
+     * @return True if ban was successful
+     */
+    bool executeDraftBan(DraftSession& session, int player_id, const std::string& pokemon_name);
+
+    /**
+     * @brief Execute a pick action in the current draft session
+     * @param session Draft session to modify
+     * @param player_id Player making the pick (0-based index)
+     * @param pokemon_name Pokemon to pick
+     * @return True if pick was successful
+     */
+    bool executeDraftPick(DraftSession& session, int player_id, const std::string& pokemon_name);
+
+    /**
+     * @brief Get current available picks for a player
+     * @param session Current draft session
+     * @param player_id Player to get picks for
+     * @param filter_by_strategy Optional strategy filter
+     * @return Vector of available Pokemon names
+     */
+    std::vector<std::string> getAvailablePicks(const DraftSession& session, int player_id,
+                                              const std::string& filter_by_strategy = "") const;
+
+    /**
+     * @brief Get draft suggestions for current player
+     * @param session Current draft session
+     * @param suggestion_count Number of suggestions to provide
+     * @return Vector of suggested Pokemon with reasoning
+     */
+    std::vector<std::pair<std::string, std::string>> getDraftSuggestions(
+        const DraftSession& session, int suggestion_count = 3) const;
+
+    /**
+     * @brief Advance draft session to next phase/player
+     * @param session Draft session to advance
+     * @return True if advancement was successful
+     */
+    bool advanceDraftTurn(DraftSession& session);
+
+    /**
+     * @brief Validate team composition according to draft rules
+     * @param session Draft session with rules
+     * @param player_id Player whose team to validate
+     * @return ValidationResult with team validity and errors
+     */
+    InputValidator::ValidationResult<bool> validateDraftTeam(const DraftSession& session, int player_id) const;
+
+    /**
+     * @brief Convert draft results to battle-ready teams
+     * @param session Completed draft session
+     * @return Vector of teams ready for battle
+     */
+    std::vector<Team> finalizeDraftTeams(const DraftSession& session);
+
+    /**
+     * @brief Get detailed draft analysis and strategy insights
+     * @param session Draft session to analyze
+     * @return Map of player IDs to strategy analysis
+     */
+    std::map<int, std::vector<std::string>> analyzeDraftStrategy(const DraftSession& session) const;
+
+    // Team Sharing System Methods
+    /**
+     * @brief Export team as shareable base64 encoded string
+     * @param team Team to export
+     * @param creator_name Name of team creator
+     * @param description Optional team description
+     * @return Base64 encoded team share code
+     */
+    std::string exportTeamShareCode(const Team& team, const std::string& creator_name,
+                                   const std::string& description = "") const;
+
+    /**
+     * @brief Import team from base64 encoded share code
+     * @param share_code Base64 encoded team data
+     * @param validate_team Whether to validate imported team
+     * @return Imported team or empty team if import failed
+     */
+    Team importTeamFromShareCode(const std::string& share_code, bool validate_team = true);
+
+    /**
+     * @brief Save team to custom teams directory
+     * @param team Team to save
+     * @param custom_filename Optional custom filename (auto-generated if empty)
+     * @return True if saved successfully
+     */
+    bool saveCustomTeam(const Team& team, const std::string& custom_filename = "");
+
+    /**
+     * @brief Load team from custom teams directory
+     * @param filename Filename in custom teams directory
+     * @return Loaded team or empty team if failed
+     */
+    Team loadCustomTeam(const std::string& filename);
+
+    /**
+     * @brief Get list of all custom teams
+     * @return Vector of custom team filenames
+     */
+    std::vector<std::string> getCustomTeamsList() const;
+
+    /**
+     * @brief Delete custom team file
+     * @param filename Custom team filename to delete
+     * @return True if deletion was successful
+     */
+    bool deleteCustomTeam(const std::string& filename);
+
+    // Team Comparison and Analysis Methods
+    /**
+     * @brief Compare two teams and provide detailed analysis
+     * @param team1 First team to compare
+     * @param team2 Second team to compare
+     * @return Detailed comparison analysis
+     */
+    struct TeamComparison {
+        std::string team1_name;
+        std::string team2_name;
+        
+        // Type effectiveness analysis
+        std::map<std::string, double> team1_vs_team2_effectiveness;
+        std::map<std::string, double> team2_vs_team1_effectiveness;
+        
+        // Balance comparison
+        int team1_balance_score;
+        int team2_balance_score;
+        
+        // Coverage analysis
+        std::vector<std::string> team1_coverage_advantages;
+        std::vector<std::string> team2_coverage_advantages;
+        std::vector<std::string> mutual_weaknesses;
+        
+        // Predicted battle outcome
+        double team1_win_probability;
+        std::string battle_prediction_reasoning;
+        
+        // Improvement suggestions
+        std::vector<std::string> team1_improvement_suggestions;
+        std::vector<std::string> team2_improvement_suggestions;
+    };
+    
+    TeamComparison compareTeams(const Team& team1, const Team& team2) const;
+
+    // Battle History and Statistics Methods
+    /**
+     * @brief Record a battle result for team statistics
+     * @param team_name Name of team that battled
+     * @param opponent_name Name of opponent team
+     * @param victory Whether the team won
+     * @param turns_taken Number of turns the battle lasted
+     * @param difficulty AI difficulty level
+     * @param effectiveness_score Performance score (0-100)
+     */
+    void recordBattleResult(const std::string& team_name, const std::string& opponent_name,
+                           bool victory, int turns_taken, const std::string& difficulty,
+                           double effectiveness_score = 50.0);
+
+    /**
+     * @brief Get comprehensive statistics for a team
+     * @param team_name Name of team to get statistics for
+     * @return Team statistics or empty if no data found
+     */
+    std::optional<TeamStatistics> getTeamStatistics(const std::string& team_name) const;
+
+    /**
+     * @brief Get battle history for a team
+     * @param team_name Name of team to get history for
+     * @param max_records Maximum number of records to return (0 for all)
+     * @return Vector of battle records
+     */
+    std::vector<BattleRecord> getTeamBattleHistory(const std::string& team_name, 
+                                                  int max_records = 10) const;
+
+    /**
+     * @brief Clear battle history for a team
+     * @param team_name Name of team to clear history for
+     * @return True if clearing was successful
+     */
+    bool clearTeamBattleHistory(const std::string& team_name);
+
+    // Enhanced Random Generation Methods
+    /**
+     * @brief Generate random team with advanced constraints and meta considerations
+     * @param settings Enhanced random generation settings
+     * @param meta_analysis Whether to consider current meta when generating
+     * @return Generated team optimized for current meta
+     */
+    Team generateMetaOptimizedTeam(const RandomGenerationSettings& settings,
+                                  bool meta_analysis = true) const;
+
+    /**
+     * @brief Generate counter team specifically designed to counter another team
+     * @param target_team Team to counter
+     * @param team_name Name for the counter team
+     * @param strictness How strictly to counter (0.0-1.0, higher = more focused)
+     * @return Generated counter team
+     */
+    Team generateCounterTeam(const Team& target_team, const std::string& team_name,
+                            double strictness = 0.7) const;
+
 private:
     std::shared_ptr<PokemonData> pokemon_data;
     ValidationSettings validation_settings;
@@ -416,6 +760,17 @@ private:
     // Template system storage
     std::unordered_map<std::string, std::unordered_map<std::string, TeamTemplate>> templates;
     bool templates_loaded;
+    
+    // Battle history and statistics storage
+    mutable std::unordered_map<std::string, std::vector<BattleRecord>> battle_history;
+    mutable std::unordered_map<std::string, TeamStatistics> team_statistics;
+    
+    // Draft session management
+    std::unordered_map<std::string, DraftSession> active_draft_sessions;
+    
+    // Performance optimization caches
+    mutable std::unordered_map<std::string, std::vector<std::string>> pokemon_type_cache;
+    mutable std::unordered_map<std::string, std::vector<std::string>> pokemon_moves_cache;
 
     // Validation helper methods
     bool validateTeamSize(const Team& team, std::vector<std::string>& errors, 
@@ -455,4 +810,47 @@ private:
     bool isPokemonLegendary(const std::string& pokemon_name) const;
     std::vector<std::string> generateRoleBasedMoves(const std::string& pokemon_name, const std::string& role) const;
     bool teamMeetsRoleRequirements(const Team& team, const RandomGenerationSettings& settings) const;
+
+    // Draft system helper methods
+    std::string generateSessionId() const;
+    bool isDraftActionValid(const DraftSession& session, int player_id, 
+                           const std::string& action_type, const std::string& pokemon_name) const;
+    void updateDraftPhase(DraftSession& session) const;
+    int getNextPlayer(const DraftSession& session) const;
+    std::vector<std::string> getPlayerTeamTypes(const DraftSession& session, int player_id) const;
+    bool exceedsTypeLimit(const DraftSession& session, int player_id, const std::string& pokemon_name) const;
+    bool exceedsLegendaryLimit(const DraftSession& session, int player_id, const std::string& pokemon_name) const;
+    std::string getCurrentTimestamp() const;
+
+    // Team sharing helper methods
+    std::string encodeTeamToBase64(const TeamShareCode& share_code) const;
+    TeamShareCode decodeTeamFromBase64(const std::string& base64_data) const;
+    std::string getCustomTeamsDirectory() const;
+    std::string sanitizeCustomFilename(const std::string& filename) const;
+    bool ensureCustomTeamsDirectoryExists() const;
+
+    // Team comparison helper methods
+    double calculateTypeMatchupAdvantage(const Team& attacker, const Team& defender) const;
+    std::vector<std::string> findCoverageGaps(const Team& team) const;
+    std::vector<std::string> findCoverageStrengths(const Team& team) const;
+    double predictBattleOutcome(const Team& team1, const Team& team2) const;
+
+    // Battle history helper methods
+    void loadBattleHistory() const;
+    void saveBattleHistory() const;
+    void updateTeamStatistics(const std::string& team_name) const;
+    std::string getBattleHistoryFilePath() const;
+    std::string getTeamStatisticsFilePath() const;
+
+    // Performance optimization helper methods
+    void preloadPokemonData() const;
+    void clearPerformanceCaches() const;
+    std::vector<std::string> getCachedPokemonTypes(const std::string& pokemon_name) const;
+    std::vector<std::string> getCachedPokemonMoves(const std::string& pokemon_name) const;
+
+    // Enhanced generation helper methods
+    std::vector<std::string> getMetaTierPokemon(const std::string& tier) const;
+    std::vector<std::string> getCounterPokemon(const std::string& target_pokemon) const;
+    double calculatePokemonSynergy(const std::vector<std::string>& team_pokemon) const;
+    std::vector<std::string> optimizeTeamComposition(const std::vector<std::string>& base_team) const;
 };
