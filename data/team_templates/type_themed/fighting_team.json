@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Fighting-Type Dojo",
+    "description": "A physical powerhouse team of fighting types with massive attack stats and diverse coverage",
+    "difficulty": "intermediate",
+    "strategy": "physical_offense",
+    "type_coverage": {
+      "offensive_types": ["fighting", "rock", "ground", "fire", "electric", "ice"],
+      "defensive_coverage": ["rock", "bug", "dark", "fighting"]
+    },
+    "usage_notes": "Fighting types excel at physical attacks and breaking through defensive Pokemon. Use bulk up and focus energy to set up devastating sweeps.",
+    "learning_objectives": [
+      "Understanding physical attack dominance",
+      "Learning to break defensive cores",
+      "Mastering setup sweeping with stat boosts",
+      "Dealing with psychic and flying weaknesses"
+    ]
+  },
+  "team": {
+    "name": "Combat Training Squad",
+    "pokemon": [
+      {
+        "name": "machamp",
+        "role": "physical_powerhouse",
+        "moves": ["dynamic-punch", "earthquake", "rock-slide", "bullet-punch"],
+        "strategy": "Massive attack with confusion-inducing Dynamic Punch",
+        "tips": "Dynamic Punch has 100% confusion rate - very disruptive"
+      },
+      {
+        "name": "hitmonlee",
+        "role": "physical_sweeper",
+        "moves": ["high-jump-kick", "earthquake", "rock-slide", "reversal"],
+        "strategy": "High-speed physical attacker with powerful STAB",
+        "tips": "High Jump Kick is extremely powerful but has recoil risk"
+      },
+      {
+        "name": "hitmonchan",
+        "role": "elemental_puncher",
+        "moves": ["dynamic-punch", "fire-punch", "ice-punch", "thunder-punch"],
+        "strategy": "Elemental punch specialist with perfect coverage",
+        "tips": "Elemental punches give coverage against typical fighting counters"
+      },
+      {
+        "name": "poliwrath",
+        "role": "tank",
+        "moves": ["dynamic-punch", "hydro-pump", "ice-beam", "hypnosis"],
+        "strategy": "Bulky water/fighting with status support",
+        "tips": "Water typing eliminates fire weakness common to fighting types"
+      },
+      {
+        "name": "primeape",
+        "role": "fast_attacker",
+        "moves": ["dynamic-punch", "earthquake", "rock-slide", "thrash"],
+        "strategy": "Fast and furious physical attacker",
+        "tips": "Higher speed than most fighting types - good for revenge kills"
+      },
+      {
+        "name": "machoke",
+        "role": "physical_wall",
+        "moves": ["dynamic-punch", "earthquake", "rest", "sleep-talk"],
+        "strategy": "Defensive fighting type with recovery",
+        "tips": "Rest + Sleep Talk combo allows continuous attacking while healing"
+      }
+    ]
+  }
+}

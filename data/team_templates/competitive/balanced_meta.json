@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Balanced Meta Core",
+    "description": "A well-rounded competitive team that can adapt to any situation with both offensive and defensive options",
+    "difficulty": "advanced",
+    "strategy": "balanced",
+    "type_coverage": {
+      "offensive_types": ["water", "electric", "psychic", "ground", "fire", "ice", "fighting", "normal"],
+      "defensive_coverage": ["fire", "water", "grass", "electric", "ice", "ground", "fighting", "poison", "flying", "psychic", "rock", "steel"]
+    },
+    "usage_notes": "This team can switch between offensive pressure and defensive play as needed. Emphasizes good core synergies and consistent performance.",
+    "learning_objectives": [
+      "Understanding team synergy principles",
+      "Learning situational adaptation",
+      "Mastering both offensive and defensive play",
+      "Advanced prediction and switching"
+    ]
+  },
+  "team": {
+    "name": "Harmony Core",
+    "pokemon": [
+      {
+        "name": "starmie",
+        "role": "offensive_pivot",
+        "moves": ["hydro-pump", "psychic", "ice-beam", "recover"],
+        "strategy": "Fast special attacker with reliable recovery",
+        "tips": "Use as a pivot to gain momentum while threatening major damage"
+      },
+      {
+        "name": "zapdos",
+        "role": "special_wall",
+        "moves": ["thunderbolt", "drill-peck", "rest", "sleep-talk"],
+        "strategy": "Legendary electric wall with physical options",
+        "tips": "Excellent defensive typing resists many common attack types"
+      },
+      {
+        "name": "golem",
+        "role": "physical_wall",
+        "moves": ["earthquake", "rock-slide", "explosion", "counter"],
+        "strategy": "Sturdy physical tank with powerful retaliation",
+        "tips": "Counter surprises physical attackers; Explosion deals massive damage"
+      },
+      {
+        "name": "gengar",
+        "role": "utility_attacker",
+        "moves": ["shadow-ball", "thunderbolt", "ice-punch", "destiny-bond"],
+        "strategy": "Fast ghost with utility and damage potential",
+        "tips": "Destiny Bond provides insurance and can swing momentum dramatically"
+      },
+      {
+        "name": "machamp",
+        "role": "wallbreaker",
+        "moves": ["dynamic-punch", "earthquake", "rock-slide", "rest"],
+        "strategy": "Physical powerhouse that breaks defensive cores",
+        "tips": "Dynamic Punch confusion can create opportunities for teammates"
+      },
+      {
+        "name": "dragonite",
+        "role": "late_game_cleaner",
+        "moves": ["dragon-claw", "earthquake", "fire-punch", "extreme-speed"],
+        "strategy": "Versatile attacker saved for late-game sweeps",
+        "tips": "Excellent stats across the board make it a reliable endgame threat"
+      }
+    ]
+  }
+}

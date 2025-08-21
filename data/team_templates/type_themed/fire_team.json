@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Fire-Type Specialists",
+    "description": "A blazing team of fire-type Pokemon with explosive offensive power and sun synergy",
+    "difficulty": "intermediate",
+    "strategy": "offensive",
+    "type_coverage": {
+      "offensive_types": ["fire", "fighting", "electric", "normal", "flying"],
+      "defensive_coverage": ["fire", "grass", "bug", "steel", "ice", "fairy"]
+    },
+    "usage_notes": "This mono-fire team focuses on overwhelming power and speed. Use Sunny Day to boost fire moves and enable powerful combos.",
+    "learning_objectives": [
+      "Understanding mono-type team building",
+      "Learning weather synergy (Sunny Day)",
+      "Mastering fire-type offensive potential",
+      "Dealing with type disadvantages"
+    ]
+  },
+  "team": {
+    "name": "Inferno Brigade",
+    "pokemon": [
+      {
+        "name": "charizard",
+        "role": "special_sweeper",
+        "moves": ["fire-blast", "solar-beam", "dragon-pulse", "sunny-day"],
+        "strategy": "Solar Beam user under sun with devastating fire power",
+        "tips": "Set up Sunny Day early to power up fire moves and enable instant Solar Beam"
+      },
+      {
+        "name": "arcanine",
+        "role": "physical_attacker",
+        "moves": ["flare-blitz", "extreme-speed", "thunder-fang", "sunny-day"],
+        "strategy": "Fast physical fire attacker with priority and sun support",
+        "tips": "Extreme Speed gives priority to finish weakened enemies"
+      },
+      {
+        "name": "rapidash",
+        "role": "speed_attacker",
+        "moves": ["fire-blast", "megahorn", "bounce", "sunny-day"],
+        "strategy": "High-speed attacker with unique coverage moves",
+        "tips": "Megahorn handles pesky psychic types that resist fire moves"
+      },
+      {
+        "name": "magmar",
+        "role": "special_attacker",
+        "moves": ["flamethrower", "thunderbolt", "psychic", "confuse-ray"],
+        "strategy": "Bulky special attacker with diverse coverage",
+        "tips": "Use Confuse Ray to disrupt opponents before landing powerful attacks"
+      },
+      {
+        "name": "flareon",
+        "role": "special_wall",
+        "moves": ["fire-blast", "shadow-ball", "bite", "rest"],
+        "strategy": "Specially defensive fire type with recovery",
+        "tips": "Can take special hits well while dealing respectable damage back"
+      },
+      {
+        "name": "ninetales",
+        "role": "support",
+        "moves": ["flamethrower", "will-o-wisp", "confuse-ray", "safeguard"],
+        "strategy": "Status support specialist with burn infliction",
+        "tips": "Will-O-Wisp cripples physical attackers - your team's main weakness"
+      }
+    ]
+  }
+}

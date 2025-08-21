@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Electric-Type Powerhouse",
+    "description": "A high-speed electric team focused on paralysis support and lightning-fast attacks",
+    "difficulty": "intermediate",
+    "strategy": "offensive",
+    "type_coverage": {
+      "offensive_types": ["electric", "normal", "fighting", "ice", "fire"],
+      "defensive_coverage": ["flying", "steel", "electric", "water"]
+    },
+    "usage_notes": "Electric types excel at speed and paralysis support. Use Thunder Wave strategically to slow down threats and enable sweeps.",
+    "learning_objectives": [
+      "Understanding speed control via paralysis",
+      "Learning electric-type advantages",
+      "Mastering hit-and-run tactics",
+      "Dealing with ground-type immunity"
+    ]
+  },
+  "team": {
+    "name": "Thunder Storm Brigade",
+    "pokemon": [
+      {
+        "name": "jolteon",
+        "role": "special_sweeper",
+        "moves": ["thunderbolt", "shadow-ball", "pin-missile", "thunder-wave"],
+        "strategy": "Extremely fast special attacker with speed control",
+        "tips": "Often the fastest Pokemon in battle - use this to control pace"
+      },
+      {
+        "name": "raichu",
+        "role": "special_attacker",
+        "moves": ["thunder", "psychic", "focus-punch", "rain-dance"],
+        "strategy": "Powerful electric attacker with weather support",
+        "tips": "Rain Dance makes Thunder 100% accurate and very powerful"
+      },
+      {
+        "name": "pikachu",
+        "role": "utility",
+        "moves": ["thunderbolt", "quick-attack", "double-team", "thunder-wave"],
+        "strategy": "Fast utility Pokemon with priority and evasion",
+        "tips": "Double Team + Thunder Wave creates setup opportunities"
+      },
+      {
+        "name": "electrode",
+        "role": "lead",
+        "moves": ["thunderbolt", "explosion", "thunder-wave", "light-screen"],
+        "strategy": "Blazing fast lead with support and self-destruct",
+        "tips": "Set up Light Screen early, then explode for massive damage"
+      },
+      {
+        "name": "magneton",
+        "role": "tank",
+        "moves": ["thunderbolt", "tri-attack", "thunder-wave", "rest"],
+        "strategy": "Bulky steel/electric type with status support",
+        "tips": "Steel typing provides valuable resistances to the team"
+      },
+      {
+        "name": "electabuzz",
+        "role": "mixed_attacker",
+        "moves": ["thunderbolt", "fire-punch", "ice-punch", "psychic"],
+        "strategy": "Versatile attacker with elemental punch coverage",
+        "tips": "Elemental punches provide coverage against ground types"
+      }
+    ]
+  }
+}
