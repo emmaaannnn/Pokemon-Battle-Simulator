@@ -1,0 +1,64 @@
+{
+  "battle_history": {
+    "Invalid_Team_Name": [
+      {
+        "battle_date": "2025-08-21 11:07:31",
+        "difficulty_level": "Easy",
+        "opponent_team": "Rock Fortress",
+        "team_effectiveness_score": 90.0,
+        "team_name": "Invalid_Team_Name",
+        "turns_taken": 1,
+        "victory": true
+      },
+      {
+        "battle_date": "2025-08-21 15:24:54",
+        "difficulty_level": "Easy",
+        "opponent_team": "Rock Fortress",
+        "team_effectiveness_score": 90.0,
+        "team_name": "Invalid_Team_Name",
+        "turns_taken": 1,
+        "victory": true
+      },
+      {
+        "battle_date": "2025-08-21 15:28:55",
+        "difficulty_level": "Easy",
+        "opponent_team": "Rock Fortress",
+        "team_effectiveness_score": 90.0,
+        "team_name": "Invalid_Team_Name",
+        "turns_taken": 1,
+        "victory": true
+      }
+    ],
+    "ben's Team": [
+      {
+        "battle_date": "2025-08-21 17:58:21",
+        "difficulty_level": "Expert",
+        "opponent_team": "Ground Earthquake",
+        "team_effectiveness_score": 90.0,
+        "team_name": "ben's Team",
+        "turns_taken": 23,
+        "victory": true
+      }
+    ]
+  },
+  "team_statistics": {
+    "Invalid_Team_Name": {
+      "average_battle_length": 1.0,
+      "average_effectiveness_score": 90.0,
+      "defeats": 0,
+      "team_name": "Invalid_Team_Name",
+      "total_battles": 3,
+      "victories": 3,
+      "win_rate": 100.0
+    },
+    "ben's Team": {
+      "average_battle_length": 23.0,
+      "average_effectiveness_score": 90.0,
+      "defeats": 0,
+      "team_name": "ben's Team",
+      "total_battles": 1,
+      "victories": 1,
+      "win_rate": 100.0
+    }
+  }
+}
