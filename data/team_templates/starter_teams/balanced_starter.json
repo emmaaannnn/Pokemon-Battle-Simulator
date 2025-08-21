@@ -1,0 +1,65 @@
+{
+  "template_info": {
+    "name": "Balanced Starter Team",
+    "description": "A well-rounded team perfect for beginners learning the fundamentals of Pokemon battles",
+    "difficulty": "beginner",
+    "strategy": "balanced",
+    "type_coverage": {
+      "offensive_types": ["fire", "water", "grass", "electric", "normal", "rock"],
+      "defensive_coverage": ["fire", "water", "grass", "electric", "ground", "fighting", "poison", "flying"]
+    },
+    "usage_notes": "This team focuses on solid fundamentals with good type coverage and balanced stats. Each Pokemon fills a different role while being easy to use.",
+    "learning_objectives": [
+      "Understanding basic type effectiveness",
+      "Learning different battle roles (physical attacker, special attacker, tank, support)",
+      "Proper move selection for coverage"
+    ]
+  },
+  "team": {
+    "name": "Balanced Starter Squad",
+    "pokemon": [
+      {
+        "name": "charizard",
+        "role": "special_attacker",
+        "moves": ["flamethrower", "dragon-breath", "solar-beam", "roost"],
+        "strategy": "Primary special attacker with good coverage moves",
+        "tips": "Use sunny-day setups to boost fire moves and enable instant Solar Beam"
+      },
+      {
+        "name": "blastoise",
+        "role": "tank",
+        "moves": ["hydro-pump", "ice-beam", "earthquake", "rapid-spin"],
+        "strategy": "Bulky water-type that can take hits and provide utility",
+        "tips": "Great defensive pivot that can also hit hard with water moves"
+      },
+      {
+        "name": "venusaur",
+        "role": "support",
+        "moves": ["giga-drain", "leech-seed", "toxic", "synthesis"],
+        "strategy": "Healing support with status moves",
+        "tips": "Set up Leech Seed early for consistent healing and chip damage"
+      },
+      {
+        "name": "pikachu",
+        "role": "speed_attacker",
+        "moves": ["thunderbolt", "quick-attack", "double-team", "thunder-wave"],
+        "strategy": "Fast electric attacker with priority and status",
+        "tips": "Use Thunder Wave to slow down faster threats, then sweep with Thunderbolt"
+      },
+      {
+        "name": "machamp",
+        "role": "physical_attacker",
+        "moves": ["superpower", "earthquake", "rock-slide", "bullet-punch"],
+        "strategy": "Strong physical attacker with good coverage",
+        "tips": "Bullet Punch provides priority for finishing weakened opponents"
+      },
+      {
+        "name": "alakazam",
+        "role": "special_sweeper",
+        "moves": ["psychic", "shadow-ball", "calm-mind", "recover"],
+        "strategy": "High-speed special attacker with setup potential",
+        "tips": "Set up Calm Mind when you have a favorable matchup, then sweep"
+      }
+    ]
+  }
+}

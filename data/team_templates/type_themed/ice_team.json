@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Ice-Type Specialists",
+    "description": "A frigid team focused on freeze effects, high damage, and controlling the battlefield with ice moves",
+    "difficulty": "intermediate",
+    "strategy": "control",
+    "type_coverage": {
+      "offensive_types": ["ice", "water", "psychic", "electric", "ground", "flying"],
+      "defensive_coverage": ["ice", "water", "flying", "ground", "grass", "dragon"]
+    },
+    "usage_notes": "Ice types hit hard but are fragile. Focus on getting powerful hits off before opponents can respond. Ice moves have great neutral coverage.",
+    "learning_objectives": [
+      "Understanding ice-type offensive power",
+      "Learning to work with fragile Pokemon",
+      "Mastering high-damage, high-risk gameplay",
+      "Ice move coverage strategies"
+    ]
+  },
+  "team": {
+    "name": "Frozen Tundra Squad",
+    "pokemon": [
+      {
+        "name": "lapras",
+        "role": "special_tank",
+        "moves": ["ice-beam", "hydro-pump", "psychic", "heal-bell"],
+        "strategy": "Bulky ice attacker with team support capabilities",
+        "tips": "Use Heal Bell to keep the team healthy while dealing consistent ice damage"
+      },
+      {
+        "name": "articuno",
+        "role": "special_wall",
+        "moves": ["ice-beam", "hurricane", "roost", "toxic"],
+        "strategy": "Legendary ice/flying type with superior bulk",
+        "tips": "Roost removes flying type temporarily, reducing weaknesses"
+      },
+      {
+        "name": "jynx",
+        "role": "special_sweeper",
+        "moves": ["ice-beam", "psychic", "lovely-kiss", "focus-blast"],
+        "strategy": "Fast special attacker with sleep support",
+        "tips": "Lovely Kiss puts opponents to sleep for free setup opportunities"
+      },
+      {
+        "name": "dewgong",
+        "role": "mixed_wall",
+        "moves": ["ice-beam", "surf", "rest", "sleep-talk"],
+        "strategy": "Bulky water/ice type with recovery",
+        "tips": "Rest + Sleep Talk provides reliable recovery while staying active"
+      },
+      {
+        "name": "cloyster",
+        "role": "physical_wall",
+        "moves": ["ice-beam", "hydro-pump", "spikes", "rapid-spin"],
+        "strategy": "Extremely high defense wall with utility",
+        "tips": "Set up Spikes early, then use Rapid Spin to control hazards"
+      },
+      {
+        "name": "seel",
+        "role": "physical_attacker",
+        "moves": ["ice-beam", "body-slam", "aurora-beam", "take-down"],
+        "strategy": "Physical ice attacker with solid bulk",
+        "tips": "Aurora Beam can lower opponent's attack while dealing damage"
+      }
+    ]
+  }
+}

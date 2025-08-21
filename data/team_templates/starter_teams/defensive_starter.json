@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Defensive Starter Team",
+    "description": "A sturdy defensive team that focuses on outlasting opponents and controlling the battlefield",
+    "difficulty": "beginner",
+    "strategy": "defensive",
+    "type_coverage": {
+      "offensive_types": ["water", "grass", "ground", "poison", "normal", "ice"],
+      "defensive_coverage": ["fire", "water", "grass", "electric", "ground", "rock", "fighting", "poison", "flying", "psychic"]
+    },
+    "usage_notes": "This team excels at taking hits, healing, and wearing down opponents over time. Learn patience and defensive positioning.",
+    "learning_objectives": [
+      "Understanding defensive type matchups",
+      "Learning status move timing",
+      "Mastering healing and stall tactics",
+      "Proper switching and positioning"
+    ]
+  },
+  "team": {
+    "name": "Fortress Defense Squad",
+    "pokemon": [
+      {
+        "name": "snorlax",
+        "role": "wall",
+        "moves": ["body-slam", "rest", "sleep-talk", "earthquake"],
+        "strategy": "Ultimate physical wall with self-recovery",
+        "tips": "Use Rest + Sleep Talk combo to stay healthy while still attacking"
+      },
+      {
+        "name": "lapras",
+        "role": "special_wall",
+        "moves": ["ice-beam", "hydro-pump", "psychic", "heal-bell"],
+        "strategy": "Bulky water-type with healing support for the team",
+        "tips": "Heal Bell cures status for your entire team - use it strategically"
+      },
+      {
+        "name": "chansey",
+        "role": "cleric",
+        "moves": ["soft-boiled", "toxic", "seismic-toss", "aromatherapy"],
+        "strategy": "Ultimate special wall and team healer",
+        "tips": "Seismic Toss does consistent damage regardless of stats - perfect for walls"
+      },
+      {
+        "name": "cloyster",
+        "role": "physical_wall",
+        "moves": ["ice-beam", "hydro-pump", "rapid-spin", "spikes"],
+        "strategy": "Extremely high defense wall with utility moves",
+        "tips": "Use Rapid Spin to clear hazards while setting up your own Spikes"
+      },
+      {
+        "name": "golem",
+        "role": "physical_tank",
+        "moves": ["earthquake", "rock-slide", "explosion", "counter"],
+        "strategy": "Sturdy rock/ground type with powerful physical moves",
+        "tips": "Counter can surprise physical attackers, and Explosion is a powerful last resort"
+      },
+      {
+        "name": "slowbro",
+        "role": "mixed_wall",
+        "moves": ["psychic", "surf", "amnesia", "slack-off"],
+        "strategy": "Bulky psychic-type with self-recovery",
+        "tips": "Use Amnesia to boost special defense, then heal with Slack Off"
+      }
+    ]
+  }
+}

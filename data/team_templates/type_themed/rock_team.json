@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Rock-Type Fortress",
+    "description": "A sturdy rock-type team focused on high defense, powerful physical attacks, and sandstorm control",
+    "difficulty": "intermediate",
+    "strategy": "defensive",
+    "type_coverage": {
+      "offensive_types": ["rock", "ground", "fighting", "fire", "electric", "normal"],
+      "defensive_coverage": ["normal", "flying", "poison", "fire", "rock"]
+    },
+    "usage_notes": "Rock types are excellent physical walls with powerful attacks. Use Sandstorm to chip away at non-rock types while your team stays healthy.",
+    "learning_objectives": [
+      "Understanding physical defensive strategies",
+      "Learning sandstorm team building",
+      "Mastering high-power, low-accuracy moves",
+      "Rock-type resistances and immunities"
+    ]
+  },
+  "team": {
+    "name": "Mountain Fortress",
+    "pokemon": [
+      {
+        "name": "golem",
+        "role": "physical_wall",
+        "moves": ["earthquake", "rock-slide", "explosion", "sandstorm"],
+        "strategy": "Ultimate physical wall with sandstorm support",
+        "tips": "Set up Sandstorm early to chip non-rock types throughout the battle"
+      },
+      {
+        "name": "rhydon",
+        "role": "physical_attacker",
+        "moves": ["earthquake", "rock-slide", "megahorn", "substitute"],
+        "strategy": "Massive physical attacker with surprising coverage",
+        "tips": "Megahorn hits grass types that resist your STAB moves"
+      },
+      {
+        "name": "onix",
+        "role": "physical_tank",
+        "moves": ["earthquake", "rock-slide", "bind", "sandstorm"],
+        "strategy": "Extremely high defense wall with trapping moves",
+        "tips": "Bind traps opponents while sandstorm deals chip damage"
+      },
+      {
+        "name": "aerodactyl",
+        "role": "physical_sweeper",
+        "moves": ["rock-slide", "earthquake", "crunch", "fire-fang"],
+        "strategy": "Fast rock/flying type with diverse coverage",
+        "tips": "Excellent speed makes it perfect for revenge killing"
+      },
+      {
+        "name": "kabutops",
+        "role": "physical_attacker",
+        "moves": ["stone-edge", "waterfall", "slash", "swords-dance"],
+        "strategy": "Rock/water type with setup potential",
+        "tips": "Swords Dance doubles attack power for potential sweeps"
+      },
+      {
+        "name": "omastar",
+        "role": "special_attacker",
+        "moves": ["hydro-pump", "ice-beam", "ancientpower", "spike-cannon"],
+        "strategy": "Special attacking rock/water type with boost chance",
+        "tips": "Ancient Power has a chance to boost all stats at once"
+      }
+    ]
+  }
+}

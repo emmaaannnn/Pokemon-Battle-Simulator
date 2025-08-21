@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Water-Type Masters",
+    "description": "A versatile water-type team with excellent coverage and defensive synergy",
+    "difficulty": "intermediate",
+    "strategy": "balanced",
+    "type_coverage": {
+      "offensive_types": ["water", "ice", "psychic", "ground", "fighting", "electric"],
+      "defensive_coverage": ["fire", "water", "ice", "steel", "fighting", "rock", "ground"]
+    },
+    "usage_notes": "Water types offer great versatility and bulk. Use Rain Dance to boost water moves and support Thunder accuracy.",
+    "learning_objectives": [
+      "Understanding water-type versatility",
+      "Learning rain team dynamics",
+      "Mastering defensive pivoting",
+      "Ice move coverage strategies"
+    ]
+  },
+  "team": {
+    "name": "Tidal Wave Squad",
+    "pokemon": [
+      {
+        "name": "blastoise",
+        "role": "tank",
+        "moves": ["hydro-pump", "ice-beam", "earthquake", "rain-dance"],
+        "strategy": "Bulky water starter with excellent coverage",
+        "tips": "Use Rain Dance to power up Hydro Pump and help teammates"
+      },
+      {
+        "name": "lapras",
+        "role": "special_wall",
+        "moves": ["surf", "ice-beam", "thunderbolt", "heal-bell"],
+        "strategy": "Ultimate special wall with team support",
+        "tips": "Heal Bell removes status from your entire team - invaluable support"
+      },
+      {
+        "name": "gyarados",
+        "role": "physical_sweeper",
+        "moves": ["earthquake", "crunch", "dragon-dance", "hydro-pump"],
+        "strategy": "Physical setup sweeper with intimidate",
+        "tips": "Dragon Dance boosts both attack and speed - sweep after setup"
+      },
+      {
+        "name": "starmie",
+        "role": "special_attacker",
+        "moves": ["psychic", "hydro-pump", "ice-beam", "recover"],
+        "strategy": "Fast special attacker with recovery",
+        "tips": "Excellent speed tier - often moves first to secure knockouts"
+      },
+      {
+        "name": "vaporeon",
+        "role": "special_tank",
+        "moves": ["surf", "ice-beam", "toxic", "rest"],
+        "strategy": "Extremely bulky special tank with status spreading",
+        "tips": "Massive HP allows it to tank almost any special attack"
+      },
+      {
+        "name": "golduck",
+        "role": "mixed_attacker",
+        "moves": ["psychic", "hydro-pump", "ice-punch", "cross-chop"],
+        "strategy": "Versatile attacker with psychic typing advantages",
+        "tips": "Can surprise with physical moves when expected to be special"
+      }
+    ]
+  }
+}

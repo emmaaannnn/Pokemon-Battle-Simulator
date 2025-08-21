@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Grass-Type Garden",
+    "description": "A defensive grass team specializing in status moves, healing, and gradual damage accumulation",
+    "difficulty": "intermediate",
+    "strategy": "defensive",
+    "type_coverage": {
+      "offensive_types": ["grass", "poison", "ground", "water", "rock"],
+      "defensive_coverage": ["water", "electric", "ground", "rock", "grass"]
+    },
+    "usage_notes": "Grass types excel at status moves and healing. Use Leech Seed, Sleep Powder, and recovery moves to outlast opponents.",
+    "learning_objectives": [
+      "Understanding status-based strategies",
+      "Learning healing and recovery timing",
+      "Mastering gradual damage accumulation",
+      "Powder move accuracy and utility"
+    ]
+  },
+  "team": {
+    "name": "Forest Guardian Alliance",
+    "pokemon": [
+      {
+        "name": "venusaur",
+        "role": "support",
+        "moves": ["giga-drain", "leech-seed", "sleep-powder", "synthesis"],
+        "strategy": "Primary status setter with recovery and healing",
+        "tips": "Leech Seed + Sleep Powder combo lets you heal while opponent takes damage"
+      },
+      {
+        "name": "vileplume",
+        "role": "special_attacker",
+        "moves": ["petal-dance", "sludge-bomb", "sleep-powder", "moonlight"],
+        "strategy": "Powerful grass/poison attacker with status moves",
+        "tips": "Petal Dance is very powerful but causes confusion - use strategically"
+      },
+      {
+        "name": "victreebel",
+        "role": "mixed_attacker",
+        "moves": ["leaf-blade", "sludge-bomb", "sleep-powder", "synthesis"],
+        "strategy": "Aggressive grass type with physical and special options",
+        "tips": "Higher attack stat makes it effective with physical grass moves"
+      },
+      {
+        "name": "exeggutor",
+        "role": "special_tank",
+        "moves": ["psychic", "giga-drain", "leech-seed", "sleep-powder"],
+        "strategy": "Bulky grass/psychic with dual typing advantages",
+        "tips": "Psychic typing gives coverage against poison types"
+      },
+      {
+        "name": "parasect",
+        "role": "status_specialist",
+        "moves": ["spore", "leech-life", "slash", "aromatherapy"],
+        "strategy": "100% accurate sleep move with healing support",
+        "tips": "Spore never misses - use it to shut down dangerous threats"
+      },
+      {
+        "name": "tangela",
+        "role": "physical_wall",
+        "moves": ["giga-drain", "leech-seed", "sleep-powder", "growth"],
+        "strategy": "Defensive grass type with stat boosting",
+        "tips": "Growth boosts both attacks - surprising offensive potential after setup"
+      }
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Offensive Starter Team",
+    "description": "An aggressive team focused on dealing maximum damage quickly, ideal for learning offensive strategies",
+    "difficulty": "beginner",
+    "strategy": "offensive",
+    "type_coverage": {
+      "offensive_types": ["fire", "electric", "fighting", "dragon", "psychic", "dark"],
+      "defensive_coverage": ["fire", "electric", "water", "grass", "fighting", "psychic"]
+    },
+    "usage_notes": "This team prioritizes high damage output and speed. Focus on hitting hard and fast while learning about offensive type matchups.",
+    "learning_objectives": [
+      "Understanding offensive type advantages",
+      "Learning to identify and exploit weaknesses",
+      "Mastering high-risk, high-reward gameplay",
+      "Speed control and priority moves"
+    ]
+  },
+  "team": {
+    "name": "Lightning Strike Squad",
+    "pokemon": [
+      {
+        "name": "arcanine",
+        "role": "physical_attacker",
+        "moves": ["flare-blitz", "extreme-speed", "thunder-fang", "crunch"],
+        "strategy": "Fast physical attacker with powerful STAB and priority",
+        "tips": "Use Extreme Speed to finish weakened foes or get the first hit on faster opponents"
+      },
+      {
+        "name": "jolteon",
+        "role": "special_sweeper",
+        "moves": ["thunderbolt", "shadow-ball", "signal-beam", "double-kick"],
+        "strategy": "Extremely fast special attacker with good coverage",
+        "tips": "Often outspeeds everything - use this to get crucial knockouts"
+      },
+      {
+        "name": "machamp",
+        "role": "physical_powerhouse",
+        "moves": ["dynamic-punch", "earthquake", "rock-slide", "bullet-punch"],
+        "strategy": "Massive physical damage with confusion chance",
+        "tips": "Dynamic Punch's confusion can give you extra turns to sweep"
+      },
+      {
+        "name": "gengar",
+        "role": "special_attacker",
+        "moves": ["shadow-ball", "thunderbolt", "ice-punch", "destiny-bond"],
+        "strategy": "High special attack with ghost typing advantages",
+        "tips": "Use Destiny Bond as insurance when Gengar is about to faint"
+      },
+      {
+        "name": "dragonite",
+        "role": "mixed_attacker",
+        "moves": ["dragon-claw", "earthquake", "fire-punch", "extreme-speed"],
+        "strategy": "Versatile attacker with excellent stats across the board",
+        "tips": "Can adapt to threats with either physical or special attacks"
+      },
+      {
+        "name": "alakazam",
+        "role": "glass_cannon",
+        "moves": ["psychic", "shadow-ball", "fire-punch", "thunder-punch"],
+        "strategy": "Maximum special attack power with diverse coverage",
+        "tips": "Get in, hit hard, and get out - don't stay in against physical attackers"
+      }
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Hyper Offense Meta",
+    "description": "An ultra-aggressive competitive team focused on overwhelming opponents with relentless offensive pressure",
+    "difficulty": "advanced", 
+    "strategy": "hyper_offense",
+    "type_coverage": {
+      "offensive_types": ["normal", "fighting", "psychic", "electric", "fire", "ice", "dragon"],
+      "defensive_coverage": ["electric", "water", "fire", "grass", "psychic", "dragon"]
+    },
+    "usage_notes": "This team aims to KO opponents before they can respond. Every Pokemon is designed for maximum damage output. Requires precise prediction and timing.",
+    "learning_objectives": [
+      "Understanding hyper-aggressive playstyles",
+      "Mastering prediction and risk assessment", 
+      "Learning to maintain offensive momentum",
+      "Advanced speed tier knowledge"
+    ]
+  },
+  "team": {
+    "name": "Blitzkrieg Battalion",
+    "pokemon": [
+      {
+        "name": "mewtwo",
+        "role": "special_sweeper",
+        "moves": ["psychic", "aura-sphere", "ice-beam", "shadow-ball"],
+        "strategy": "Ultimate special attacker with perfect neutral coverage",
+        "tips": "Lead with this to immediately threaten huge damage on any target"
+      },
+      {
+        "name": "dragonite",
+        "role": "physical_sweeper",
+        "moves": ["extreme-speed", "earthquake", "fire-punch", "dragon-claw"],
+        "strategy": "Priority-based physical sweeper with excellent coverage",
+        "tips": "Extreme Speed bypasses speed tiers to finish weakened opponents"
+      },
+      {
+        "name": "alakazam",
+        "role": "glass_cannon",
+        "moves": ["psychic", "shadow-ball", "fire-punch", "thunder-punch"],
+        "strategy": "Extreme special attack with diverse coverage options",
+        "tips": "Often outspeeds and OHKOs threats before they can move"
+      },
+      {
+        "name": "jolteon",
+        "role": "speed_demon",
+        "moves": ["thunderbolt", "shadow-ball", "pin-missile", "double-kick"],
+        "strategy": "Fastest team member for immediate speed control",
+        "tips": "Use this to outspeed and revenge kill opposing fast threats"
+      },
+      {
+        "name": "charizard",
+        "role": "wallbreaker",
+        "moves": ["fire-blast", "solar-beam", "dragon-pulse", "focus-punch"],
+        "strategy": "Mixed attacker that breaks through defensive cores",
+        "tips": "Solar Beam surprise covers water/ground/rock counters"
+      },
+      {
+        "name": "gyarados",
+        "role": "setup_sweeper",
+        "moves": ["dragon-dance", "earthquake", "hydro-pump", "crunch"],
+        "strategy": "Late-game setup sweeper with intimidate support",
+        "tips": "Dragon Dance once safely, then attempt to sweep entire team"
+      }
+    ]
+  }
+}
