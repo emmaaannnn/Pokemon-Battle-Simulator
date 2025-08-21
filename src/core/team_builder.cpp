@@ -17,8 +17,14 @@ TeamBuilder::TeamBuilder(std::shared_ptr<PokemonData> data)
     if (!pokemon_data) {
         throw std::invalid_argument("PokemonData cannot be null");
     }
-    // Load templates on construction
-    loadTemplates();
+    // Templates will be loaded lazily when first accessed for better performance
+}
+
+void TeamBuilder::ensureTemplatesLoaded() const {
+    if (!templates_loaded) {
+        // Cast away const to enable lazy loading
+        const_cast<TeamBuilder*>(this)->loadTemplates();
+    }
 }
 
 TeamBuilder::Team TeamBuilder::createTeam(const std::string& team_name) {
@@ -460,6 +466,7 @@ TeamBuilder::Team TeamBuilder::generateRandomTeam(const std::string& team_name, 
     
     auto available_pokemon = pokemon_data->getAvailablePokemon();
     if (available_pokemon.empty()) {
+        std::cout << "Error: No Pokemon data available for random team generation!" << std::endl;
         return team;
     }
     
@@ -472,7 +479,25 @@ TeamBuilder::Team TeamBuilder::generateRandomTeam(const std::string& team_name, 
     
     for (const auto& pokemon_name : selected_pokemon) {
         auto moves = generateMovesForPokemon(pokemon_name);
-        addPokemonToTeam(team, pokemon_name, moves);
+        if (moves.empty()) {
+            std::cout << "Warning: No moves generated for " << pokemon_name << std::endl;
+            // Force add some basic moves as fallback
+            auto all_moves = pokemon_data->getAvailableMoves();
+            if (!all_moves.empty()) {
+                moves.push_back(all_moves[0]); // Add at least one move
+                if (all_moves.size() > 1) moves.push_back(all_moves[1]);
+                if (all_moves.size() > 2) moves.push_back(all_moves[2]);
+                if (all_moves.size() > 3) moves.push_back(all_moves[3]);
+            }
+        }
+        bool success = addPokemonToTeam(team, pokemon_name, moves);
+        if (!success) {
+            std::cout << "Failed to add " << pokemon_name << " to team. Errors: ";
+            for (const auto& error : team.validation_errors) {
+                std::cout << error << "; ";
+            }
+            std::cout << std::endl;
+        }
     }
     
     // Restore validation settings
@@ -942,11 +967,35 @@ std::unordered_map<std::string, double> TeamBuilder::calculateTypeCoverage(const
 }
 
 std::string TeamBuilder::normalizeTeamName(const std::string& name) const {
-    return InputValidator::sanitizeString(name);
+    std::string normalized = InputValidator::sanitizeString(name);
+    
+    // Trim leading/trailing whitespace
+    size_t first = normalized.find_first_not_of(' ');
+    if (first == std::string::npos) {
+        return "Unnamed_Team"; // If only spaces, return default name
+    }
+    
+    size_t last = normalized.find_last_not_of(' ');
+    normalized = normalized.substr(first, (last - first + 1));
+    
+    // If empty after trimming, return default name
+    if (normalized.empty()) {
+        return "Unnamed_Team";
+    }
+    
+    return normalized;
 }
 
 bool TeamBuilder::isValidTeamName(const std::string& name) const {
-    return InputValidator::isAlphanumericSafe(name);
+    // More permissive team name validation allowing apostrophes and common punctuation
+    if (name.empty() || name.length() > 100) {
+        return false;
+    }
+    
+    // Allow letters, numbers, spaces, hyphens, underscores, apostrophes, and periods
+    return std::all_of(name.begin(), name.end(), [](char c) {
+        return std::isalnum(c) || c == ' ' || c == '-' || c == '_' || c == '\'' || c == '.';
+    });
 }
 
 std::unordered_set<std::string> TeamBuilder::getWeakTypes(const std::vector<std::string>& pokemon_types) const {
@@ -1022,6 +1071,8 @@ bool TeamBuilder::loadTemplates() {
 }
 
 std::vector<std::string> TeamBuilder::getTemplateCategories() const {
+    ensureTemplatesLoaded();
+    
     std::vector<std::string> categories;
     for (const auto& category_pair : templates) {
         categories.push_back(category_pair.first);
@@ -1031,6 +1082,8 @@ std::vector<std::string> TeamBuilder::getTemplateCategories() const {
 }
 
 std::vector<std::string> TeamBuilder::getTemplatesInCategory(const std::string& category) const {
+    ensureTemplatesLoaded();
+    
     // Validate category input
     auto category_validation = InputValidator::validateString(category, 1, 50, false);
     if (!category_validation.isValid()) {
@@ -1050,6 +1103,8 @@ std::vector<std::string> TeamBuilder::getTemplatesInCategory(const std::string& 
 
 std::optional<TeamBuilder::TeamTemplate> TeamBuilder::getTemplate(const std::string& category, 
                                                                   const std::string& template_name) const {
+    ensureTemplatesLoaded();
+    
     // Validate inputs
     auto category_validation = InputValidator::validateString(category, 1, 50, false);
     auto name_validation = InputValidator::validateString(template_name, 1, 50, false);
