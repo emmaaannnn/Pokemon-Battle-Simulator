@@ -19,6 +19,8 @@ set(CORE_SOURCES
     ${CMAKE_SOURCE_DIR}/src/core/battle.cpp
     ${CMAKE_SOURCE_DIR}/src/core/weather.cpp
     ${CMAKE_SOURCE_DIR}/src/core/battle_events.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/team_builder.cpp
+    ${CMAKE_SOURCE_DIR}/src/core/pokemon_data.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/type_effectiveness.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/move_type_mapping.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/input_validator.cpp
@@ -72,6 +74,7 @@ create_test(test_medium_ai          unit/test_medium_ai.cpp)
 create_test(test_hard_ai            unit/test_hard_ai.cpp)
 create_test(test_expert_ai          unit/test_expert_ai.cpp)
 create_test(test_paralysis_determinism unit/test_paralysis_determinism.cpp)
+create_test(test_team_builder_phase4  unit/test_team_builder_phase4.cpp)
 
 # ────────────────────────────────
 #  Integration tests
@@ -99,6 +102,7 @@ add_custom_target(run_all_tests
         test_hard_ai
         test_expert_ai
         test_paralysis_determinism
+        test_team_builder_phase4
         test_full_battle
         test_status_integration
         test_weather_integration
