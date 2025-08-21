@@ -36,7 +36,7 @@ private:
     
     // Helper methods
     std::string getPokemonDisplayName(Pokemon* pokemon) const;
-    void updateHealthBar(Pokemon* pokemon, int newHealth, const std::string& source);
+    void updateHealthBar(Pokemon* pokemon, int newHealth, int previousHealth, const std::string& source);
 };
 
 // Factory function for easy creation

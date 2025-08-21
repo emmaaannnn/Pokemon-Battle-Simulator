@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <random>
+#include <unordered_map>
 
 #include "move.h"
 #include "pokemon.h"
@@ -10,6 +11,8 @@
 #include "type_effectiveness.h"
 #include "weather.h"
 #include "battle_events.h"
+#include "health_bar_animator.h"
+#include "health_bar_event_listener.h"
 
 class Battle {
  public:
@@ -88,6 +91,9 @@ class Battle {
   void processWeather();
   void setWeather(WeatherCondition weather, int turns = 5);
   void displayWeather() const;
+  
+  // Status condition handling with events
+  void processStatusConditionWithEvents(Pokemon& pokemon);
 
   // Input handling
   int getMoveChoice() const;
@@ -118,7 +124,16 @@ class Battle {
   // Battle event system
   BattleEvents::BattleEventManager eventManager;
   
+  // Health bar animation system
+  std::shared_ptr<HealthBarAnimator> healthBarAnimator;
+  std::shared_ptr<HealthBarEventListener> healthBarListener;
+  
+  
 public:
   // Event system access
   BattleEvents::BattleEventManager& getEventManager() { return eventManager; }
+  
+  // Health bar animation configuration
+  void configureHealthBarAnimation(HealthBarAnimator::AnimationSpeed speed = HealthBarAnimator::AnimationSpeed::NORMAL,
+                                  HealthBarAnimator::ColorTheme theme = HealthBarAnimator::ColorTheme::BASIC);
 };
