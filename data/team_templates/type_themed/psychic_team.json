@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Psychic-Type Collective",
+    "description": "A cerebral psychic team focused on special attacks, status moves, and mental manipulation",
+    "difficulty": "advanced",
+    "strategy": "special_offense",
+    "type_coverage": {
+      "offensive_types": ["psychic", "fighting", "poison", "electric", "ice", "fire"],
+      "defensive_coverage": ["fighting", "poison", "psychic", "grass"]
+    },
+    "usage_notes": "Psychic types dominate with special attacks and status moves. Use Calm Mind to set up sweeps and disable moves to disrupt opponents.",
+    "learning_objectives": [
+      "Understanding special attack dominance",
+      "Learning setup sweeping strategies",
+      "Mastering disable and status timing",
+      "Dealing with dark-type immunity"
+    ]
+  },
+  "team": {
+    "name": "Mind Palace Masters",
+    "pokemon": [
+      {
+        "name": "alakazam",
+        "role": "special_sweeper",
+        "moves": ["psychic", "shadow-ball", "calm-mind", "recover"],
+        "strategy": "Ultimate special attacker with setup potential",
+        "tips": "Set up Calm Mind when safe, then sweep with boosted Psychic"
+      },
+      {
+        "name": "mewtwo",
+        "role": "legendary_sweeper", 
+        "moves": ["psychic", "shadow-ball", "aura-sphere", "calm-mind"],
+        "strategy": "Overwhelming psychic power with perfect coverage",
+        "tips": "Shadow Ball and Aura Sphere cover dark and steel weaknesses"
+      },
+      {
+        "name": "hypno",
+        "role": "support",
+        "moves": ["psychic", "hypnosis", "dream-eater", "disable"],
+        "strategy": "Sleep-based strategy with dream eater combo",
+        "tips": "Hypnosis + Dream Eater provides damage and healing simultaneously"
+      },
+      {
+        "name": "slowbro",
+        "role": "tank",
+        "moves": ["psychic", "surf", "amnesia", "slack-off"],
+        "strategy": "Bulky water/psychic with special defense setup",
+        "tips": "Amnesia makes it nearly immune to special attacks"
+      },
+      {
+        "name": "mr-mime",
+        "role": "wall",
+        "moves": ["psychic", "thunderbolt", "barrier", "light-screen"],
+        "strategy": "Support specialist with screens and stat boosts",
+        "tips": "Set up Barrier and Light Screen to support the whole team"
+      },
+      {
+        "name": "jynx",
+        "role": "special_attacker",
+        "moves": ["psychic", "ice-beam", "lovely-kiss", "perish-song"],
+        "strategy": "Fast special attacker with sleep and perish song",
+        "tips": "Lovely Kiss has high accuracy and sets up for powerful attacks"
+      }
+    ]
+  }
+}

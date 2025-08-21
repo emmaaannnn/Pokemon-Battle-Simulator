@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Dark-Type Shadows",
+    "description": "A sinister team focused on status effects, critical hits, and disrupting opponent strategies",
+    "difficulty": "intermediate", 
+    "strategy": "disruption",
+    "type_coverage": {
+      "offensive_types": ["dark", "normal", "fighting", "ground", "fire", "ice"],
+      "defensive_coverage": ["ghost", "dark", "psychic"]
+    },
+    "usage_notes": "Dark types excel at disruption and critical hits. Focus on status moves and high critical hit ratio attacks to control the battle.",
+    "learning_objectives": [
+      "Understanding status effect timing",
+      "Learning critical hit mechanics",
+      "Mastering disruption strategies", 
+      "Dark-type immunities and advantages"
+    ]
+  },
+  "team": {
+    "name": "Shadow Operations",
+    "pokemon": [
+      {
+        "name": "umbreon",
+        "role": "special_wall",
+        "moves": ["toxic", "moonlight", "bite", "confuse-ray"],
+        "strategy": "Extremely bulky dark type with status spreading",
+        "tips": "Toxic + Moonlight creates a powerful stall combination"
+      },
+      {
+        "name": "crobat",
+        "role": "physical_attacker",
+        "moves": ["wing-attack", "crunch", "confuse-ray", "haze"],
+        "strategy": "Fast flying type with dark coverage and utility",
+        "tips": "Haze resets all stat changes - great against setup teams"
+      },
+      {
+        "name": "houndoom",
+        "role": "special_attacker", 
+        "moves": ["flamethrower", "crunch", "shadow-ball", "nasty-plot"],
+        "strategy": "Fire/dark type with special attack setup",
+        "tips": "Nasty Plot doubles special attack for powerful sweeps"
+      },
+      {
+        "name": "sneasel",
+        "role": "physical_sweeper",
+        "moves": ["slash", "ice-punch", "shadow-claw", "swords-dance"],
+        "strategy": "Fast physical attacker with high critical hit moves",
+        "tips": "Slash and Shadow Claw have high critical hit ratios"
+      },
+      {
+        "name": "murkrow",
+        "role": "utility",
+        "moves": ["drill-peck", "pursuit", "haze", "thunder-wave"],
+        "strategy": "Flying/dark type with disruption focus",
+        "tips": "Pursuit punishes switching while Thunder Wave controls speed"
+      },
+      {
+        "name": "sableye",
+        "role": "support",
+        "moves": ["shadow-ball", "confuse-ray", "will-o-wisp", "recover"],
+        "strategy": "Ghost/dark type with no weaknesses and status support",
+        "tips": "No weaknesses make it safe to switch in and spread status"
+      }
+    ]
+  }
+}

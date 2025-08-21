@@ -33,6 +33,8 @@ set(CORE_SOURCES
     src/core/battle.cpp
     src/core/weather.cpp
     src/core/battle_events.cpp
+    src/core/pokemon_data.cpp
+    src/core/team_builder.cpp
 )
 
 set(AI_SOURCES
@@ -61,6 +63,8 @@ set(CORE_HEADERS
     include/core/battle.h
     include/core/weather.h
     include/core/battle_events.h
+    include/core/pokemon_data.h
+    include/core/team_builder.h
 )
 
 set(AI_HEADERS
@@ -96,6 +100,16 @@ target_include_directories(pokemon_battle PRIVATE
 set_target_properties(pokemon_battle
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# Team Builder Example
+add_executable(team_builder_example 
+    ${ALL_SOURCES} 
+    examples/team_builder_demo.cpp 
+    ${ALL_HEADERS})
+target_include_directories(team_builder_example PRIVATE 
+    include/core include/ai include/utils src)
+set_target_properties(team_builder_example
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 # ────────────────────────────────
 #  Data-file copying
 # ────────────────────────────────
@@ -106,6 +120,7 @@ add_custom_target(copy_data_files ALL
 )
 
 add_dependencies(pokemon_battle copy_data_files)
+add_dependencies(team_builder_example copy_data_files)
 
 # ────────────────────────────────
 #  Testing (GoogleTest + subdir)

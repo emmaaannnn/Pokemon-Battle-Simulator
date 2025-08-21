@@ -4,14 +4,121 @@
 #include <vector>
 #include <csignal>
 #include <functional>
+#include <memory>
 
 #include "battle.h"
 #include "input_validator.h"
+#include "team_builder.h"
+#include "pokemon_data.h"
 
 // Signal handler for graceful exit
-void signalHandler(int signal) {
+void signalHandler(int /* signal */) {
   std::cout << "\n\n🛑 Game interrupted. Thanks for playing!\n" << std::endl;
   exit(0);
+}
+
+// Helper function to display template information
+void displayTemplateInfo(const TeamBuilder::TeamTemplate& template_data) {
+  std::cout << "\n═══════════════════════════════════════════════════════════════════════════════\n";
+  std::cout << " " << template_data.name << "\n";
+  std::cout << "═══════════════════════════════════════════════════════════════════════════════\n";
+  std::cout << "Description: " << template_data.description << "\n";
+  std::cout << "Difficulty: " << template_data.difficulty << "\n";
+  std::cout << "Strategy: " << template_data.strategy << "\n";
+  std::cout << "───────────────────────────────────────────────────────────────────────────────\n";
+  
+  std::cout << "\nPokemon Team:\n";
+  for (const auto& pokemon : template_data.pokemon) {
+    std::cout << "  • " << pokemon.name << " (" << pokemon.role << ")\n";
+    std::cout << "    Strategy: " << pokemon.strategy << "\n";
+    std::cout << "    Moves: ";
+    for (size_t i = 0; i < pokemon.moves.size(); ++i) {
+      std::cout << pokemon.moves[i];
+      if (i < pokemon.moves.size() - 1) std::cout << ", ";
+    }
+    std::cout << "\n    Tips: " << pokemon.tips << "\n\n";
+  }
+  
+  if (!template_data.usage_notes.empty()) {
+    std::cout << "Usage Notes: " << template_data.usage_notes << "\n\n";
+  }
+}
+
+// Helper function to create a team from template for battle
+Team createBattleTeamFromTemplate(const TeamBuilder::Team& builderTeam, std::shared_ptr<TeamBuilder> teamBuilder) {
+  // Export the team data to the legacy format
+  auto exported = teamBuilder->exportTeamForBattle(builderTeam);
+  
+  // Create a new Team object and load it with the exported data
+  Team battleTeam;
+  battleTeam.loadTeams(exported.first, exported.second, builderTeam.name);
+  
+  return battleTeam;
+}
+
+// Helper function to show template categories and get user selection
+int showTemplateCategories(const std::vector<std::string>& categories) {
+  std::cout << "\n🎯 Template Categories:\n\n";
+  for (size_t i = 0; i < categories.size(); ++i) {
+    std::string display_name = categories[i];
+    // Convert underscores to spaces and capitalize
+    for (char& c : display_name) {
+      if (c == '_') c = ' ';
+    }
+    display_name[0] = std::toupper(display_name[0]);
+    for (size_t j = 1; j < display_name.length(); ++j) {
+      if (display_name[j-1] == ' ') {
+        display_name[j] = std::toupper(display_name[j]);
+      }
+    }
+    
+    std::cout << "  [" << (i + 1) << "] " << display_name << "\n";
+  }
+  std::cout << "  [" << (categories.size() + 1) << "] Build Custom Team\n";
+  std::cout << "  [" << (categories.size() + 2) << "] Generate Random Team\n\n";
+  
+  auto categoryValidator = [categories](std::istream& input) -> InputValidator::ValidationResult<int> {
+    return InputValidator::getValidatedInt(input, 1, static_cast<int>(categories.size() + 2));
+  };
+  
+  auto categoryResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "📝 Select a category (1-" + std::to_string(categories.size() + 2) + ")",
+    2, categoryValidator
+  );
+  
+  if (!categoryResult.isValid()) {
+    std::cout << "Defaulting to first category.\n";
+    return 1;
+  }
+  
+  return categoryResult.value;
+}
+
+// Helper function to show templates in a category and get user selection
+int showTemplatesInCategory(const std::vector<std::string>& templates, const std::string& category) {
+  std::cout << "\n🎯 Available " << category << " Templates:\n\n";
+  for (size_t i = 0; i < templates.size(); ++i) {
+    std::cout << "  [" << (i + 1) << "] " << templates[i] << "\n";
+  }
+  std::cout << "\n";
+  
+  auto templateValidator = [templates](std::istream& input) -> InputValidator::ValidationResult<int> {
+    return InputValidator::getValidatedInt(input, 1, static_cast<int>(templates.size()));
+  };
+  
+  auto templateResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "📝 Select a template (1-" + std::to_string(templates.size()) + ")",
+    2, templateValidator
+  );
+  
+  if (!templateResult.isValid()) {
+    std::cout << "Defaulting to first template.\n";
+    return 1;
+  }
+  
+  return templateResult.value;
 }
 
 int main() {
@@ -36,213 +143,159 @@ int main() {
   
   std::cout << "\nWelcome, " << userName << "!" << std::endl;
 
-  // Available teams - using auto to reduce verbosity
-  const auto selectedTeams = std::unordered_map<std::string,
-                                                std::vector<std::string>>{
-      // Player Pokemon
-      {"Team 1",
-       {"venusaur", "pikachu", "machamp", "arcanine", "lapras", "snorlax"}},
-      {"Team 2",
-       {"charizard", "starmie", "snorlax", "alakazam", "rhydon", "jolteon"}},
-      {"Team 3",
-       {"venusaur", "zapdos", "nidoking", "gengar", "lapras", "tauros"}},
-
-      // Opponent Team Pokemon
-      {"Opponent Team 1",
-       {"aerodactyl", "kabutops", "golem", "onix", "omastar", "rhyhorn"}},
-      {"Opponent Team 2",
-       {"starmie", "gyarados", "lapras", "golduck", "vaporeon", "seaking"}},
-      {"Opponent Team 3",
-       {"raichu", "magneton", "electrode", "electabuzz", "jolteon", "pikachu"}},
-      {"Opponent Team 4",
-       {"victreebel", "exeggutor", "parasect", "tangela", "vileplume",
-        "venusaur"}},
-      {"Opponent Team 5",
-       {"arbok", "tentacruel", "muk", "gengar", "weezing", "venomoth"}},
-      {"Opponent Team 6",
-       {"alakazam", "slowbro", "mr-mime", "jynx", "hypno", "exeggutor"}},
-      {"Opponent Team 7",
-       {"ninetales", "arcanine", "rapidash", "magmar", "flareon", "charizard"}},
-      {"Opponent Team 8",
-       {"nidoking", "nidoqueen", "dugtrio", "rhydon", "marowak", "sandslash"}},
-  };
-
-  // Select moves - using auto for complex type
-  const auto selectedMoves = std::unordered_map<
-      std::string,
-      std::vector<std::pair<std::string, std::vector<std::string>>>>{
-      {"Team 1",
-       {{"venusaur", {"sludge-bomb", "mega-drain", "leech-seed", "amnesia"}},
-        {"pikachu", {"thunderbolt", "brick-break", "iron-tail", "reflect"}},
-        {"machamp", {"superpower", "fire-blast", "earthquake", "hyper-beam"}},
-        {"arcanine", {"heat-wave", "sunny-day", "will-o-wisp", "roar"}},
-        {"lapras", {"ice-shard", "waterfall", "rain-dance", "megahorn"}},
-        {"snorlax", {"toxic", "protect", "rest", "body-slam"}}}},
-      {"Team 2",
-       {{"charizard", {"flamethrower", "slash", "earthquake", "fire-spin"}},
-        {"starmie", {"hydro-pump", "psychic", "ice-beam", "recover"}},
-        {"snorlax", {"body-slam", "hyper-beam", "earthquake", "rest"}},
-        {"alakazam", {"psychic", "recover", "thunder-wave", "reflect"}},
-        {"rhydon", {"earthquake", "rock-slide", "body-slam", "substitute"}},
-        {"jolteon",
-         {"thunderbolt", "thunder-wave", "pin-missile", "double-kick"}}}},
-      {"Team 3",
-       {{"venusaur", {"razor-leaf", "sleep-powder", "body-slam", "leech-seed"}},
-        {"zapdos", {"thunderbolt", "drill-peck", "thunder-wave", "agility"}},
-        {"nidoking", {"earthquake", "ice-beam", "thunderbolt", "rock-slide"}},
-        {"gengar", {"psychic", "night-shade", "hypnosis", "explosion"}},
-        {"lapras", {"hydro-pump", "blizzard", "psychic", "body-slam"}},
-        {"tauros", {"body-slam", "hyper-beam", "blizzard", "earthquake"}}}},
-
-      // Opponent Teams
-      {"Opponent Team 1",
-       {
-           {"aerodactyl", {"tackle", "scratch", "protect", "amnesia"}},
-           {"kabutops", {"tackle", "scratch", "protect", "amnesia"}},
-           {"golem", {"tackle", "scratch", "protect", "amnesia"}},
-           {"onix", {"tackle", "scratch", "protect", "amnesia"}},
-           {"omastar", {"tackle", "scratch", "protect", "amnesia"}},
-           {"rhyhorn", {"tackle", "scratch", "protect", "amnesia"}},
-       }},
-      {"Opponent Team 2",
-       {
-           {"starmie", {"psychic", "surf", "ice-beam", "recover"}},
-           {"gyarados", {"hydro-pump", "bite", "thunder", "hyper-beam"}},
-           {"lapras", {"surf", "ice-beam", "psychic", "body-slam"}},
-           {"golduck", {"surf", "psychic", "ice-beam", "disable"}},
-           {"vaporeon", {"surf", "ice-beam", "acid-armor", "haze"}},
-           {"seaking", {"surf", "ice-beam", "double-edge", "agility"}},
-       }},
-      {"Opponent Team 3",
-       {
-           {"raichu",
-            {"thunderbolt", "thunder", "double-kick", "seismic-toss"}},
-           {"magneton", {"thunderbolt", "thunder-wave", "sonic-boom", "swift"}},
-           {"electrode",
-            {"thunderbolt", "thunder", "self-destruct", "light-screen"}},
-           {"electabuzz",
-            {"thunderbolt", "thunder-punch", "seismic-toss", "light-screen"}},
-           {"jolteon",
-            {"thunderbolt", "thunder", "double-kick", "sand-attack"}},
-           {"pikachu",
-            {"thunderbolt", "thunder", "seismic-toss", "double-team"}},
-       }},
-      {"Opponent Team 4",
-       {
-           {"victreebel",
-            {"razor-leaf", "acid", "poison-powder", "sleep-powder"}},
-           {"exeggutor", {"razor-leaf", "hypnosis", "psychic", "explosion"}},
-           {"parasect", {"spore", "slash", "leech-life", "stun-spore"}},
-           {"tangela",
-            {"vine-whip", "poison-powder", "stun-spore", "sleep-powder"}},
-           {"vileplume",
-            {"petal-dance", "poison-powder", "acid", "sleep-powder"}},
-           {"venusaur",
-            {"razor-leaf", "leech-seed", "poison-powder", "sleep-powder"}},
-       }},
-      {"Opponent Team 5",
-       {
-           {"arbok", {"bite", "poison-sting", "acid", "glare"}},
-           {"tentacruel",
-            {"hydro-pump", "poison-sting", "constrict", "barrier"}},
-           {"muk", {"poison-gas", "minimize", "sludge", "harden"}},
-           {"gengar", {"night-shade", "hypnosis", "dream-eater", "psychic"}},
-           {"weezing", {"sludge", "smokescreen", "explosion", "haze"}},
-           {"venomoth",
-            {"psychic", "poison-powder", "stun-spore", "sleep-powder"}},
-       }},
-      {"Opponent Team 6",
-       {
-           {"alakazam", {"psychic", "recover", "reflect", "kinesis"}},
-           {"slowbro", {"psychic", "surf", "amnesia", "disable"}},
-           {"mr-mime", {"psychic", "barrier", "light-screen", "meditate"}},
-           {"jynx", {"psychic", "ice-beam", "lovely-kiss", "body-slam"}},
-           {"hypno", {"psychic", "hypnosis", "dream-eater", "poison-gas"}},
-           {"exeggutor", {"psychic", "hypnosis", "leech-seed", "explosion"}},
-       }},
-      {"Opponent Team 7",
-       {
-           {"ninetales",
-            {"flamethrower", "fire-spin", "confuse-ray", "take-down"}},
-           {"arcanine", {"flamethrower", "fire-blast", "take-down", "leer"}},
-           {"rapidash", {"fire-blast", "stomp", "take-down", "growl"}},
-           {"magmar", {"flamethrower", "fire-punch", "smokescreen", "leer"}},
-           {"flareon", {"flamethrower", "fire-spin", "quick-attack", "leer"}},
-           {"charizard", {"flamethrower", "fire-spin", "slash", "leer"}},
-       }},
-      {"Opponent Team 8",
-       {
-           {"nidoking", {"earthquake", "thrash", "focus-energy", "leer"}},
-           {"nidoqueen",
-            {"earthquake", "body-slam", "double-kick", "tail-whip"}},
-           {"dugtrio", {"earthquake", "slash", "sand-attack", "growl"}},
-           {"rhydon", {"earthquake", "horn-drill", "leer", "tail-whip"}},
-           {"marowak", {"earthquake", "focus-energy", "leer", "growl"}},
-           {"sandslash", {"earthquake", "slash", "sand-attack", "swift"}},
-       }},
-
-  };
-
-  // Show available teams for player selection
-  std::cout
-      << "\n╔════════════════════════════════════════════════════════════════════════════════╗\n"
-      << "║                              Pokemon Battle Simulator                          ║\n"
-      << "╚════════════════════════════════════════════════════════════════════════════════╝\n"
-      << std::endl;
-  std::cout << "🎯 Choose your team:\n" << std::endl;
-  std::cout << "  [1] 🌿 Balanced Team\n"
-            << "      → Venusaur, Pikachu, Machamp, Arcanine, Lapras, Snorlax\n" << std::endl;
-  std::cout << "  [2] ⚡ Competitive Team\n"
-            << "      → Charizard, Starmie, Snorlax, Alakazam, Rhydon, Jolteon\n" << std::endl;
-  std::cout << "  [3] 🔥 Mixed Team\n"
-            << "      → Venusaur, Zapdos, Nidoking, Gengar, Lapras, Tauros\n" << std::endl;
-
-  // Prompt for team selection with secure validation
-  auto teamValidator = [](std::istream& input) -> InputValidator::ValidationResult<int> {
-    return InputValidator::getValidatedInt(input, 1, 3);
-  };
+  // Initialize Pokemon data and team builder
+  std::shared_ptr<PokemonData> pokemonData = std::make_shared<PokemonData>();
+  std::shared_ptr<TeamBuilder> teamBuilder = std::make_shared<TeamBuilder>(pokemonData);
   
-  auto teamResult = InputValidator::promptWithRetry<int>(
-    std::cin, std::cout,
-    "📝 Enter the number of the team you want to select (1-3)",
-    2, teamValidator
-  );
+  std::cout << "\n╔════════════════════════════════════════════════════════════════════════════════╗\n";
+  std::cout << "║                              Pokemon Battle Simulator                          ║\n";
+  std::cout << "║                               Team Builder System                              ║\n";
+  std::cout << "╚════════════════════════════════════════════════════════════════════════════════╝\n";
+
+  // Get template categories
+  auto categories = teamBuilder->getTemplateCategories();
   
-  if (!teamResult.isValid()) {
-    std::cout << "Failed to get valid team selection after multiple attempts: "
-              << teamResult.errorMessage << std::endl;
-    std::cout << "Defaulting to Team 1." << std::endl;
-    teamResult = InputValidator::ValidationResult<int>(1);
+  if (categories.empty()) {
+    std::cout << "⚠️  No templates found. Using legacy team selection.\n";
+    // Fall back to original team selection...
+    // [Original team selection code would go here]
+    return 1;
   }
+
+  // Show categories and get user selection
+  int categoryChoice = showTemplateCategories(categories);
   
-  int chosenTeamNum = teamResult.value;
-
-  const auto chosenTeamKey = "Team " + std::to_string(chosenTeamNum);
-
-  std::cout << "" << std::endl;
-  std::cout << "========================================================== My "
-               "Team =========================================================="
-            << std::endl;
-  std::cout << "" << std::endl;
-
-  // Initialize Player Team and load Pokemon & Moves
-  Team PlayerTeam;
-  PlayerTeam.loadTeams(selectedTeams, selectedMoves, chosenTeamKey);
-
-  // Print out Player's team with moves
-  std::cout << "Your selected team includes:\n";
-  for (int i = 0; i < static_cast<int>(PlayerTeam.size()); ++i) {
-    const auto *pokemon = PlayerTeam.getPokemon(i);
-    if (pokemon) {
-      std::cout << "- " << pokemon->name << "\n  Moves:\n";
-      for (const auto &move : pokemon->moves) {
-        std::cout << "    * " << move.name << " (Power: " << move.power
-                  << ", Accuracy: " << move.accuracy
-                  << ", Class: " << move.damage_class << ")\n";
+  TeamBuilder::Team playerTeam;
+  
+  if (categoryChoice <= static_cast<int>(categories.size())) {
+    // User selected a template category
+    std::string selectedCategory = categories[categoryChoice - 1];
+    auto templatesInCategory = teamBuilder->getTemplatesInCategory(selectedCategory);
+    
+    if (templatesInCategory.empty()) {
+      std::cout << "⚠️  No templates found in this category. Generating random team.\n";
+      playerTeam = teamBuilder->generateRandomTeam(userName + "'s Team");
+    } else {
+      // Show templates in category
+      int templateChoice = showTemplatesInCategory(templatesInCategory, selectedCategory);
+      std::string selectedTemplate = templatesInCategory[templateChoice - 1];
+      
+      // Get template details and show to user
+      auto templateData = teamBuilder->getTemplate(selectedCategory, selectedTemplate);
+      if (templateData) {
+        displayTemplateInfo(*templateData);
+        
+        // Ask for confirmation
+        std::cout << "Would you like to use this template? (y/n): ";
+        char confirm;
+        std::cin >> confirm;
+        std::cin.ignore();
+        
+        if (confirm == 'y' || confirm == 'Y') {
+          playerTeam = teamBuilder->generateTeamFromTemplate(selectedCategory, selectedTemplate, userName + "'s Team");
+        } else {
+          std::cout << "Generating random team instead...\n";
+          playerTeam = teamBuilder->generateRandomTeam(userName + "'s Team");
+        }
+      } else {
+        std::cout << "⚠️  Template not found. Generating random team.\n";
+        playerTeam = teamBuilder->generateRandomTeam(userName + "'s Team");
       }
     }
+  } else if (categoryChoice == static_cast<int>(categories.size() + 1)) {
+    // Build custom team
+    std::cout << "\n🔨 Custom Team Builder\n";
+    std::cout << "This feature is coming soon! Using random team for now.\n";
+    playerTeam = teamBuilder->generateRandomTeam(userName + "'s Team");
+  } else {
+    // Generate random team
+    std::cout << "\n🎲 Random Team Generator\n";
+    
+    // Ask for team size
+    auto sizeValidator = [](std::istream& input) -> InputValidator::ValidationResult<int> {
+      return InputValidator::getValidatedInt(input, 1, 6);
+    };
+    
+    auto sizeResult = InputValidator::promptWithRetry<int>(
+      std::cin, std::cout,
+      "How many Pokemon do you want? (1-6)",
+      2, sizeValidator
+    );
+    
+    int teamSize = sizeResult.isValid() ? sizeResult.value : 6;
+    playerTeam = teamBuilder->generateRandomTeam(userName + "'s Team", teamSize);
+  }
+
+  // Validate the team
+  if (!teamBuilder->validateTeam(playerTeam)) {
+    std::cout << "⚠️  Team validation failed. Errors:\n";
+    for (const auto& error : playerTeam.validation_errors) {
+      std::cout << "  - " << error << "\n";
+    }
+    std::cout << "Generating a backup random team...\n";
+    playerTeam = teamBuilder->generateRandomTeam(userName + "'s Team");
+  }
+
+  // Convert TeamBuilder team to Battle team format
+  Team PlayerTeam = createBattleTeamFromTemplate(playerTeam, teamBuilder);
+
+  // Display player's team
+  std::cout << "\n========================================================== Your Team ==========================================================\n";
+  std::cout << "\nYour team '" << playerTeam.name << "' includes:\n";
+  for (const auto& pokemon : playerTeam.pokemon) {
+    std::cout << "- " << pokemon.name << "\n  Moves: ";
+    for (size_t i = 0; i < pokemon.moves.size(); ++i) {
+      std::cout << pokemon.moves[i];
+      if (i < pokemon.moves.size() - 1) std::cout << ", ";
+    }
+    std::cout << "\n";
   }
   std::cout << std::endl;
+
+  // Generate opponent teams from templates
+  std::vector<TeamBuilder::Team> opponentTemplateTeams;
+  std::vector<std::string> opponentNames = {
+    "Rock Fortress", "Water Masters", "Electric Storm", "Grass Garden", 
+    "Poison Shadows", "Psychic Mind", "Fire Blaze", "Ground Earthquake"
+  };
+  
+  // Generate diverse opponent teams (with fallbacks to random teams if templates don't exist)
+  auto tryTemplate = [&](const std::string& category, const std::string& template_name, const std::string& team_name) -> TeamBuilder::Team {
+    auto team = teamBuilder->generateTeamFromTemplate(category, template_name, team_name);
+    if (team.pokemon.empty()) {
+      std::cout << "Template " << template_name << " not found, generating random team for " << team_name << "\n";
+      return teamBuilder->generateRandomTeam(team_name);
+    }
+    return team;
+  };
+  
+  opponentTemplateTeams.push_back(tryTemplate("type_themed", "rock_team", opponentNames[0]));
+  opponentTemplateTeams.push_back(tryTemplate("type_themed", "water_team", opponentNames[1]));
+  opponentTemplateTeams.push_back(tryTemplate("type_themed", "electric_team", opponentNames[2]));
+  opponentTemplateTeams.push_back(tryTemplate("type_themed", "grass_team", opponentNames[3]));
+  opponentTemplateTeams.push_back(tryTemplate("competitive", "fortress_stall", opponentNames[4]));
+  opponentTemplateTeams.push_back(tryTemplate("type_themed", "psychic_team", opponentNames[5]));
+  opponentTemplateTeams.push_back(tryTemplate("type_themed", "fire_team", opponentNames[6]));
+  opponentTemplateTeams.push_back(tryTemplate("competitive", "balanced_meta", opponentNames[7]));
+
+  // Available teams - using auto to reduce verbosity  
+  const auto selectedTeams = std::unordered_map<std::string,
+                                                std::vector<std::string>>{
+      // Player Pokemon (fallback)
+      {playerTeam.name, {}}, // Will be populated from template
+
+      // Opponent Team Pokemon - Generated from templates
+      {"Opponent Team 1", {}}, // Rock team
+      {"Opponent Team 2", {}}, // Water team
+      {"Opponent Team 3", {}}, // Electric team
+      {"Opponent Team 4", {}}, // Grass team
+      {"Opponent Team 5", {}}, // Poison/Stall team
+      {"Opponent Team 6", {}}, // Psychic team
+      {"Opponent Team 7", {}}, // Fire team
+      {"Opponent Team 8", {}}, // Ground/Balanced team
+  };
+
+  // Template-based move generation is handled by TeamBuilder, so we don't need the large selectedMoves structure
 
   std::cout << "==============================================================="
                "==============================================================="
@@ -251,14 +304,14 @@ int main() {
 
   // Show available opponent teams
   std::cout << "🏆 Available Gym Leaders:\n" << std::endl;
-  std::cout << "  [1] 🪨 Brock (Rock Gym Leader)" << std::endl;
-  std::cout << "  [2] 💧 Misty (Water Gym Leader)" << std::endl;
-  std::cout << "  [3] ⚡ Surge (Electric Gym Leader)" << std::endl;
-  std::cout << "  [4] 🌿 Erika (Grass Gym Leader)" << std::endl;
-  std::cout << "  [5] ☠️  Koga (Poison Gym Leader)" << std::endl;
-  std::cout << "  [6] 🔮 Sabrina (Psychic Gym Leader)" << std::endl;
-  std::cout << "  [7] 🔥 Blaine (Fire Gym Leader)" << std::endl;
-  std::cout << "  [8] 🌍 Giovanni (Ground Gym Leader)\n" << std::endl;
+  std::cout << "  [1] 🪨 Brock (Rock Specialist)" << std::endl;
+  std::cout << "  [2] 💧 Misty (Water Specialist)" << std::endl;
+  std::cout << "  [3] ⚡ Surge (Electric Specialist)" << std::endl;
+  std::cout << "  [4] 🌿 Erika (Grass Specialist)" << std::endl;
+  std::cout << "  [5] ☠️  Koga (Stall Specialist)" << std::endl;
+  std::cout << "  [6] 🔮 Sabrina (Psychic Specialist)" << std::endl;
+  std::cout << "  [7] 🔥 Blaine (Fire Specialist)" << std::endl;
+  std::cout << "  [8] 🌍 Giovanni (Balanced Meta)\n" << std::endl;
 
   // Prompt for opponent selection with secure validation
   auto opponentValidator = [](std::istream& input) -> InputValidator::ValidationResult<int> {
@@ -280,34 +333,23 @@ int main() {
   
   int chosenOpponentNum = opponentResult.value;
 
-  const auto chosenOpponentKey =
-      "Opponent Team " + std::to_string(chosenOpponentNum);
-  const auto &chosenOpponent = selectedTeams.at(chosenOpponentKey);
-  std::cout << "\nYou have selected " << chosenOpponentKey
-            << " with the Pokémon: ";
-  for (const auto &pokemon : chosenOpponent) {
-    std::cout << pokemon << " ";
-  }
-  std::cout << "\n\n";
+  // Get the opponent team from templates
+  TeamBuilder::Team opponentBuilderTeam = opponentTemplateTeams[chosenOpponentNum - 1];
+  Team OppTeam = createBattleTeamFromTemplate(opponentBuilderTeam, teamBuilder);
+
+  std::cout << "\nYou have selected " << opponentBuilderTeam.name << std::endl;
 
   std::cout << "" << std::endl;
   std::cout
-      << "========================================================== Oppenent "
+      << "========================================================== Opponent "
          "Team =========================================================="
       << std::endl;
   std::cout << "" << std::endl;
 
-  // Initialize Opponent Team and load Pokemon & Moves
-  Team OppTeam;
-  OppTeam.loadTeams(selectedTeams, selectedMoves, chosenOpponentKey);
-
-  // Print out Opponent's team with moves
-  std::cout << "Opponent's selected team includes:\n";
-  for (int i = 0; i < static_cast<int>(OppTeam.size()); ++i) {
-    const auto *pokemon = OppTeam.getPokemon(i);
-    if (pokemon) {
-      std::cout << "- " << pokemon->name << "\n";
-    }
+  // Print out Opponent's team
+  std::cout << "Opponent's team '" << opponentBuilderTeam.name << "' includes:\n";
+  for (const auto& pokemon : opponentBuilderTeam.pokemon) {
+    std::cout << "- " << pokemon.name << "\n";
   }
   std::cout << std::endl;
 

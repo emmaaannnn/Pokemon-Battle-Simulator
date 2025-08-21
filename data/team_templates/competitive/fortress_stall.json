@@ -1,0 +1,66 @@
+{
+  "template_info": {
+    "name": "Fortress Stall Meta",
+    "description": "A defensive competitive team that wins through attrition, status damage, and superior longevity",
+    "difficulty": "advanced",
+    "strategy": "stall",
+    "type_coverage": {
+      "offensive_types": ["water", "ice", "ground", "poison", "normal", "psychic"],
+      "defensive_coverage": ["fire", "water", "grass", "electric", "ice", "ground", "fighting", "poison", "flying", "psychic", "normal"]
+    },
+    "usage_notes": "This team focuses on outlasting opponents through superior bulk, recovery, and gradual damage. Patience and prediction are key.",
+    "learning_objectives": [
+      "Understanding defensive team composition",
+      "Mastering status damage timing",
+      "Learning proper switching and positioning",
+      "Advanced stall win conditions"
+    ]
+  },
+  "team": {
+    "name": "Immovable Fortress",
+    "pokemon": [
+      {
+        "name": "chansey",
+        "role": "special_wall",
+        "moves": ["soft-boiled", "toxic", "seismic-toss", "aromatherapy"],
+        "strategy": "Ultimate special wall with team cleric support",
+        "tips": "Aromatherapy keeps your team healthy while Toxic wears down enemies"
+      },
+      {
+        "name": "snorlax",
+        "role": "physical_wall",
+        "moves": ["rest", "sleep-talk", "body-slam", "curse"],
+        "strategy": "Immovable physical wall with setup potential",
+        "tips": "Curse boosts attack and defense while lowering speed - perfect for stall"
+      },
+      {
+        "name": "lapras",
+        "role": "mixed_wall",
+        "moves": ["ice-beam", "hydro-pump", "heal-bell", "perish-song"],
+        "strategy": "Bulky water type with team support and win condition",
+        "tips": "Perish Song forces switches and can win in endgame scenarios"
+      },
+      {
+        "name": "cloyster",
+        "role": "hazard_setter",
+        "moves": ["spikes", "rapid-spin", "ice-beam", "explosion"],
+        "strategy": "Entry hazard control with defensive utility",
+        "tips": "Spikes pressure switches while Rapid Spin clears opponent hazards"
+      },
+      {
+        "name": "slowbro",
+        "role": "physical_counter",
+        "moves": ["psychic", "surf", "amnesia", "slack-off"],
+        "strategy": "Physical wall with special attack potential",
+        "tips": "Amnesia makes it nearly immune to special attacks after setup"
+      },
+      {
+        "name": "articuno",
+        "role": "special_tank",
+        "moves": ["ice-beam", "rest", "sleep-talk", "toxic"],
+        "strategy": "Legendary special wall with status spreading",
+        "tips": "Legendary stats make it extremely bulky on the special side"
+      }
+    ]
+  }
+}
