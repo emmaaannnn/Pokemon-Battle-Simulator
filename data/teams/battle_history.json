@@ -56,6 +56,15 @@
         "team_name": "ben's Team",
         "turns_taken": 23,
         "victory": true
+      },
+      {
+        "battle_date": "2025-08-21 20:54:39",
+        "difficulty_level": "Expert",
+        "opponent_team": "Grass Garden",
+        "team_effectiveness_score": 90.0,
+        "team_name": "ben's Team",
+        "turns_taken": 17,
+        "victory": true
       }
     ]
   },
@@ -70,13 +79,13 @@
       "win_rate": 100.0
     },
     "ben's Team": {
-      "average_battle_length": 21.0,
-      "average_effectiveness_score": 87.7,
+      "average_battle_length": 20.0,
+      "average_effectiveness_score": 88.25,
       "defeats": 1,
       "team_name": "ben's Team",
-      "total_battles": 3,
-      "victories": 2,
-      "win_rate": 66.7
+      "total_battles": 4,
+      "victories": 3,
+      "win_rate": 75.0
     }
   }
 }
