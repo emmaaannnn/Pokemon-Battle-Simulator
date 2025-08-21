@@ -801,6 +801,7 @@ private:
     std::unordered_set<std::string> getResistantTypes(const std::vector<std::string>& pokemon_types) const;
 
     // Template system helper methods
+    void ensureTemplatesLoaded() const;
     TeamTemplate parseTemplateFromJson(const std::string& file_path);
     bool isValidTemplateFile(const std::string& file_path) const;
     std::string getTemplateNameFromFile(const std::string& file_path) const;
