@@ -5,6 +5,8 @@
 #include <csignal>
 #include <functional>
 #include <memory>
+#include <chrono>
+#include <algorithm>
 
 #include "battle.h"
 #include "input_validator.h"
@@ -75,15 +77,19 @@ int showTemplateCategories(const std::vector<std::string>& categories) {
     std::cout << "  [" << (i + 1) << "] " << display_name << "\n";
   }
   std::cout << "  [" << (categories.size() + 1) << "] Build Custom Team\n";
-  std::cout << "  [" << (categories.size() + 2) << "] Generate Random Team\n\n";
+  std::cout << "  [" << (categories.size() + 2) << "] Generate Random Team\n";
+  std::cout << "  [" << (categories.size() + 3) << "] Tournament Draft Mode\n";
+  std::cout << "  [" << (categories.size() + 4) << "] Import Team from Share Code\n";
+  std::cout << "  [" << (categories.size() + 5) << "] Load Custom Team\n";
+  std::cout << "  [" << (categories.size() + 6) << "] Team Comparison Tool\n\n";
   
   auto categoryValidator = [categories](std::istream& input) -> InputValidator::ValidationResult<int> {
-    return InputValidator::getValidatedInt(input, 1, static_cast<int>(categories.size() + 2));
+    return InputValidator::getValidatedInt(input, 1, static_cast<int>(categories.size() + 6));
   };
   
   auto categoryResult = InputValidator::promptWithRetry<int>(
     std::cin, std::cout,
-    "📝 Select a category (1-" + std::to_string(categories.size() + 2) + ")",
+    "📝 Select a category (1-" + std::to_string(categories.size() + 6) + ")",
     2, categoryValidator
   );
   
@@ -121,6 +127,612 @@ int showTemplatesInCategory(const std::vector<std::string>& templates, const std
   return templateResult.value;
 }
 
+// Helper function to handle tournament draft mode
+TeamBuilder::Team handleTournamentDraft(std::shared_ptr<TeamBuilder> teamBuilder, const std::string& playerName) {
+  std::cout << "\n🏆 Tournament Draft Mode\n";
+  std::cout << "═══════════════════════════\n\n";
+  
+  // Configure draft settings
+  TeamBuilder::DraftSettings settings;
+  settings.player_count = 2; // Player vs AI for now
+  settings.team_size = 6;
+  settings.ban_phase_picks_per_player = 2;
+  settings.max_legendaries_per_team = 1;
+  settings.max_same_type_per_team = 2;
+  
+  std::cout << "Draft Configuration:\n";
+  std::cout << "- Players: " << settings.player_count << "\n";
+  std::cout << "- Team Size: " << settings.team_size << "\n";
+  std::cout << "- Bans per player: " << settings.ban_phase_picks_per_player << "\n";
+  std::cout << "- Max legendaries: " << settings.max_legendaries_per_team << "\n";
+  std::cout << "- Max same type: " << settings.max_same_type_per_team << "\n\n";
+  
+  // Create draft session
+  std::vector<std::string> players = {playerName, "AI Opponent"};
+  auto session = teamBuilder->createDraftSession(settings, players);
+  
+  if (!session.is_active) {
+    std::cout << "❌ Failed to create draft session. Using random team.\n";
+    return teamBuilder->generateRandomTeam(playerName + "'s Team");
+  }
+  
+  std::cout << "🎯 Draft started! Session ID: " << session.session_id << "\n\n";
+  
+  // Simulate draft process (simplified for single player vs AI)
+  while (session.is_active) {
+    std::cout << "═══ Turn " << session.current_turn << " ═══\n";
+    
+    if (session.current_phase == 0) {
+      std::cout << "📛 Ban Phase\n";
+    } else {
+      std::cout << "🎯 Pick Phase\n";
+    }
+    
+    std::cout << "Current Player: " << session.player_names[session.current_player] << "\n";
+    
+    if (session.current_player == 0) { // Human player
+      if (session.current_phase == 0) {
+        // Ban phase
+        std::cout << "\nAvailable Pokemon to ban (showing first 10):\n";
+        for (size_t i = 0; i < std::min(session.available_pokemon.size(), size_t(10)); ++i) {
+          std::cout << "  [" << (i + 1) << "] " << session.available_pokemon[i] << "\n";
+        }
+        
+        auto banValidator = [&session](std::istream& input) -> InputValidator::ValidationResult<int> {
+          return InputValidator::getValidatedInt(input, 1, static_cast<int>(std::min(session.available_pokemon.size(), size_t(10))));
+        };
+        
+        auto banResult = InputValidator::promptWithRetry<int>(
+          std::cin, std::cout,
+          "Select Pokemon to ban (1-" + std::to_string(std::min(session.available_pokemon.size(), size_t(10))) + ")",
+          2, banValidator
+        );
+        
+        if (banResult.isValid() && banResult.value > 0 && banResult.value <= static_cast<int>(std::min(session.available_pokemon.size(), size_t(10)))) {
+          std::string pokemon_to_ban = session.available_pokemon[banResult.value - 1];
+          if (teamBuilder->executeDraftBan(session, 0, pokemon_to_ban)) {
+            std::cout << "🚫 Banned: " << pokemon_to_ban << "\n";
+          } else {
+            std::cout << "❌ Failed to ban " << pokemon_to_ban << "\n";
+          }
+        }
+      } else {
+        // Pick phase
+        std::cout << "\nYour current team:\n";
+        for (const auto& pokemon : session.player_teams[0]) {
+          std::cout << "  - " << pokemon << "\n";
+        }
+        
+        auto suggestions = teamBuilder->getDraftSuggestions(session, 5);
+        std::cout << "\n💡 Suggested picks:\n";
+        for (const auto& [pokemon, reasoning] : suggestions) {
+          std::cout << "  - " << pokemon << " (" << reasoning << ")\n";
+        }
+        
+        std::cout << "\nAvailable Pokemon to pick (showing first 10):\n";
+        for (size_t i = 0; i < std::min(session.available_pokemon.size(), size_t(10)); ++i) {
+          std::cout << "  [" << (i + 1) << "] " << session.available_pokemon[i] << "\n";
+        }
+        
+        auto pickValidator = [&session](std::istream& input) -> InputValidator::ValidationResult<int> {
+          return InputValidator::getValidatedInt(input, 1, static_cast<int>(std::min(session.available_pokemon.size(), size_t(10))));
+        };
+        
+        auto pickResult = InputValidator::promptWithRetry<int>(
+          std::cin, std::cout,
+          "Select Pokemon to pick (1-" + std::to_string(std::min(session.available_pokemon.size(), size_t(10))) + ")",
+          2, pickValidator
+        );
+        
+        if (pickResult.isValid() && pickResult.value > 0 && pickResult.value <= static_cast<int>(std::min(session.available_pokemon.size(), size_t(10)))) {
+          std::string pokemon_to_pick = session.available_pokemon[pickResult.value - 1];
+          if (teamBuilder->executeDraftPick(session, 0, pokemon_to_pick)) {
+            std::cout << "✅ Picked: " << pokemon_to_pick << "\n";
+          } else {
+            std::cout << "❌ Failed to pick " << pokemon_to_pick << "\n";
+          }
+        }
+      }
+    } else {
+      // AI player
+      std::cout << "🤖 AI is making a decision...\n";
+      
+      if (session.current_phase == 0 && !session.available_pokemon.empty()) {
+        // AI bans a random Pokemon
+        std::string ai_ban = session.available_pokemon[rand() % session.available_pokemon.size()];
+        if (teamBuilder->executeDraftBan(session, 1, ai_ban)) {
+          std::cout << "🤖 AI banned: " << ai_ban << "\n";
+        }
+      } else if (!session.available_pokemon.empty()) {
+        // AI picks a Pokemon (simple strategy)
+        auto suggestions = teamBuilder->getDraftSuggestions(session, 3);
+        std::string ai_pick;
+        if (!suggestions.empty()) {
+          ai_pick = suggestions[0].first;
+        } else {
+          ai_pick = session.available_pokemon[rand() % session.available_pokemon.size()];
+        }
+        
+        if (teamBuilder->executeDraftPick(session, 1, ai_pick)) {
+          std::cout << "🤖 AI picked: " << ai_pick << "\n";
+        }
+      }
+    }
+    
+    teamBuilder->advanceDraftTurn(session);
+    std::cout << "\n";
+  }
+  
+  std::cout << "🏁 Draft completed!\n";
+  
+  // Display draft analysis
+  auto analysis = teamBuilder->analyzeDraftStrategy(session);
+  std::cout << "\n📊 Draft Analysis:\n";
+  for (const auto& [player_id, strategies] : analysis) {
+    std::cout << "\n" << session.player_names[player_id] << ":\n";
+    for (const auto& strategy : strategies) {
+      std::cout << "  • " << strategy << "\n";
+    }
+  }
+  
+  // Finalize teams and return player team
+  auto finalized_teams = teamBuilder->finalizeDraftTeams(session);
+  if (!finalized_teams.empty()) {
+    return finalized_teams[0]; // Return player's team
+  }
+  
+  return teamBuilder->generateRandomTeam(playerName + "'s Team");
+}
+
+// Helper function to handle team import from share code
+TeamBuilder::Team handleTeamImport(std::shared_ptr<TeamBuilder> teamBuilder, const std::string& playerName) {
+  std::cout << "\n📥 Import Team from Share Code\n";
+  std::cout << "═══════════════════════════════\n\n";
+  
+  std::cout << "Enter the team share code (base64 encoded):\n";
+  std::string shareCode;
+  std::getline(std::cin, shareCode);
+  
+  if (shareCode.empty()) {
+    std::cout << "❌ No share code provided. Using random team.\n";
+    return teamBuilder->generateRandomTeam(playerName + "'s Team");
+  }
+  
+  auto importedTeam = teamBuilder->importTeamFromShareCode(shareCode, true);
+  
+  if (importedTeam.name == "Import_Failed" || importedTeam.pokemon.empty()) {
+    std::cout << "❌ Failed to import team from share code. Using random team.\n";
+    return teamBuilder->generateRandomTeam(playerName + "'s Team");
+  }
+  
+  std::cout << "✅ Successfully imported team: " << importedTeam.name << "\n";
+  std::cout << "Team Pokemon:\n";
+  for (const auto& pokemon : importedTeam.pokemon) {
+    std::cout << "  - " << pokemon.name << "\n";
+  }
+  
+  // Ask if user wants to save this as a custom team
+  std::cout << "\nWould you like to save this team as a custom team? (y/n): ";
+  char save_choice;
+  std::cin >> save_choice;
+  std::cin.ignore();
+  
+  if (save_choice == 'y' || save_choice == 'Y') {
+    if (teamBuilder->saveCustomTeam(importedTeam)) {
+      std::cout << "✅ Team saved to custom teams directory.\n";
+    } else {
+      std::cout << "⚠️ Failed to save team to custom directory.\n";
+    }
+  }
+  
+  return importedTeam;
+}
+
+// Helper function to load custom team
+TeamBuilder::Team handleCustomTeamLoad(std::shared_ptr<TeamBuilder> teamBuilder, const std::string& playerName) {
+  std::cout << "\n📂 Load Custom Team\n";
+  std::cout << "═══════════════════\n\n";
+  
+  auto customTeams = teamBuilder->getCustomTeamsList();
+  if (customTeams.empty()) {
+    std::cout << "❌ No custom teams found. Using random team.\n";
+    return teamBuilder->generateRandomTeam(playerName + "'s Team");
+  }
+  
+  std::cout << "Available custom teams:\n";
+  for (size_t i = 0; i < customTeams.size(); ++i) {
+    std::cout << "  [" << (i + 1) << "] " << customTeams[i] << "\n";
+  }
+  
+  auto teamValidator = [&customTeams](std::istream& input) -> InputValidator::ValidationResult<int> {
+    return InputValidator::getValidatedInt(input, 1, static_cast<int>(customTeams.size()));
+  };
+  
+  auto teamResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "Select team to load (1-" + std::to_string(customTeams.size()) + ")",
+    2, teamValidator
+  );
+  
+  if (!teamResult.isValid()) {
+    std::cout << "❌ Invalid selection. Using random team.\n";
+    return teamBuilder->generateRandomTeam(playerName + "'s Team");
+  }
+  
+  std::string selectedTeam = customTeams[teamResult.value - 1];
+  auto loadedTeam = teamBuilder->loadCustomTeam(selectedTeam);
+  
+  if (loadedTeam.pokemon.empty()) {
+    std::cout << "❌ Failed to load team. Using random team.\n";
+    return teamBuilder->generateRandomTeam(playerName + "'s Team");
+  }
+  
+  std::cout << "✅ Loaded team: " << loadedTeam.name << "\n";
+  return loadedTeam;
+}
+
+// Helper function to handle team comparison
+void handleTeamComparison(std::shared_ptr<TeamBuilder> teamBuilder) {
+  std::cout << "\n⚔️ Team Comparison Tool\n";
+  std::cout << "══════════════════════\n\n";
+  
+  // Generate two random teams for comparison
+  auto team1 = teamBuilder->generateRandomTeam("Team Alpha");
+  auto team2 = teamBuilder->generateRandomTeam("Team Beta");
+  
+  std::cout << "Comparing two randomly generated teams:\n\n";
+  
+  std::cout << "🔵 " << team1.name << ":\n";
+  for (const auto& pokemon : team1.pokemon) {
+    std::cout << "  - " << pokemon.name << "\n";
+  }
+  
+  std::cout << "\n🔴 " << team2.name << ":\n";
+  for (const auto& pokemon : team2.pokemon) {
+    std::cout << "  - " << pokemon.name << "\n";
+  }
+  
+  auto comparison = teamBuilder->compareTeams(team1, team2);
+  
+  std::cout << "\n📊 Comparison Results:\n";
+  std::cout << "═══════════════════════\n";
+  std::cout << "🔵 " << comparison.team1_name << " Balance Score: " << comparison.team1_balance_score << "/100\n";
+  std::cout << "🔴 " << comparison.team2_name << " Balance Score: " << comparison.team2_balance_score << "/100\n";
+  std::cout << "🎯 " << comparison.team1_name << " Win Probability: " << 
+    static_cast<int>(comparison.team1_win_probability * 100) << "%\n\n";
+  
+  std::cout << "💭 Battle Prediction: " << comparison.battle_prediction_reasoning << "\n\n";
+  
+  if (!comparison.team1_coverage_advantages.empty()) {
+    std::cout << "🔵 " << comparison.team1_name << " Advantages:\n";
+    for (const auto& advantage : comparison.team1_coverage_advantages) {
+      std::cout << "  • " << advantage << " type coverage\n";
+    }
+    std::cout << "\n";
+  }
+  
+  if (!comparison.team2_coverage_advantages.empty()) {
+    std::cout << "🔴 " << comparison.team2_name << " Advantages:\n";
+    for (const auto& advantage : comparison.team2_coverage_advantages) {
+      std::cout << "  • " << advantage << " type coverage\n";
+    }
+    std::cout << "\n";
+  }
+  
+  if (!comparison.mutual_weaknesses.empty()) {
+    std::cout << "⚠️ Mutual Weaknesses:\n";
+    for (const auto& weakness : comparison.mutual_weaknesses) {
+      std::cout << "  • Both teams lack " << weakness << " type coverage\n";
+    }
+    std::cout << "\n";
+  }
+  
+  std::cout << "Press Enter to continue...";
+  std::cin.get();
+}
+
+// Helper function to handle custom team building
+TeamBuilder::Team handleCustomTeamBuilder(std::shared_ptr<TeamBuilder> teamBuilder, std::shared_ptr<PokemonData> pokemonData, const std::string& playerName) {
+  std::cout << "\n🔨 Custom Team Builder\n";
+  std::cout << "═══════════════════════\n\n";
+  
+  // Create a new team
+  auto team = teamBuilder->createTeam(playerName + "'s Custom Team");
+  
+  std::cout << "Let's build your custom team! You can add up to 6 Pokemon.\n\n";
+  
+  // Get list of available Pokemon
+  auto availablePokemon = pokemonData->getAvailablePokemon();
+  auto availableMoves = pokemonData->getAvailableMoves();
+  
+  if (availablePokemon.empty()) {
+    std::cout << "❌ No Pokemon data available. Using random team.\n";
+    return teamBuilder->generateRandomTeam(playerName + "'s Team");
+  }
+  
+  int pokemon_count = 0;
+  while (pokemon_count < 6) {
+    std::cout << "\n═══ Adding Pokemon " << (pokemon_count + 1) << "/6 ═══\n";
+    
+    // Show options
+    std::cout << "  [1] Search Pokemon by name\n";
+    std::cout << "  [2] Browse Pokemon by type\n";
+    std::cout << "  [3] Select from random suggestions\n";
+    if (pokemon_count > 0) {
+      std::cout << "  [4] Finish team (current size: " << pokemon_count << ")\n";
+    }
+    std::cout << "\n";
+    
+    auto optionValidator = [pokemon_count](std::istream& input) -> InputValidator::ValidationResult<int> {
+      int max_option = (pokemon_count > 0) ? 4 : 3;
+      return InputValidator::getValidatedInt(input, 1, max_option);
+    };
+    
+    auto optionResult = InputValidator::promptWithRetry<int>(
+      std::cin, std::cout,
+      "Choose option (1-" + std::to_string((pokemon_count > 0) ? 4 : 3) + ")",
+      2, optionValidator
+    );
+    
+    if (!optionResult.isValid()) {
+      std::cout << "❌ Invalid option. Skipping this Pokemon.\n";
+      continue;
+    }
+    
+    std::string selectedPokemon;
+    
+    if (optionResult.value == 1) {
+      // Search by name
+      std::cout << "\n🔍 Search Pokemon by name:\n";
+      std::cout << "Enter Pokemon name (or partial name): ";
+      std::string searchTerm;
+      std::getline(std::cin, searchTerm);
+      
+      if (searchTerm.empty()) {
+        std::cout << "❌ No search term entered.\n";
+        continue;
+      }
+      
+      // Find matching Pokemon
+      std::vector<std::string> matches;
+      for (const auto& pokemon : availablePokemon) {
+        std::string lowerPokemon = pokemon;
+        std::string lowerSearch = searchTerm;
+        std::transform(lowerPokemon.begin(), lowerPokemon.end(), lowerPokemon.begin(), ::tolower);
+        std::transform(lowerSearch.begin(), lowerSearch.end(), lowerSearch.begin(), ::tolower);
+        
+        if (lowerPokemon.find(lowerSearch) != std::string::npos) {
+          matches.push_back(pokemon);
+        }
+      }
+      
+      if (matches.empty()) {
+        std::cout << "❌ No Pokemon found matching '" << searchTerm << "'.\n";
+        continue;
+      }
+      
+      std::cout << "\n🎯 Matching Pokemon:\n";
+      for (size_t i = 0; i < std::min(matches.size(), size_t(10)); ++i) {
+        std::cout << "  [" << (i + 1) << "] " << matches[i] << "\n";
+      }
+      
+      if (matches.size() > 10) {
+        std::cout << "  ... and " << (matches.size() - 10) << " more (showing first 10)\n";
+      }
+      
+      auto matchValidator = [&matches](std::istream& input) -> InputValidator::ValidationResult<int> {
+        return InputValidator::getValidatedInt(input, 1, static_cast<int>(std::min(matches.size(), size_t(10))));
+      };
+      
+      auto matchResult = InputValidator::promptWithRetry<int>(
+        std::cin, std::cout,
+        "Select Pokemon (1-" + std::to_string(std::min(matches.size(), size_t(10))) + ")",
+        2, matchValidator
+      );
+      
+      if (matchResult.isValid()) {
+        selectedPokemon = matches[matchResult.value - 1];
+      }
+      
+    } else if (optionResult.value == 2) {
+      // Browse by type
+      std::vector<std::string> types = {"fire", "water", "grass", "electric", "psychic", "ice", "dragon", "dark", "fighting", "poison", "ground", "flying", "bug", "rock", "ghost", "steel", "fairy", "normal"};
+      
+      std::cout << "\n🔥 Select Pokemon type:\n";
+      for (size_t i = 0; i < types.size(); ++i) {
+        std::cout << "  [" << (i + 1) << "] " << types[i] << "\n";
+      }
+      
+      auto typeValidator = [&types](std::istream& input) -> InputValidator::ValidationResult<int> {
+        return InputValidator::getValidatedInt(input, 1, static_cast<int>(types.size()));
+      };
+      
+      auto typeResult = InputValidator::promptWithRetry<int>(
+        std::cin, std::cout,
+        "Select type (1-" + std::to_string(types.size()) + ")",
+        2, typeValidator
+      );
+      
+      if (typeResult.isValid()) {
+        std::string selectedType = types[typeResult.value - 1];
+        auto pokemonOfType = pokemonData->getPokemonByType(selectedType);
+        
+        if (pokemonOfType.empty()) {
+          std::cout << "❌ No Pokemon found of type " << selectedType << ".\n";
+          continue;
+        }
+        
+        std::cout << "\n🎯 " << selectedType << " type Pokemon:\n";
+        for (size_t i = 0; i < std::min(pokemonOfType.size(), size_t(10)); ++i) {
+          std::cout << "  [" << (i + 1) << "] " << pokemonOfType[i] << "\n";
+        }
+        
+        auto pokemonValidator = [&pokemonOfType](std::istream& input) -> InputValidator::ValidationResult<int> {
+          return InputValidator::getValidatedInt(input, 1, static_cast<int>(std::min(pokemonOfType.size(), size_t(10))));
+        };
+        
+        auto pokemonResult = InputValidator::promptWithRetry<int>(
+          std::cin, std::cout,
+          "Select Pokemon (1-" + std::to_string(std::min(pokemonOfType.size(), size_t(10))) + ")",
+          2, pokemonValidator
+        );
+        
+        if (pokemonResult.isValid()) {
+          selectedPokemon = pokemonOfType[pokemonResult.value - 1];
+        }
+      }
+      
+    } else if (optionResult.value == 3) {
+      // Random suggestions
+      std::cout << "\n🎲 Random Pokemon suggestions:\n";
+      std::vector<std::string> suggestions;
+      std::random_device rd;
+      std::mt19937 gen(rd());
+      std::uniform_int_distribution<> dis(0, availablePokemon.size() - 1);
+      
+      for (int i = 0; i < 5; ++i) {
+        std::string pokemon = availablePokemon[dis(gen)];
+        if (std::find(suggestions.begin(), suggestions.end(), pokemon) == suggestions.end()) {
+          suggestions.push_back(pokemon);
+        }
+      }
+      
+      for (size_t i = 0; i < suggestions.size(); ++i) {
+        std::cout << "  [" << (i + 1) << "] " << suggestions[i] << "\n";
+      }
+      
+      auto suggestionValidator = [&suggestions](std::istream& input) -> InputValidator::ValidationResult<int> {
+        return InputValidator::getValidatedInt(input, 1, static_cast<int>(suggestions.size()));
+      };
+      
+      auto suggestionResult = InputValidator::promptWithRetry<int>(
+        std::cin, std::cout,
+        "Select Pokemon (1-" + std::to_string(suggestions.size()) + ")",
+        2, suggestionValidator
+      );
+      
+      if (suggestionResult.isValid()) {
+        selectedPokemon = suggestions[suggestionResult.value - 1];
+      }
+      
+    } else if (optionResult.value == 4 && pokemon_count > 0) {
+      // Finish team
+      std::cout << "\n✅ Finishing team with " << pokemon_count << " Pokemon.\n";
+      break;
+    }
+    
+    if (selectedPokemon.empty()) {
+      std::cout << "❌ No Pokemon selected. Try again.\n";
+      continue;
+    }
+    
+    // Check for duplicates
+    bool duplicate = false;
+    for (const auto& existing : team.pokemon) {
+      if (existing.name == selectedPokemon) {
+        std::cout << "⚠️ " << selectedPokemon << " is already on your team. Choose a different Pokemon.\n";
+        duplicate = true;
+        break;
+      }
+    }
+    
+    if (duplicate) {
+      continue;
+    }
+    
+    std::cout << "\n✅ Selected: " << selectedPokemon << "\n";
+    
+    // Now select moves for this Pokemon
+    std::cout << "🎯 Select moves for " << selectedPokemon << " (up to 4 moves):\n";
+    std::vector<std::string> selectedMoves;
+    
+    // Show random move suggestions
+    std::cout << "\n💡 Suggested moves:\n";
+    std::vector<std::string> movesSuggestions;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> moveDis(0, availableMoves.size() - 1);
+    
+    for (int i = 0; i < 8; ++i) {
+      std::string move = availableMoves[moveDis(gen)];
+      if (std::find(movesSuggestions.begin(), movesSuggestions.end(), move) == movesSuggestions.end()) {
+        movesSuggestions.push_back(move);
+      }
+    }
+    
+    for (size_t i = 0; i < movesSuggestions.size(); ++i) {
+      std::cout << "  [" << (i + 1) << "] " << movesSuggestions[i] << "\n";
+    }
+    
+    std::cout << "  [" << (movesSuggestions.size() + 1) << "] Use random moves\n";
+    std::cout << "  [" << (movesSuggestions.size() + 2) << "] Enter custom moves\n\n";
+    
+    auto moveOptionValidator = [&movesSuggestions](std::istream& input) -> InputValidator::ValidationResult<int> {
+      return InputValidator::getValidatedInt(input, 1, static_cast<int>(movesSuggestions.size() + 2));
+    };
+    
+    auto moveOptionResult = InputValidator::promptWithRetry<int>(
+      std::cin, std::cout,
+      "Select option (1-" + std::to_string(movesSuggestions.size() + 2) + ")",
+      2, moveOptionValidator
+    );
+    
+    if (moveOptionResult.isValid()) {
+      if (moveOptionResult.value <= static_cast<int>(movesSuggestions.size())) {
+        // Select from suggestions
+        int numMoves = std::min(4, static_cast<int>(movesSuggestions.size()));
+        for (int i = 0; i < numMoves; ++i) {
+          selectedMoves.push_back(movesSuggestions[i]);
+        }
+      } else if (moveOptionResult.value == static_cast<int>(movesSuggestions.size() + 1)) {
+        // Use random moves
+        for (int i = 0; i < 4 && i < static_cast<int>(availableMoves.size()); ++i) {
+          std::string move = availableMoves[moveDis(gen)];
+          selectedMoves.push_back(move);
+        }
+      } else {
+        // Enter custom moves
+        std::cout << "\nEnter up to 4 moves (press Enter with empty line to finish):\n";
+        for (int i = 0; i < 4; ++i) {
+          std::cout << "Move " << (i + 1) << ": ";
+          std::string moveName;
+          std::getline(std::cin, moveName);
+          
+          if (moveName.empty()) {
+            break;
+          }
+          
+          if (pokemonData->hasMove(moveName)) {
+            selectedMoves.push_back(moveName);
+          } else {
+            std::cout << "⚠️ Move '" << moveName << "' not found. Skipping.\n";
+          }
+        }
+      }
+    }
+    
+    // Add Pokemon to team
+    if (teamBuilder->addPokemonToTeam(team, selectedPokemon, selectedMoves)) {
+      std::cout << "✅ " << selectedPokemon << " added to your team!\n";
+      pokemon_count++;
+    } else {
+      std::cout << "❌ Failed to add " << selectedPokemon << " to team.\n";
+      if (!team.validation_errors.empty()) {
+        std::cout << "Errors:\n";
+        for (const auto& error : team.validation_errors) {
+          std::cout << "  - " << error << "\n";
+        }
+        team.validation_errors.clear();
+      }
+    }
+  }
+  
+  std::cout << "\n🎉 Custom team building complete!\n";
+  std::cout << "Your team '" << team.name << "' has " << team.pokemon.size() << " Pokemon.\n";
+  
+  return team;
+}
+
 int main() {
   // Set up signal handler for graceful interruption
   signal(SIGINT, signalHandler);
@@ -145,6 +757,13 @@ int main() {
 
   // Initialize Pokemon data and team builder
   std::shared_ptr<PokemonData> pokemonData = std::make_shared<PokemonData>();
+  auto initResult = pokemonData->initialize();
+  if (!initResult.success) {
+    std::cout << "Error: Failed to initialize Pokemon data: " << initResult.error_message << std::endl;
+    return 1;
+  }
+  std::cout << "📊 Loaded " << initResult.loaded_count << " Pokemon and moves successfully!" << std::endl;
+  
   std::shared_ptr<TeamBuilder> teamBuilder = std::make_shared<TeamBuilder>(pokemonData);
   
   std::cout << "\n╔════════════════════════════════════════════════════════════════════════════════╗\n";
@@ -204,10 +823,8 @@ int main() {
     }
   } else if (categoryChoice == static_cast<int>(categories.size() + 1)) {
     // Build custom team
-    std::cout << "\n🔨 Custom Team Builder\n";
-    std::cout << "This feature is coming soon! Using random team for now.\n";
-    playerTeam = teamBuilder->generateRandomTeam(userName + "'s Team");
-  } else {
+    playerTeam = handleCustomTeamBuilder(teamBuilder, pokemonData, userName);
+  } else if (categoryChoice == static_cast<int>(categories.size() + 2)) {
     // Generate random team
     std::cout << "\n🎲 Random Team Generator\n";
     
@@ -224,6 +841,24 @@ int main() {
     
     int teamSize = sizeResult.isValid() ? sizeResult.value : 6;
     playerTeam = teamBuilder->generateRandomTeam(userName + "'s Team", teamSize);
+  } else if (categoryChoice == static_cast<int>(categories.size() + 3)) {
+    // Tournament Draft Mode
+    playerTeam = handleTournamentDraft(teamBuilder, userName);
+  } else if (categoryChoice == static_cast<int>(categories.size() + 4)) {
+    // Import Team from Share Code
+    playerTeam = handleTeamImport(teamBuilder, userName);
+  } else if (categoryChoice == static_cast<int>(categories.size() + 5)) {
+    // Load Custom Team
+    playerTeam = handleCustomTeamLoad(teamBuilder, userName);
+  } else if (categoryChoice == static_cast<int>(categories.size() + 6)) {
+    // Team Comparison Tool
+    handleTeamComparison(teamBuilder);
+    // After comparison, still need a team for battle
+    std::cout << "\nGenerating random team for battle...\n";
+    playerTeam = teamBuilder->generateRandomTeam(userName + "'s Team");
+  } else {
+    // Default fallback
+    playerTeam = teamBuilder->generateRandomTeam(userName + "'s Team");
   }
 
   // Validate the team
@@ -250,6 +885,76 @@ int main() {
     }
     std::cout << "\n";
   }
+  
+  // Team management options
+  std::cout << "\n📋 Team Options:\n";
+  std::cout << "  [1] 📤 Get Share Code\n";
+  std::cout << "  [2] 💾 Save as Custom Team\n";
+  std::cout << "  [3] 📊 View Team Statistics\n";
+  std::cout << "  [4] ➡️  Continue to Battle\n\n";
+  
+  auto teamOptionValidator = [](std::istream& input) -> InputValidator::ValidationResult<int> {
+    return InputValidator::getValidatedInt(input, 1, 4);
+  };
+  
+  auto teamOptionResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "Select an option (1-4)",
+    2, teamOptionValidator
+  );
+  
+  if (teamOptionResult.isValid()) {
+    switch (teamOptionResult.value) {
+      case 1: {
+        // Generate and display share code
+        std::string shareCode = teamBuilder->exportTeamShareCode(playerTeam, userName, "Generated team");
+        std::cout << "\n📤 Team Share Code:\n";
+        std::cout << "════════════════════\n";
+        std::cout << shareCode << "\n";
+        std::cout << "════════════════════\n";
+        std::cout << "💡 Share this code with others to let them import your team!\n\n";
+        std::cout << "Press Enter to continue...";
+        std::cin.get();
+        break;
+      }
+      case 2: {
+        // Save as custom team
+        if (teamBuilder->saveCustomTeam(playerTeam)) {
+          std::cout << "✅ Team saved successfully to custom teams directory!\n";
+        } else {
+          std::cout << "❌ Failed to save team to custom directory.\n";
+        }
+        std::cout << "Press Enter to continue...";
+        std::cin.get();
+        break;
+      }
+      case 3: {
+        // View team statistics
+        auto stats = teamBuilder->getTeamStatistics(playerTeam.name);
+        if (stats) {
+          std::cout << "\n📊 Team Statistics for '" << stats->team_name << "':\n";
+          std::cout << "═══════════════════════════════════════\n";
+          std::cout << "Total Battles: " << stats->total_battles << "\n";
+          std::cout << "Victories: " << stats->victories << "\n";
+          std::cout << "Defeats: " << stats->defeats << "\n";
+          std::cout << "Win Rate: " << static_cast<int>(stats->win_rate) << "%\n";
+          std::cout << "Average Battle Length: " << static_cast<int>(stats->average_battle_length) << " turns\n";
+          std::cout << "Average Effectiveness: " << static_cast<int>(stats->average_effectiveness_score) << "/100\n";
+        } else {
+          std::cout << "\n📊 No battle statistics found for this team.\n";
+          std::cout << "Statistics will be recorded after battles.\n";
+        }
+        std::cout << "\nPress Enter to continue...";
+        std::cin.get();
+        break;
+      }
+      case 4:
+      default:
+        // Continue to battle selection
+        break;
+    }
+  }
+  
   std::cout << std::endl;
 
   // Generate opponent teams from templates
@@ -415,5 +1120,86 @@ int main() {
 
   // BATTLE PART
   Battle battle(PlayerTeam, OppTeam, aiDifficulty);
+  
+  // Record pre-battle information
+  std::string difficultyStr;
+  switch (chosenDifficulty) {
+    case 1: difficultyStr = "Easy"; break;
+    case 2: difficultyStr = "Medium"; break;
+    case 3: difficultyStr = "Hard"; break;
+    case 4: difficultyStr = "Expert"; break;
+    default: difficultyStr = "Easy"; break;
+  }
+  
+  auto battle_start_time = std::chrono::steady_clock::now();
   battle.startBattle();
+  auto battle_end_time = std::chrono::steady_clock::now();
+  
+  // Calculate battle duration (simplified turn estimation)
+  auto duration = std::chrono::duration_cast<std::chrono::seconds>(battle_end_time - battle_start_time);
+  int estimated_turns = std::max(1, static_cast<int>(duration.count() / 3)); // Rough estimate: 3 seconds per turn
+  
+  // Get actual battle result
+  Battle::BattleResult battle_result = battle.getBattleResult();
+  bool player_victory = (battle_result == Battle::BattleResult::PLAYER_WINS);
+  bool is_draw = (battle_result == Battle::BattleResult::DRAW);
+  
+  // Calculate effectiveness score based on battle performance
+  double effectiveness_score = 50.0; // Base score
+  if (player_victory) {
+    effectiveness_score += 30.0; // Victory bonus
+    if (estimated_turns < 10) effectiveness_score += 10.0; // Quick victory bonus
+    if (difficultyStr == "Expert") effectiveness_score += 10.0; // Difficulty bonus
+  } else if (is_draw) {
+    effectiveness_score += 10.0; // Draw bonus (shows competitive performance)
+    if (difficultyStr == "Expert") effectiveness_score += 5.0; // Difficulty bonus for surviving
+  } else {
+    effectiveness_score -= 20.0; // Loss penalty
+  }
+  effectiveness_score = std::max(0.0, std::min(100.0, effectiveness_score));
+  
+  // Record battle result
+  teamBuilder->recordBattleResult(
+    playerTeam.name,
+    opponentBuilderTeam.name,
+    player_victory,
+    estimated_turns,
+    difficultyStr,
+    effectiveness_score
+  );
+  
+  // Post-battle summary
+  std::cout << "\n" << std::string(80, '=') << "\n";
+  std::cout << "🏁 BATTLE COMPLETE!\n";
+  std::cout << std::string(80, '=') << "\n";
+  
+  if (player_victory) {
+    std::cout << "🎉 Congratulations! You defeated " << opponentBuilderTeam.name << "!\n";
+  } else if (is_draw) {
+    std::cout << "🤝 It's a draw! Both teams fought valiantly to the very end!\n";
+  } else {
+    std::cout << "💪 Good effort! " << opponentBuilderTeam.name << " proved to be a worthy opponent.\n";
+  }
+  
+  std::cout << "\n📊 Battle Summary:\n";
+  std::cout << "Team: " << playerTeam.name << "\n";
+  std::cout << "Opponent: " << opponentBuilderTeam.name << "\n";
+  std::cout << "Difficulty: " << difficultyStr << "\n";
+  std::cout << "Estimated Turns: " << estimated_turns << "\n";
+  std::cout << "Effectiveness Score: " << static_cast<int>(effectiveness_score) << "/100\n";
+  
+  // Show updated team statistics
+  auto updated_stats = teamBuilder->getTeamStatistics(playerTeam.name);
+  if (updated_stats) {
+    std::cout << "\n📈 Updated Team Statistics:\n";
+    std::cout << "Total Battles: " << updated_stats->total_battles << "\n";
+    std::cout << "Win Rate: " << static_cast<int>(updated_stats->win_rate) << "%\n";
+    std::cout << "Average Effectiveness: " << static_cast<int>(updated_stats->average_effectiveness_score) << "/100\n";
+  }
+  
+  std::cout << "\n💡 Want to try different teams or face other opponents?\n";
+  std::cout << "Restart the application to access all the advanced team building features!\n\n";
+  
+  std::cout << "Thanks for playing the Pokemon Battle Simulator!\n";
+  std::cout << "🎮 Advanced Team Builder - Phase 4 Implementation Complete! 🎮\n";
 }

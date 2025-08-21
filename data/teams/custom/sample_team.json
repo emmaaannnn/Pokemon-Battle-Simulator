@@ -1,0 +1,32 @@
+{
+  "name": "Sample Custom Team",
+  "pokemon": [
+    {
+      "name": "charizard",
+      "moves": ["flamethrower", "dragon-claw", "fly", "earthquake"]
+    },
+    {
+      "name": "blastoise",
+      "moves": ["hydro-pump", "ice-beam", "earthquake", "skull-bash"]
+    },
+    {
+      "name": "venusaur",
+      "moves": ["solar-beam", "sludge-bomb", "earthquake", "synthesis"]
+    },
+    {
+      "name": "alakazam",
+      "moves": ["psychic", "shadow-ball", "thunder-punch", "recover"]
+    },
+    {
+      "name": "gengar",
+      "moves": ["shadow-ball", "thunder", "ice-punch", "hypnosis"]
+    },
+    {
+      "name": "dragonite",
+      "moves": ["dragon-claw", "thunder-punch", "fire-punch", "earthquake"]
+    }
+  ],
+  "is_valid": true,
+  "validation_errors": [],
+  "validation_warnings": []
+}
