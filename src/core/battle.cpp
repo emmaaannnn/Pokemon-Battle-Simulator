@@ -27,41 +27,42 @@ Battle::Battle(const Team &playerTeam, const Team &opponentTeam,
       rng(std::random_device{}()),
       criticalDistribution(0.0, 1.0) {
   srand(time(0));  // Seed random number generator once
+  
+  // Initialize health bar animation system with auto-detection
+  auto config = HealthBarAnimator::detectOptimalConfig();
+  healthBarAnimator = std::make_shared<HealthBarAnimator>(config);
+  healthBarListener = std::make_shared<HealthBarEventListener>(healthBarAnimator);
+  
+  // Register the health bar listener with the event manager
+  eventManager.subscribe(healthBarListener);
 }
 
 void Battle::displayHealth(const Pokemon &pokemon) const {
-  std::cout << pokemon.name << " HP: ";
-
-  int barLength = 20;
-  double healthPercent = pokemon.getHealthPercentage();
-  int filledBars = static_cast<int>(healthPercent * barLength / 100);
-
-  // Use Unicode blocks on Unix/Mac, ASCII on Windows for compatibility
-#ifdef _WIN32
-  const char *filledChar = "=";
-  const char *emptyChar = "-";
-#else
-  const char *filledChar = "█";
-  const char *emptyChar = "░";
-#endif
-
-  std::cout << "[";
-  for (int i = 0; i < barLength; ++i) {
-    if (i < filledBars) {
-      std::cout << filledChar;
-    } else {
-      std::cout << emptyChar;
+  if (!healthBarAnimator) {
+    // Fallback to basic display if animator not initialized
+    std::cout << pokemon.name << " HP: " << pokemon.current_hp << "/" << pokemon.hp;
+    if (pokemon.hasStatusCondition()) {
+      std::cout << " (" << pokemon.getStatusConditionName() << ")";
     }
-  }
-  std::cout << "] " << static_cast<int>(healthPercent) << "%";
-  std::cout << std::endl;
-
-  // Show status condition
-  if (pokemon.hasStatusCondition()) {
-    std::cout << " (" << pokemon.getStatusConditionName() << ")";
+    std::cout << std::endl;
+    return;
   }
 
-  std::cout << std::endl;
+  // Check for previous health state for animation
+  int previousHP = -1;
+  auto it = previousHealthState.find(const_cast<Pokemon*>(&pokemon));
+  if (it != previousHealthState.end()) {
+    previousHP = it->second;
+  }
+
+  // Get status condition string
+  std::string statusCondition = pokemon.hasStatusCondition() ? pokemon.getStatusConditionName() : "";
+
+  // Display animated health bar
+  healthBarAnimator->displayAnimatedHealth(pokemon.name, pokemon.current_hp, pokemon.hp, previousHP, statusCondition);
+
+  // Update previous health state
+  previousHealthState[const_cast<Pokemon*>(&pokemon)] = pokemon.current_hp;
 }
 
 void Battle::selectPokemon() {
@@ -118,6 +119,12 @@ void Battle::selectPokemon() {
   selectedPokemon = playerTeam.getPokemon(chosenPokemonNum - 1);
   std::cout << "\nYou have selected " << selectedPokemon->name
             << " to send out!" << std::endl;
+  
+  // Register Pokemon with health bar system
+  if (healthBarListener && selectedPokemon) {
+    healthBarListener->registerPokemon(selectedPokemon, "Player");
+  }
+  
   std::cout << std::endl;
 }
 
@@ -128,6 +135,11 @@ void Battle::selectOpponentPokemon() {
     opponentSelectedPokemon = alivePokemon[randomIndex];
     std::cout << "\nThe opponent has selected " << opponentSelectedPokemon->name
               << " to send out!" << std::endl;
+    
+    // Register opponent Pokemon with health bar system
+    if (healthBarListener && opponentSelectedPokemon) {
+      healthBarListener->registerPokemon(opponentSelectedPokemon, "Opponent");
+    }
   }
 }
 
@@ -248,9 +260,16 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
     int actualHeal = std::min(healAmount, attacker.hp - attacker.current_hp);
 
     if (actualHeal > 0) {
+      int previousHealth = attacker.current_hp;
       attacker.heal(actualHeal);
       std::cout << attacker.name << " restored " << actualHeal << " HP! ("
                 << healAmount << "% heal)" << std::endl;
+      
+      // Emit health change event for healing
+      auto healthEvent = eventManager.createHealthChangeEvent(
+        &attacker, previousHealth, attacker.current_hp, move.name + " (heal)"
+      );
+      eventManager.notifyHealthChanged(healthEvent);
     } else {
       std::cout << attacker.name << "'s HP is already full!" << std::endl;
     }
@@ -363,7 +382,16 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
       }
 
       std::cout << std::endl;
+      
+      // Store previous health for event
+      int previousHealth = defender.current_hp;
       defender.takeDamage(damageResult.damage);
+      
+      // Emit health change event
+      auto healthEvent = eventManager.createHealthChangeEvent(
+        &defender, previousHealth, defender.current_hp, attacker.name + "'s " + move.name
+      );
+      eventManager.notifyHealthChanged(healthEvent);
     }
 
     // Show multi-hit summary
@@ -387,9 +415,16 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
       int actualHeal = std::min(drainAmount, attacker.hp - attacker.current_hp);
 
       if (actualHeal > 0) {
+        int previousHealth = attacker.current_hp;
         attacker.heal(actualHeal);
         std::cout << attacker.name << " absorbed " << actualHeal << " HP! ("
                   << move.drain << "% of damage dealt)" << std::endl;
+        
+        // Emit health change event for drain healing
+        auto healthEvent = eventManager.createHealthChangeEvent(
+          &attacker, previousHealth, attacker.current_hp, move.name + " (drain)"
+        );
+        eventManager.notifyHealthChanged(healthEvent);
       }
     }
 
@@ -400,10 +435,17 @@ void Battle::executeMove(Pokemon &attacker, Pokemon &defender, int moveIndex) {
       int recoilDamage = (totalDamage * recoilPercent) / 100;
 
       if (recoilDamage > 0) {
+        int previousHealth = attacker.current_hp;
         attacker.takeDamage(recoilDamage);
         std::cout << attacker.name << " is hit with recoil! (" << recoilPercent
                   << "% of damage dealt = " << recoilDamage << " HP)"
                   << std::endl;
+        
+        // Emit health change event for recoil damage
+        auto healthEvent = eventManager.createHealthChangeEvent(
+          &attacker, previousHealth, attacker.current_hp, move.name + " (recoil)"
+        );
+        eventManager.notifyHealthChanged(healthEvent);
       }
     }
 
@@ -860,6 +902,12 @@ void Battle::startBattle() {
                     << selectedPokemon->name << ", come back!" << std::endl;
           selectedPokemon = playerTeam.getPokemon(chosenIndex);
           std::cout << "Go, " << selectedPokemon->name << "!" << std::endl;
+          
+          // Register new Pokemon with health bar system
+          if (healthBarListener && selectedPokemon) {
+            healthBarListener->registerPokemon(selectedPokemon, "Player");
+          }
+          
           displayHealth(*selectedPokemon);
 
           // Opponent still gets to attack (switching takes a turn)
@@ -951,6 +999,11 @@ void Battle::startBattle() {
         opponentSelectedPokemon = newPokemon;
         std::cout << "\nOpponent sends out " << opponentSelectedPokemon->name
                   << "!\n";
+        
+        // Register new opponent Pokemon with health bar system
+        if (healthBarListener && opponentSelectedPokemon) {
+          healthBarListener->registerPokemon(opponentSelectedPokemon, "Opponent");
+        }
       }
     }
   }
@@ -1089,6 +1142,12 @@ void Battle::handlePokemonFainted() {
     if (chosenIndex >= 0) {
       selectedPokemon = playerTeam.getPokemon(chosenIndex);
       std::cout << "\nYou send out " << selectedPokemon->name << "!\n";
+      
+      // Register new Pokemon with health bar system
+      if (healthBarListener && selectedPokemon) {
+        healthBarListener->registerPokemon(selectedPokemon, "Player");
+      }
+      
       displayHealth(*selectedPokemon);
     }
   }
@@ -1109,6 +1168,12 @@ void Battle::handlePokemonFainted() {
       opponentSelectedPokemon = newPokemon;
       std::cout << "\nOpponent sends out " << opponentSelectedPokemon->name
                 << "!\n";
+      
+      // Register new opponent Pokemon with health bar system
+      if (healthBarListener && opponentSelectedPokemon) {
+        healthBarListener->registerPokemon(opponentSelectedPokemon, "Opponent");
+      }
+      
       displayHealth(*opponentSelectedPokemon);
     }
   }
@@ -1679,5 +1744,39 @@ bool Battle::shouldAISwitch() const {
     return false;
   default:
     return false;
+  }
+}
+
+void Battle::configureHealthBarAnimation(HealthBarAnimator::AnimationSpeed speed, HealthBarAnimator::ColorTheme theme) {
+  if (!healthBarAnimator || !healthBarListener) {
+    // Initialize if not already done
+    HealthBarAnimator::Config config;
+    config.speed = speed;
+    config.colorTheme = theme;
+    healthBarAnimator = std::make_shared<HealthBarAnimator>(config);
+    healthBarListener = std::make_shared<HealthBarEventListener>(healthBarAnimator);
+    eventManager.subscribe(healthBarListener);
+  } else {
+    // Update existing configuration
+    HealthBarAnimator::Config config;
+    config.speed = speed;
+    config.colorTheme = theme;
+    
+    // Create new animator with updated config
+    healthBarAnimator = std::make_shared<HealthBarAnimator>(config);
+    
+    // Update listener's animator
+    healthBarListener = std::make_shared<HealthBarEventListener>(healthBarAnimator);
+    
+    // Re-register with event manager
+    eventManager.subscribe(healthBarListener);
+    
+    // Re-register all currently selected Pokemon
+    if (selectedPokemon && healthBarListener) {
+      healthBarListener->registerPokemon(selectedPokemon, "Player");
+    }
+    if (opponentSelectedPokemon && healthBarListener) {
+      healthBarListener->registerPokemon(opponentSelectedPokemon, "Opponent");
+    }
   }
 }
