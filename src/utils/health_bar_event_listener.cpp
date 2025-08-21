@@ -14,7 +14,7 @@ void HealthBarEventListener::onHealthChanged(const BattleEvents::HealthChangeEve
         return;
     }
     
-    updateHealthBar(event.pokemon, event.newHealth, event.source);
+    updateHealthBar(event.pokemon, event.newHealth, event.oldHealth, event.source);
     
     // Optionally log the health change for debugging
     std::string pokemonName = getPokemonDisplayName(event.pokemon);
@@ -45,8 +45,8 @@ void HealthBarEventListener::onPokemonSwitch(const BattleEvents::PokemonSwitchEv
         std::string prefix = event.isPlayerSwitch ? "Player" : "AI";
         registerPokemon(event.newPokemon, prefix);
         
-        // Initialize health bar for the new Pokemon
-        updateHealthBar(event.newPokemon, event.newPokemon->current_hp, "switch");
+        // Initialize health bar for the new Pokemon (no previous health for switches)
+        updateHealthBar(event.newPokemon, event.newPokemon->current_hp, -1, "switch");
     }
 }
 
@@ -94,13 +94,13 @@ std::string HealthBarEventListener::getPokemonDisplayName(Pokemon* pokemon) cons
     return (it != pokemonDisplayNames_.end()) ? it->second : "Unknown Pokemon";
 }
 
-void HealthBarEventListener::updateHealthBar(Pokemon* pokemon, int newHealth, const std::string& /*source*/) {
+void HealthBarEventListener::updateHealthBar(Pokemon* pokemon, int newHealth, int previousHealth, const std::string& /*source*/) {
     if (!animator_ || !pokemon) return;
     
     std::string pokemonName = getPokemonDisplayName(pokemon);
     
-    // Display animated health transition
-    animator_->displayAnimatedHealth(pokemonName, newHealth, pokemon->hp, pokemon->current_hp);
+    // Display animated health transition  
+    animator_->displayAnimatedHealth(pokemonName, newHealth, pokemon->hp, previousHealth);
 }
 
 // Factory function implementation
