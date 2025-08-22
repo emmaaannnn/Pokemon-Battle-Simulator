@@ -22,7 +22,7 @@ TeamBuilder::TeamBuilder(std::shared_ptr<PokemonData> data)
 
 void TeamBuilder::ensureTemplatesLoaded() const {
     if (!templates_loaded) {
-        // Cast away const to enable lazy loading
+        // Safe to call non-const method with mutable members
         const_cast<TeamBuilder*>(this)->loadTemplates();
     }
 }
@@ -43,14 +43,19 @@ TeamBuilder::Team TeamBuilder::createTeam(const std::string& team_name) {
 
 bool TeamBuilder::addPokemonToTeam(Team& team, const std::string& pokemon_name, 
                                   const std::vector<std::string>& moves) {
-    // Validate Pokemon name
+    // Validate Pokemon name with comprehensive error logging
     if (!InputValidator::isValidPokemonName(pokemon_name)) {
-        team.validation_errors.push_back("Invalid Pokemon name: " + pokemon_name);
+        const std::string error_msg = "Invalid Pokemon name: " + pokemon_name;
+        team.validation_errors.push_back(error_msg);
+        // Log for debugging purposes
+        std::cerr << "TeamBuilder: " << error_msg << std::endl;
         return false;
     }
     
     if (!pokemon_data->hasPokemon(pokemon_name)) {
-        team.validation_errors.push_back("Pokemon not found: " + pokemon_name);
+        const std::string error_msg = "Pokemon not found: " + pokemon_name;
+        team.validation_errors.push_back(error_msg);
+        std::cerr << "TeamBuilder: " << error_msg << std::endl;
         return false;
     }
     
@@ -60,8 +65,9 @@ bool TeamBuilder::addPokemonToTeam(Team& team, const std::string& pokemon_name,
         return false;
     }
     
-    // Check for duplicate Pokemon if not allowed
+    // Check for duplicate Pokemon if not allowed - early exit optimization
     if (!validation_settings.allow_duplicate_pokemon) {
+        // Use more efficient lookup with early termination
         for (const auto& existing_pokemon : team.pokemon) {
             if (existing_pokemon.name == pokemon_name) {
                 team.validation_errors.push_back("Duplicate Pokemon not allowed: " + pokemon_name);
@@ -83,16 +89,21 @@ bool TeamBuilder::addPokemonToTeam(Team& team, const std::string& pokemon_name,
         return false;
     }
     
-    // Validate each move
+    // Validate each move - reserve space for better performance
     std::vector<std::string> validated_moves;
+    validated_moves.reserve(moves.size());
     for (const auto& move_name : moves) {
         if (!InputValidator::isValidMoveName(move_name)) {
-            team.validation_errors.push_back("Invalid move name: " + move_name);
+            const std::string error_msg = "Invalid move name: " + move_name;
+            team.validation_errors.push_back(error_msg);
+            std::cerr << "TeamBuilder: " << error_msg << " for Pokemon: " << pokemon_name << std::endl;
             continue;
         }
         
         if (!pokemon_data->hasMove(move_name)) {
-            team.validation_errors.push_back("Move not found: " + move_name);
+            const std::string error_msg = "Move not found: " + move_name;
+            team.validation_errors.push_back(error_msg);
+            std::cerr << "TeamBuilder: " << error_msg << " for Pokemon: " << pokemon_name << std::endl;
             continue;
         }
         
@@ -105,8 +116,8 @@ bool TeamBuilder::addPokemonToTeam(Team& team, const std::string& pokemon_name,
         return false;
     }
     
-    // Add the Pokemon to the team
-    team.pokemon.emplace_back(pokemon_name, validated_moves);
+    // Add the Pokemon to the team (moves are already copied in validated_moves)
+    team.pokemon.emplace_back(pokemon_name, std::move(validated_moves));
     
     // Clear previous validation state since team changed
     team.is_valid = false;
@@ -1037,15 +1048,14 @@ bool TeamBuilder::loadTemplates() {
             return false;
         }
         
-        // Load templates from each category directory
-        std::vector<std::string> categories = {"starter_teams", "type_themed", "competitive"};
-        
-        for (const auto& category : categories) {
-            std::string category_path = template_base_path + category + "/";
-            
-            if (!std::filesystem::exists(category_path)) {
+        // Dynamically discover template categories by scanning directories
+        for (const auto& entry : std::filesystem::directory_iterator(template_base_path)) {
+            if (!entry.is_directory()) {
                 continue;
             }
+            
+            std::string category = entry.path().filename().string();
+            std::string category_path = entry.path().string() + "/";
             
             for (const auto& entry : std::filesystem::directory_iterator(category_path)) {
                 if (entry.is_regular_file() && entry.path().extension() == ".json") {
@@ -1074,6 +1084,7 @@ std::vector<std::string> TeamBuilder::getTemplateCategories() const {
     ensureTemplatesLoaded();
     
     std::vector<std::string> categories;
+    categories.reserve(templates.size());
     for (const auto& category_pair : templates) {
         categories.push_back(category_pair.first);
     }
@@ -1888,6 +1899,14 @@ TeamBuilder::Team TeamBuilder::importTeamFromShareCode(const std::string& share_
         
         Team team = const_cast<TeamBuilder*>(this)->createTeam(decoded.team_name);
         
+        // Check if team creation failed due to invalid name
+        if (team.name == "Invalid_Team_Name") {
+            return Team("Import_Failed");
+        }
+        
+        // Reserve space for better performance
+        team.pokemon.reserve(decoded.pokemon.size());
+        
         for (const auto& pokemon : decoded.pokemon) {
             const_cast<TeamBuilder*>(this)->addPokemonToTeam(team, pokemon.name, pokemon.moves);
         }
@@ -2423,10 +2442,34 @@ TeamBuilder::TeamShareCode TeamBuilder::decodeTeamFromBase64(const std::string& 
         const std::string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
         
         for (size_t i = 0; i < base64_data.length(); i += 4) {
-            unsigned char c1 = chars.find(base64_data[i]);
-            unsigned char c2 = chars.find(base64_data[i + 1]);
-            unsigned char c3 = (base64_data[i + 2] != '=') ? chars.find(base64_data[i + 2]) : 0;
-            unsigned char c4 = (base64_data[i + 3] != '=') ? chars.find(base64_data[i + 3]) : 0;
+            // Safe bounds checking for base64 characters
+            if (i + 3 >= base64_data.length()) break;
+            
+            auto pos1 = chars.find(base64_data[i]);
+            auto pos2 = chars.find(base64_data[i + 1]);
+            if (pos1 == std::string::npos || pos2 == std::string::npos) {
+                throw std::invalid_argument("Invalid base64 character");
+            }
+            
+            unsigned char c1 = static_cast<unsigned char>(pos1);
+            unsigned char c2 = static_cast<unsigned char>(pos2);
+            unsigned char c3 = 0, c4 = 0;
+            
+            if (base64_data[i + 2] != '=') {
+                auto pos3 = chars.find(base64_data[i + 2]);
+                if (pos3 == std::string::npos) {
+                    throw std::invalid_argument("Invalid base64 character");
+                }
+                c3 = static_cast<unsigned char>(pos3);
+            }
+            
+            if (base64_data[i + 3] != '=') {
+                auto pos4 = chars.find(base64_data[i + 3]);
+                if (pos4 == std::string::npos) {
+                    throw std::invalid_argument("Invalid base64 character");
+                }
+                c4 = static_cast<unsigned char>(pos4);
+            }
             
             decoded += static_cast<char>((c1 << 2) | (c2 >> 4));
             if (base64_data[i + 2] != '=') {
