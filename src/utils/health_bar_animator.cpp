@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <cmath>
 #include <sstream>
+#include <thread>
+#include <chrono>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -81,7 +83,7 @@ bool HealthBarAnimator::supportsColors() {
 }
 
 HealthBarAnimator::Config HealthBarAnimator::detectOptimalConfig() {
-    Config config;
+    HealthBarAnimator::Config config;
     
     if (supportsColors()) {
         config.colorTheme = ColorTheme::BASIC;
@@ -89,7 +91,6 @@ HealthBarAnimator::Config HealthBarAnimator::detectOptimalConfig() {
         config.colorTheme = ColorTheme::NONE;
     }
     
-    // Default to normal speed
     config.speed = AnimationSpeed::NORMAL;
     
     return config;

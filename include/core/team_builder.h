@@ -757,9 +757,9 @@ private:
     std::shared_ptr<PokemonData> pokemon_data;
     ValidationSettings validation_settings;
     
-    // Template system storage
-    std::unordered_map<std::string, std::unordered_map<std::string, TeamTemplate>> templates;
-    bool templates_loaded;
+    // Template system storage - mutable for lazy loading in const methods
+    mutable std::unordered_map<std::string, std::unordered_map<std::string, TeamTemplate>> templates;
+    mutable bool templates_loaded;
     
     // Battle history and statistics storage
     mutable std::unordered_map<std::string, std::vector<BattleRecord>> battle_history;
