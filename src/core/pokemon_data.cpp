@@ -284,8 +284,15 @@ bool PokemonData::loadMoveFile(const std::string& file_path) {
             return false;
         }
         
+        // Handle nullable fields with proper defaults
         auto accuracy_result = InputValidator::getJsonInt(move_json, "accuracy", 0, 100, 100);
-        auto power_result = InputValidator::getJsonInt(move_json, "power", 0, 250, 0);
+        
+        // Handle power field which can be null (for status moves)
+        auto power_result = InputValidator::ValidationResult<int>(0);
+        if (move_json.contains("power") && !move_json["power"].is_null()) {
+            power_result = InputValidator::getJsonInt(move_json, "power", 0, 250, 0);
+        }
+        
         auto pp_result = InputValidator::getJsonInt(move_json, "pp", 1, 40, 10);
         auto priority_result = InputValidator::getJsonInt(move_json, "priority", -6, 6, 0);
         

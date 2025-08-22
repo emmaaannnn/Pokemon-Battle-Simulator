@@ -24,6 +24,8 @@ set(CORE_SOURCES
     ${CMAKE_SOURCE_DIR}/src/utils/type_effectiveness.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/move_type_mapping.cpp
     ${CMAKE_SOURCE_DIR}/src/utils/input_validator.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/health_bar_animator.cpp
+    ${CMAKE_SOURCE_DIR}/src/utils/health_bar_event_listener.cpp
     ${CMAKE_SOURCE_DIR}/src/ai/ai_strategy.cpp
     ${CMAKE_SOURCE_DIR}/src/ai/ai_factory.cpp
     ${CMAKE_SOURCE_DIR}/src/ai/easy_ai.cpp
