@@ -852,7 +852,13 @@ void Battle::startBattle() {
     // Process weather conditions
     processWeather();
 
-    // Health bars will be updated through event system during moves
+    // Display current health status for both Pokemon at start of turn
+    if (selectedPokemon && selectedPokemon->isAlive()) {
+      displayHealth(*selectedPokemon);
+    }
+    if (opponentSelectedPokemon && opponentSelectedPokemon->isAlive()) {
+      displayHealth(*opponentSelectedPokemon);
+    }
 
     // Check if either Pokemon fainted from status damage
     if (!selectedPokemon->isAlive() || !opponentSelectedPokemon->isAlive()) {
