@@ -12,6 +12,7 @@
 #include "input_validator.h"
 #include "team_builder.h"
 #include "pokemon_data.h"
+#include "tournament_manager.h"
 
 // Signal handler for graceful exit
 void signalHandler(int /* signal */) {
@@ -79,17 +80,18 @@ int showTemplateCategories(const std::vector<std::string>& categories) {
   std::cout << "  [" << (categories.size() + 1) << "] Build Custom Team\n";
   std::cout << "  [" << (categories.size() + 2) << "] Generate Random Team\n";
   std::cout << "  [" << (categories.size() + 3) << "] Tournament Draft Mode\n";
-  std::cout << "  [" << (categories.size() + 4) << "] Import Team from Share Code\n";
-  std::cout << "  [" << (categories.size() + 5) << "] Load Custom Team\n";
-  std::cout << "  [" << (categories.size() + 6) << "] Team Comparison Tool\n\n";
+  std::cout << "  [" << (categories.size() + 4) << "] 🏆 Tournament Mode\n";
+  std::cout << "  [" << (categories.size() + 5) << "] Import Team from Share Code\n";
+  std::cout << "  [" << (categories.size() + 6) << "] Load Custom Team\n";
+  std::cout << "  [" << (categories.size() + 7) << "] Team Comparison Tool\n\n";
   
   auto categoryValidator = [categories](std::istream& input) -> InputValidator::ValidationResult<int> {
-    return InputValidator::getValidatedInt(input, 1, static_cast<int>(categories.size() + 6));
+    return InputValidator::getValidatedInt(input, 1, static_cast<int>(categories.size() + 7));
   };
   
   auto categoryResult = InputValidator::promptWithRetry<int>(
     std::cin, std::cout,
-    "📝 Select a category (1-" + std::to_string(categories.size() + 6) + ")",
+    "📝 Select a category (1-" + std::to_string(categories.size() + 7) + ")",
     2, categoryValidator
   );
   
@@ -370,6 +372,32 @@ TeamBuilder::Team handleCustomTeamLoad(std::shared_ptr<TeamBuilder> teamBuilder,
   std::cout << "✅ Loaded team: " << loadedTeam.name << "\n";
   return loadedTeam;
 }
+
+// Forward declarations for tournament functions
+void enterTournamentMode(std::shared_ptr<TournamentManager> tournamentManager, 
+                        std::shared_ptr<TeamBuilder> teamBuilder,
+                        std::shared_ptr<PokemonData> pokemonData,
+                        const std::string& playerName);
+void handleGymLeaderChallenge(std::shared_ptr<TournamentManager> tournamentManager,
+                             std::shared_ptr<TeamBuilder> teamBuilder,
+                             std::shared_ptr<PokemonData> pokemonData,
+                             const std::string& playerName);
+void handleEliteFourChallenge(std::shared_ptr<TournamentManager> tournamentManager,
+                             std::shared_ptr<TeamBuilder> teamBuilder,
+                             std::shared_ptr<PokemonData> pokemonData,
+                             const std::string& playerName);
+void handleChampionshipBattle(std::shared_ptr<TournamentManager> tournamentManager,
+                             std::shared_ptr<TeamBuilder> teamBuilder,
+                             std::shared_ptr<PokemonData> pokemonData,
+                             const std::string& playerName);
+void displayTournamentStatistics(std::shared_ptr<TournamentManager> tournamentManager, 
+                                const std::string& playerName);
+void displayTournamentLeaderboard(std::shared_ptr<TournamentManager> tournamentManager);
+void conductTournamentBattle(std::shared_ptr<TournamentManager> tournamentManager,
+                            std::shared_ptr<TeamBuilder> teamBuilder,
+                            std::shared_ptr<PokemonData> pokemonData,
+                            const std::string& playerName,
+                            const TournamentManager::ChallengeInfo& challenge);
 
 // Helper function to handle team comparison
 void handleTeamComparison(std::shared_ptr<TeamBuilder> teamBuilder) {
@@ -733,6 +761,461 @@ TeamBuilder::Team handleCustomTeamBuilder(std::shared_ptr<TeamBuilder> teamBuild
   return team;
 }
 
+// Tournament mode handler
+void enterTournamentMode(std::shared_ptr<TournamentManager> tournamentManager, 
+                        std::shared_ptr<TeamBuilder> teamBuilder,
+                        std::shared_ptr<PokemonData> pokemonData,
+                        const std::string& playerName) {
+  std::cout << "\n🏆═══════════════════════════════════════════════════════════════════════════════🏆\n";
+  std::cout << "║                                Tournament Mode                                ║\n";
+  std::cout << "🏆═══════════════════════════════════════════════════════════════════════════════🏆\n\n";
+
+  // Initialize player progress if needed
+  tournamentManager->initializePlayerProgress(playerName);
+  
+  // Get player progress
+  auto progress = tournamentManager->getPlayerProgress(playerName);
+  if (!progress) {
+    std::cout << "❌ Failed to initialize tournament progress. Returning to main menu.\n";
+    return;
+  }
+
+  while (true) {
+    // Display tournament progress
+    std::cout << "\n📊 Tournament Progress for " << playerName << ":\n";
+    std::cout << "═════════════════════════════════════\n";
+    std::cout << "🥇 Badges Earned: " << tournamentManager->getPlayerBadgeCount(playerName) << "/8\n";
+    
+    auto badges = tournamentManager->getPlayerBadges(playerName);
+    if (!badges.empty()) {
+      std::cout << "\n🏅 Your Badges:\n";
+      for (const auto& badge : badges) {
+        std::cout << "  ✅ " << badge.gym_name << " (" << badge.gym_type << " type) - " 
+                  << badge.gym_leader_name << "\n";
+      }
+    }
+
+    // Show Elite Four status
+    bool eliteFourUnlocked = tournamentManager->isEliteFourUnlocked(playerName);
+    bool championUnlocked = tournamentManager->isChampionshipUnlocked(playerName);
+    
+    std::cout << "\n🎖️ Elite Four Status: " << (eliteFourUnlocked ? "✅ Unlocked" : "🔒 Locked (need 8 badges)") << "\n";
+    std::cout << "👑 Champion Status: " << (championUnlocked ? "✅ Unlocked" : "🔒 Locked (complete Elite Four)") << "\n";
+    
+    double completion = tournamentManager->getTournamentCompletionPercentage(playerName);
+    std::cout << "📈 Tournament Completion: " << static_cast<int>(completion * 100) << "%\n\n";
+
+    // Tournament menu options
+    std::cout << "🎯 Tournament Options:\n";
+    std::cout << "  [1] 🥊 Challenge Gym Leaders\n";
+    std::cout << "  [2] 🎖️ Elite Four Challenge" << (eliteFourUnlocked ? "" : " (Locked)") << "\n";
+    std::cout << "  [3] 👑 Championship Battle" << (championUnlocked ? "" : " (Locked)") << "\n";
+    std::cout << "  [4] 📊 Tournament Statistics\n";
+    std::cout << "  [5] 🏆 Leaderboard\n";
+    std::cout << "  [6] ↩️ Return to Main Menu\n\n";
+
+    auto optionValidator = [](std::istream& input) -> InputValidator::ValidationResult<int> {
+      return InputValidator::getValidatedInt(input, 1, 6);
+    };
+
+    auto optionResult = InputValidator::promptWithRetry<int>(
+      std::cin, std::cout,
+      "Select an option (1-6)",
+      2, optionValidator
+    );
+
+    if (!optionResult.isValid()) {
+      std::cout << "Invalid input. Please try again.\n";
+      continue;
+    }
+
+    switch (optionResult.value) {
+      case 1:
+        // Gym Leader challenges
+        handleGymLeaderChallenge(tournamentManager, teamBuilder, pokemonData, playerName);
+        break;
+      case 2:
+        if (eliteFourUnlocked) {
+          handleEliteFourChallenge(tournamentManager, teamBuilder, pokemonData, playerName);
+        } else {
+          std::cout << "🔒 Elite Four is locked. You need all 8 badges to challenge the Elite Four.\n";
+          std::cout << "Press Enter to continue...";
+          std::cin.get();
+        }
+        break;
+      case 3:
+        if (championUnlocked) {
+          handleChampionshipBattle(tournamentManager, teamBuilder, pokemonData, playerName);
+        } else {
+          std::cout << "🔒 Championship is locked. You must complete the Elite Four first.\n";
+          std::cout << "Press Enter to continue...";
+          std::cin.get();
+        }
+        break;
+      case 4:
+        displayTournamentStatistics(tournamentManager, playerName);
+        break;
+      case 5:
+        displayTournamentLeaderboard(tournamentManager);
+        break;
+      case 6:
+        return; // Exit tournament mode
+      default:
+        std::cout << "Invalid option. Please try again.\n";
+        break;
+    }
+  }
+}
+
+// Helper function to handle gym leader challenge
+void handleGymLeaderChallenge(std::shared_ptr<TournamentManager> tournamentManager,
+                             std::shared_ptr<TeamBuilder> teamBuilder,
+                             std::shared_ptr<PokemonData> pokemonData,
+                             const std::string& playerName) {
+  std::cout << "\n🥊 Gym Leader Challenge Selection\n";
+  std::cout << "═════════════════════════════════\n\n";
+
+  auto availableChallenges = tournamentManager->getAvailableChallenges(playerName);
+  std::vector<TournamentManager::ChallengeInfo> gymChallenges;
+  
+  // Filter for gym challenges
+  for (const auto& challenge : availableChallenges) {
+    if (challenge.challenge_type == "gym" && !challenge.is_completed) {
+      gymChallenges.push_back(challenge);
+    }
+  }
+
+  if (gymChallenges.empty()) {
+    std::cout << "🎉 Congratulations! You have defeated all gym leaders!\n";
+    std::cout << "Press Enter to continue...";
+    std::cin.get();
+    return;
+  }
+
+  std::cout << "Available Gym Challenges:\n";
+  for (size_t i = 0; i < gymChallenges.size(); ++i) {
+    const auto& gym = gymChallenges[i];
+    std::cout << "  [" << (i + 1) << "] " << gym.challenge_name << " (" << gym.difficulty_level << ")\n";
+    std::cout << "      Type Specialization: " << gym.challenge_type << "\n";
+    if (!gym.required_badges.empty()) {
+      std::cout << "      Prerequisites: ";
+      for (size_t j = 0; j < gym.required_badges.size(); ++j) {
+        std::cout << gym.required_badges[j];
+        if (j < gym.required_badges.size() - 1) std::cout << ", ";
+      }
+      std::cout << "\n";
+    }
+    std::cout << "      Reward: " << gym.reward_description << "\n\n";
+  }
+
+  std::cout << "  [" << (gymChallenges.size() + 1) << "] ↩️ Back to Tournament Menu\n\n";
+
+  auto gymValidator = [&gymChallenges](std::istream& input) -> InputValidator::ValidationResult<int> {
+    return InputValidator::getValidatedInt(input, 1, static_cast<int>(gymChallenges.size() + 1));
+  };
+
+  auto gymResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "Select a gym to challenge (1-" + std::to_string(gymChallenges.size() + 1) + ")",
+    2, gymValidator
+  );
+
+  if (!gymResult.isValid() || gymResult.value > static_cast<int>(gymChallenges.size())) {
+    return; // Back to tournament menu
+  }
+
+  const auto& selectedGym = gymChallenges[gymResult.value - 1];
+  
+  // Conduct tournament battle
+  conductTournamentBattle(tournamentManager, teamBuilder, pokemonData, playerName, selectedGym);
+}
+
+// Helper function to handle Elite Four challenge
+void handleEliteFourChallenge(std::shared_ptr<TournamentManager> tournamentManager,
+                             std::shared_ptr<TeamBuilder> teamBuilder,
+                             std::shared_ptr<PokemonData> pokemonData,
+                             const std::string& playerName) {
+  std::cout << "\n🎖️ Elite Four Challenge\n";
+  std::cout << "══════════════════════\n\n";
+  
+  auto availableChallenges = tournamentManager->getAvailableChallenges(playerName);
+  std::vector<TournamentManager::ChallengeInfo> eliteFourChallenges;
+  
+  // Filter for Elite Four challenges
+  for (const auto& challenge : availableChallenges) {
+    if (challenge.challenge_type == "elite_four" && !challenge.is_completed) {
+      eliteFourChallenges.push_back(challenge);
+    }
+  }
+
+  if (eliteFourChallenges.empty()) {
+    std::cout << "🎉 Congratulations! You have defeated all Elite Four members!\n";
+    std::cout << "The Championship awaits you!\n";
+    std::cout << "Press Enter to continue...";
+    std::cin.get();
+    return;
+  }
+
+  std::cout << "Elite Four Members Available:\n";
+  for (size_t i = 0; i < eliteFourChallenges.size(); ++i) {
+    const auto& member = eliteFourChallenges[i];
+    std::cout << "  [" << (i + 1) << "] " << member.challenge_name << " (" << member.difficulty_level << ")\n";
+    std::cout << "      Specialization: " << member.challenge_type << "\n";
+    std::cout << "      Challenge Level: Elite Four\n\n";
+  }
+
+  std::cout << "  [" << (eliteFourChallenges.size() + 1) << "] ↩️ Back to Tournament Menu\n\n";
+
+  auto eliteValidator = [&eliteFourChallenges](std::istream& input) -> InputValidator::ValidationResult<int> {
+    return InputValidator::getValidatedInt(input, 1, static_cast<int>(eliteFourChallenges.size() + 1));
+  };
+
+  auto eliteResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "Select Elite Four member to challenge (1-" + std::to_string(eliteFourChallenges.size() + 1) + ")",
+    2, eliteValidator
+  );
+
+  if (!eliteResult.isValid() || eliteResult.value > static_cast<int>(eliteFourChallenges.size())) {
+    return; // Back to tournament menu
+  }
+
+  const auto& selectedMember = eliteFourChallenges[eliteResult.value - 1];
+  
+  // Conduct tournament battle
+  conductTournamentBattle(tournamentManager, teamBuilder, pokemonData, playerName, selectedMember);
+}
+
+// Helper function to handle championship battle
+void handleChampionshipBattle(std::shared_ptr<TournamentManager> tournamentManager,
+                             std::shared_ptr<TeamBuilder> teamBuilder,
+                             std::shared_ptr<PokemonData> pokemonData,
+                             const std::string& playerName) {
+  std::cout << "\n👑 Championship Battle\n";
+  std::cout << "════════════════════\n\n";
+  
+  std::cout << "You stand before the ultimate challenge - the Pokemon Champion!\n";
+  std::cout << "This is the culmination of your tournament journey.\n\n";
+  
+  std::cout << "Are you ready to face the Champion? (y/n): ";
+  char ready;
+  std::cin >> ready;
+  std::cin.ignore();
+  
+  if (ready != 'y' && ready != 'Y') {
+    std::cout << "Return when you're ready for the ultimate challenge.\n";
+    std::cout << "Press Enter to continue...";
+    std::cin.get();
+    return;
+  }
+
+  // Create championship challenge
+  TournamentManager::ChallengeInfo championChallenge;
+  championChallenge.challenge_name = "Pokemon Champion";
+  championChallenge.challenge_type = "champion";
+  championChallenge.difficulty_level = "Expert";
+  championChallenge.reward_description = "Pokemon Tournament Champion Title";
+  championChallenge.is_unlocked = true;
+  championChallenge.is_completed = false;
+
+  // Conduct championship battle
+  conductTournamentBattle(tournamentManager, teamBuilder, pokemonData, playerName, championChallenge);
+}
+
+// Helper function to display tournament statistics
+void displayTournamentStatistics(std::shared_ptr<TournamentManager> tournamentManager, 
+                                const std::string& playerName) {
+  std::cout << "\n📊 Tournament Statistics\n";
+  std::cout << "═══════════════════════\n\n";
+
+  auto stats = tournamentManager->getPlayerTournamentStats(playerName);
+  auto battleHistory = tournamentManager->getPlayerBattleHistory(playerName);
+
+  std::cout << "📈 Overall Performance:\n";
+  for (const auto& [statName, value] : stats) {
+    std::cout << "  " << statName << ": " << static_cast<int>(value) << "\n";
+  }
+
+  std::cout << "\n🏆 Battle History (Last 10 battles):\n";
+  size_t displayCount = std::min(battleHistory.size(), size_t(10));
+  for (size_t i = 0; i < displayCount; ++i) {
+    const auto& battle = battleHistory[battleHistory.size() - 1 - i]; // Show most recent first
+    std::cout << "  " << (battle.victory ? "✅" : "❌") << " " << battle.challenge_name 
+              << " (" << battle.difficulty_level << ") - Score: " 
+              << static_cast<int>(battle.performance_score) << "/100\n";
+  }
+
+  std::cout << "\nPress Enter to continue...";
+  std::cin.get();
+}
+
+// Helper function to display tournament leaderboard
+void displayTournamentLeaderboard(std::shared_ptr<TournamentManager> tournamentManager) {
+  std::cout << "\n🏆 Tournament Leaderboard\n";
+  std::cout << "════════════════════════\n\n";
+
+  auto leaderboard = tournamentManager->getTournamentLeaderboard("completion", 10);
+
+  std::cout << "Top Tournament Trainers:\n";
+  for (size_t i = 0; i < leaderboard.size(); ++i) {
+    const auto& [playerName, score] = leaderboard[i];
+    std::cout << "  " << (i + 1) << ". " << playerName << " - " 
+              << static_cast<int>(score * 100) << "% completion\n";
+  }
+
+  std::cout << "\nPress Enter to continue...";
+  std::cin.get();
+}
+
+// Helper function to conduct tournament battles
+void conductTournamentBattle(std::shared_ptr<TournamentManager> tournamentManager,
+                            std::shared_ptr<TeamBuilder> teamBuilder,
+                            std::shared_ptr<PokemonData> pokemonData,
+                            const std::string& playerName,
+                            const TournamentManager::ChallengeInfo& challenge) {
+  std::cout << "\n⚔️ Preparing for battle against " << challenge.challenge_name << "!\n";
+  std::cout << "Difficulty: " << challenge.difficulty_level << "\n\n";
+
+  // Team selection for tournament battle
+  std::cout << "📝 Tournament Battle Team Selection:\n";
+  std::cout << "  [1] Use existing team\n";
+  std::cout << "  [2] Build new team\n";
+  std::cout << "  [3] Load custom team\n\n";
+
+  auto teamValidator = [](std::istream& input) -> InputValidator::ValidationResult<int> {
+    return InputValidator::getValidatedInt(input, 1, 3);
+  };
+
+  auto teamResult = InputValidator::promptWithRetry<int>(
+    std::cin, std::cout,
+    "Select team option (1-3)",
+    2, teamValidator
+  );
+
+  TeamBuilder::Team playerTeam;
+  
+  switch (teamResult.isValid() ? teamResult.value : 1) {
+    case 1:
+      // Use a random team for now (in full implementation, would save last used team)
+      playerTeam = teamBuilder->generateRandomTeam(playerName + "'s Tournament Team");
+      break;
+    case 2:
+      playerTeam = handleCustomTeamBuilder(teamBuilder, pokemonData, playerName);
+      break;
+    case 3:
+      playerTeam = handleCustomTeamLoad(teamBuilder, playerName);
+      break;
+    default:
+      playerTeam = teamBuilder->generateRandomTeam(playerName + "'s Tournament Team");
+      break;
+  }
+
+  // Generate opponent team based on challenge
+  TeamBuilder::Team opponentTeam;
+  std::string templateCategory = "competitive";
+  std::string templateName = "balanced_meta";
+  
+  // Map challenge types to templates
+  if (challenge.challenge_type == "gym") {
+    templateCategory = "type_themed";
+    if (challenge.challenge_name.find("Brock") != std::string::npos) templateName = "rock_team";
+    else if (challenge.challenge_name.find("Misty") != std::string::npos) templateName = "water_team";
+    else if (challenge.challenge_name.find("Surge") != std::string::npos) templateName = "electric_team";
+    else if (challenge.challenge_name.find("Erika") != std::string::npos) templateName = "grass_team";
+    else if (challenge.challenge_name.find("Koga") != std::string::npos) templateName = "psychic_team";
+    else if (challenge.challenge_name.find("Sabrina") != std::string::npos) templateName = "psychic_team";
+    else if (challenge.challenge_name.find("Blaine") != std::string::npos) templateName = "fire_team";
+    else if (challenge.challenge_name.find("Giovanni") != std::string::npos) templateName = "balanced_meta";
+  }
+
+  opponentTeam = teamBuilder->generateTeamFromTemplate(templateCategory, templateName, challenge.challenge_name);
+  if (opponentTeam.pokemon.empty()) {
+    opponentTeam = teamBuilder->generateRandomTeam(challenge.challenge_name);
+  }
+
+  // Convert to battle format
+  Team battlePlayerTeam = createBattleTeamFromTemplate(playerTeam, teamBuilder);
+  Team battleOpponentTeam = createBattleTeamFromTemplate(opponentTeam, teamBuilder);
+
+  // Determine AI difficulty based on challenge
+  Battle::AIDifficulty aiDifficulty = Battle::AIDifficulty::MEDIUM;
+  if (challenge.difficulty_level == "Easy") aiDifficulty = Battle::AIDifficulty::EASY;
+  else if (challenge.difficulty_level == "Medium") aiDifficulty = Battle::AIDifficulty::MEDIUM;
+  else if (challenge.difficulty_level == "Hard") aiDifficulty = Battle::AIDifficulty::HARD;
+  else if (challenge.difficulty_level == "Expert") aiDifficulty = Battle::AIDifficulty::EXPERT;
+
+  // Start the battle
+  std::cout << "\n🎉 Tournament Battle Beginning!\n";
+  std::cout << "Player: " << playerName << " vs " << challenge.challenge_name << "\n\n";
+
+  auto battleStart = std::chrono::steady_clock::now();
+  Battle battle(battlePlayerTeam, battleOpponentTeam, aiDifficulty);
+  battle.startBattle();
+  auto battleEnd = std::chrono::steady_clock::now();
+
+  // Calculate battle results
+  auto duration = std::chrono::duration_cast<std::chrono::seconds>(battleEnd - battleStart);
+  int estimatedTurns = std::max(1, static_cast<int>(duration.count() / 3));
+  
+  Battle::BattleResult battleResult = battle.getBattleResult();
+  bool victory = (battleResult == Battle::BattleResult::PLAYER_WINS);
+  bool isDraw = (battleResult == Battle::BattleResult::DRAW);
+  
+  // Calculate performance score
+  double performanceScore = 50.0;
+  if (victory) {
+    performanceScore += 40.0;
+    if (estimatedTurns < 10) performanceScore += 10.0;
+  } else if (isDraw) {
+    performanceScore += 15.0;
+  }
+  performanceScore = std::max(0.0, std::min(100.0, performanceScore));
+
+  // Create tournament battle result
+  TournamentManager::TournamentBattleResult tournamentResult;
+  tournamentResult.challenge_name = challenge.challenge_name;
+  tournamentResult.challenge_type = challenge.challenge_type;
+  tournamentResult.player_team_name = playerTeam.name;
+  tournamentResult.opponent_name = challenge.challenge_name;
+  tournamentResult.victory = victory;
+  tournamentResult.turns_taken = estimatedTurns;
+  tournamentResult.difficulty_level = challenge.difficulty_level;
+  tournamentResult.performance_score = performanceScore;
+  tournamentResult.battle_date = "2025-08-23"; // Current date
+
+  // Update tournament progress
+  if (victory) {
+    tournamentManager->updatePlayerProgress(playerName, tournamentResult);
+    
+    if (challenge.challenge_type == "gym") {
+      // Award badge
+      TournamentManager::Badge badge(
+        challenge.challenge_name,
+        "unknown", // Would be extracted from challenge data in full implementation
+        challenge.challenge_name,
+        tournamentResult.battle_date,
+        1,
+        performanceScore
+      );
+      tournamentManager->awardBadge(playerName, badge);
+      
+      std::cout << "\n🏅 Congratulations! You earned a new badge!\n";
+      std::cout << "Badge: " << challenge.challenge_name << "\n";
+    }
+    
+    std::cout << "\n🎉 Victory! You defeated " << challenge.challenge_name << "!\n";
+  } else if (isDraw) {
+    std::cout << "\n🤝 Draw! Both teams fought valiantly!\n";
+  } else {
+    std::cout << "\n💪 Good effort! " << challenge.challenge_name << " proved to be a tough opponent.\n";
+    std::cout << "Keep training and try again!\n";
+  }
+  
+  std::cout << "Performance Score: " << static_cast<int>(performanceScore) << "/100\n";
+  std::cout << "\nPress Enter to continue...";
+  std::cin.get();
+}
+
 int main() {
   // Set up signal handler for graceful interruption
   signal(SIGINT, signalHandler);
@@ -765,6 +1248,9 @@ int main() {
   std::cout << "📊 Loaded " << initResult.loaded_count << " Pokemon and moves successfully!" << std::endl;
   
   std::shared_ptr<TeamBuilder> teamBuilder = std::make_shared<TeamBuilder>(pokemonData);
+  
+  // Initialize Tournament Manager
+  std::shared_ptr<TournamentManager> tournamentManager = std::make_shared<TournamentManager>(pokemonData, teamBuilder);
   
   std::cout << "\n╔════════════════════════════════════════════════════════════════════════════════╗\n";
   std::cout << "║                              Pokemon Battle Simulator                          ║\n";
@@ -845,12 +1331,17 @@ int main() {
     // Tournament Draft Mode
     playerTeam = handleTournamentDraft(teamBuilder, userName);
   } else if (categoryChoice == static_cast<int>(categories.size() + 4)) {
+    // Tournament Mode
+    enterTournamentMode(tournamentManager, teamBuilder, pokemonData, userName);
+    // Tournament mode has its own battle system, so we can return after this
+    return 0;
+  } else if (categoryChoice == static_cast<int>(categories.size() + 5)) {
     // Import Team from Share Code
     playerTeam = handleTeamImport(teamBuilder, userName);
-  } else if (categoryChoice == static_cast<int>(categories.size() + 5)) {
+  } else if (categoryChoice == static_cast<int>(categories.size() + 6)) {
     // Load Custom Team
     playerTeam = handleCustomTeamLoad(teamBuilder, userName);
-  } else if (categoryChoice == static_cast<int>(categories.size() + 6)) {
+  } else if (categoryChoice == static_cast<int>(categories.size() + 7)) {
     // Team Comparison Tool
     handleTeamComparison(teamBuilder);
     // After comparison, still need a team for battle
