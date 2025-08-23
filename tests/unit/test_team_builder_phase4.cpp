@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include <memory>
+#include <ctime>
 #include "core/team_builder.h"
 #include "core/pokemon_data.h"
 #include "../utils/test_utils.h"
@@ -86,7 +87,7 @@ TEST_F(TeamBuilderPhase4Test, CustomTeamBuilding) {
 
 // Test battle result recording functionality
 TEST_F(TeamBuilderPhase4Test, BattleResultRecording) {
-    const std::string team_name = "Test Battle Team";
+    const std::string team_name = "Unique_Test_Battle_Team_" + std::to_string(time(nullptr));
     const std::string opponent_name = "Test Opponent";
     
     // Record a victory
