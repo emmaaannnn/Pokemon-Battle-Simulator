@@ -1,0 +1,201 @@
+{
+  "tournament_settings": {
+    "require_sequential_gyms": false,
+    "allow_gym_reattempts": true,
+    "max_attempts_per_gym": 0,
+    "heal_between_gym_attempts": true,
+    "require_all_badges": true,
+    "sequential_elite_four": true,
+    "heal_between_elite_battles": true,
+    "max_elite_four_attempts": 0,
+    "require_elite_four_completion": true,
+    "championship_full_heal": true,
+    "max_championship_attempts": 0,
+    "track_battle_statistics": true,
+    "award_participation_points": true,
+    "difficulty_score_multiplier": 1.0
+  },
+  "gym_configuration": {
+    "gym_leaders": [
+      {
+        "name": "Brock",
+        "gym_name": "Pewter City Gym",
+        "city": "Pewter City",
+        "type_specialization": "rock",
+        "badge_id": 1,
+        "difficulty_level": "Easy",
+        "team_template": "rock_team"
+      },
+      {
+        "name": "Misty",
+        "gym_name": "Cerulean City Gym",
+        "city": "Cerulean City",
+        "type_specialization": "water",
+        "badge_id": 2,
+        "difficulty_level": "Easy",
+        "team_template": "water_team"
+      },
+      {
+        "name": "Lt. Surge",
+        "gym_name": "Vermilion City Gym",
+        "city": "Vermilion City",
+        "type_specialization": "electric",
+        "badge_id": 3,
+        "difficulty_level": "Medium",
+        "team_template": "electric_team"
+      },
+      {
+        "name": "Erika",
+        "gym_name": "Celadon City Gym",
+        "city": "Celadon City",
+        "type_specialization": "grass",
+        "badge_id": 4,
+        "difficulty_level": "Medium",
+        "team_template": "grass_team"
+      },
+      {
+        "name": "Koga",
+        "gym_name": "Fuchsia City Gym",
+        "city": "Fuchsia City",
+        "type_specialization": "poison",
+        "badge_id": 5,
+        "difficulty_level": "Hard",
+        "team_template": "psychic_team"
+      },
+      {
+        "name": "Sabrina",
+        "gym_name": "Saffron City Gym",
+        "city": "Saffron City",
+        "type_specialization": "psychic",
+        "badge_id": 6,
+        "difficulty_level": "Hard",
+        "team_template": "psychic_team"
+      },
+      {
+        "name": "Blaine",
+        "gym_name": "Cinnabar Island Gym",
+        "city": "Cinnabar Island",
+        "type_specialization": "fire",
+        "badge_id": 7,
+        "difficulty_level": "Hard",
+        "team_template": "fire_team"
+      },
+      {
+        "name": "Giovanni",
+        "gym_name": "Viridian City Gym",
+        "city": "Viridian City",
+        "type_specialization": "ground",
+        "badge_id": 8,
+        "difficulty_level": "Expert",
+        "team_template": "balanced_meta"
+      }
+    ]
+  },
+  "elite_four_configuration": {
+    "members": [
+      {
+        "name": "Lorelei",
+        "position": 1,
+        "specialization": "ice",
+        "difficulty_level": "Hard",
+        "team_template": "ice_team"
+      },
+      {
+        "name": "Bruno",
+        "position": 2,
+        "specialization": "fighting",
+        "difficulty_level": "Hard",
+        "team_template": "fighting_team"
+      },
+      {
+        "name": "Agatha",
+        "position": 3,
+        "specialization": "ghost",
+        "difficulty_level": "Hard",
+        "team_template": "dark_team"
+      },
+      {
+        "name": "Lance",
+        "position": 4,
+        "specialization": "dragon",
+        "difficulty_level": "Hard",
+        "team_template": "balanced_meta"
+      }
+    ]
+  },
+  "championship_configuration": {
+    "champion": {
+      "name": "Champion",
+      "title": "Pokemon Champion",
+      "specialization": "balanced",
+      "difficulty_level": "Expert",
+      "team_template": "balanced_meta"
+    },
+    "settings": {
+      "require_sequential_battles": true,
+      "require_elite_four_completion": true,
+      "allow_healing_between_elite_four": true,
+      "force_healing_before_champion": true,
+      "allow_item_usage": false,
+      "base_difficulty": "Hard",
+      "progressive_difficulty": true,
+      "champion_difficulty": "Expert",
+      "max_championship_attempts": 0,
+      "save_run_progress": true,
+      "allow_run_restart": true,
+      "track_detailed_statistics": true,
+      "time_bonus_multiplier": 1.0,
+      "consecutive_victory_bonus": 1.5
+    }
+  },
+  "badge_information": {
+    "Boulder Badge": {
+      "gym_leader": "Brock",
+      "type": "rock",
+      "description": "Proves your Pokemon's strength against rock-solid defenses",
+      "effects": ["Increases Pokemon obedience level", "Allows use of Flash outside of battle"]
+    },
+    "Cascade Badge": {
+      "gym_leader": "Misty",
+      "type": "water",
+      "description": "Shows mastery over water-type challenges",
+      "effects": ["Increases Pokemon obedience level", "Allows use of Cut outside of battle"]
+    },
+    "Thunder Badge": {
+      "gym_leader": "Lt. Surge",
+      "type": "electric",
+      "description": "Demonstrates power against electric-type specialists",
+      "effects": ["Increases Pokemon obedience level", "Allows use of Fly outside of battle"]
+    },
+    "Rainbow Badge": {
+      "gym_leader": "Erika",
+      "type": "grass",
+      "description": "Represents triumph over nature's guardians",
+      "effects": ["Increases Pokemon obedience level", "Allows use of Strength outside of battle"]
+    },
+    "Soul Badge": {
+      "gym_leader": "Koga",
+      "type": "poison",
+      "description": "Proves resistance to toxic challenges",
+      "effects": ["Increases Pokemon obedience level", "Allows use of Surf outside of battle"]
+    },
+    "Marsh Badge": {
+      "gym_leader": "Sabrina",
+      "type": "psychic",
+      "description": "Shows mental fortitude against psychic powers",
+      "effects": ["Increases Pokemon obedience level", "Unlocks psychic-type training bonuses"]
+    },
+    "Volcano Badge": {
+      "gym_leader": "Blaine",
+      "type": "fire",
+      "description": "Earned by withstanding intense heat and flame",
+      "effects": ["Increases Pokemon obedience level", "Grants fire-type move power bonus"]
+    },
+    "Earth Badge": {
+      "gym_leader": "Giovanni",
+      "type": "ground",
+      "description": "The final badge, representing complete tournament mastery",
+      "effects": ["Maximum Pokemon obedience level", "Unlocks Elite Four challenge"]
+    }
+  }
+}

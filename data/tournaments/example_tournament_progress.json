@@ -1,0 +1,76 @@
+{
+  "players": {
+    "example_player": {
+      "player_name": "example_player",
+      "earned_badges": [
+        {
+          "gym_name": "Boulder Badge",
+          "gym_type": "rock",
+          "gym_leader_name": "Brock",
+          "earned_date": "2025-08-23 10:00:00",
+          "attempts_to_earn": 1,
+          "final_battle_score": 85.0
+        },
+        {
+          "gym_name": "Cascade Badge", 
+          "gym_type": "water",
+          "gym_leader_name": "Misty",
+          "earned_date": "2025-08-23 11:30:00",
+          "attempts_to_earn": 2,
+          "final_battle_score": 78.5
+        }
+      ],
+      "defeated_gyms": ["Brock", "Misty"],
+      "elite_four_unlocked": false,
+      "defeated_elite_four": [],
+      "elite_four_completed": false,
+      "champion_unlocked": false,
+      "champion_defeated": false,
+      "championship_date": "",
+      "total_gym_attempts": 3,
+      "total_elite_four_attempts": 0,
+      "total_champion_attempts": 0,
+      "average_battle_performance": 81.75
+    }
+  },
+  "battle_history": {
+    "example_player": [
+      {
+        "challenge_name": "Pewter City Gym",
+        "challenge_type": "gym",
+        "player_team_name": "Example Team",
+        "opponent_name": "Brock",
+        "victory": true,
+        "turns_taken": 18,
+        "difficulty_level": "Easy",
+        "performance_score": 85.0,
+        "battle_date": "2025-08-23 10:00:00",
+        "strategy_notes": ["Used water-type moves effectively", "Good type advantage"]
+      },
+      {
+        "challenge_name": "Cerulean City Gym",
+        "challenge_type": "gym", 
+        "player_team_name": "Example Team",
+        "opponent_name": "Misty",
+        "victory": false,
+        "turns_taken": 25,
+        "difficulty_level": "Easy",
+        "performance_score": 65.0,
+        "battle_date": "2025-08-23 11:00:00",
+        "strategy_notes": ["Struggled against water types", "Need electric coverage"]
+      },
+      {
+        "challenge_name": "Cerulean City Gym",
+        "challenge_type": "gym",
+        "player_team_name": "Example Team", 
+        "opponent_name": "Misty",
+        "victory": true,
+        "turns_taken": 20,
+        "difficulty_level": "Easy",
+        "performance_score": 78.5,
+        "battle_date": "2025-08-23 11:30:00",
+        "strategy_notes": ["Added electric Pokemon", "Much better coverage"]
+      }
+    ]
+  }
+}
