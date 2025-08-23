@@ -35,6 +35,9 @@ set(CORE_SOURCES
     src/core/battle_events.cpp
     src/core/pokemon_data.cpp
     src/core/team_builder.cpp
+    src/core/tournament_manager.cpp
+    src/core/championship_system.cpp
+    src/core/gym_leader.cpp
 )
 
 set(AI_SOURCES
@@ -65,6 +68,9 @@ set(CORE_HEADERS
     include/core/battle_events.h
     include/core/pokemon_data.h
     include/core/team_builder.h
+    include/core/tournament_manager.h
+    include/core/championship_system.h
+    include/core/gym_leader.h
 )
 
 set(AI_HEADERS

@@ -1,0 +1,249 @@
+{
+  "gym_strategies": {
+    "Brock": {
+      "type_specialization": "rock",
+      "weaknesses": ["water", "grass", "fighting", "ground", "steel"],
+      "resistances": ["normal", "flying", "poison", "fire"],
+      "recommended_pokemon": [
+        {"name": "squirtle", "reason": "Water type deals super effective damage"},
+        {"name": "bulbasaur", "reason": "Grass type resists rock moves and deals super effective damage"},
+        {"name": "machop", "reason": "Fighting type deals super effective damage"},
+        {"name": "geodude", "reason": "Rock/Ground type resists rock moves"}
+      ],
+      "recommended_moves": [
+        {"move": "water-gun", "reason": "Super effective against rock types"},
+        {"move": "vine-whip", "reason": "Super effective grass-type move"},
+        {"move": "karate-chop", "reason": "Super effective fighting-type move"}
+      ],
+      "battle_tips": [
+        "Brock's Pokemon have high Defense but low Special Defense",
+        "Use special attacks rather than physical attacks when possible",
+        "Rock types are slow - use speed to your advantage",
+        "Bring healing items as battles may be lengthy"
+      ],
+      "signature_strategy": "Defensive wall with Rock Slide and high Defense stats",
+      "difficulty_rating": 2,
+      "beginner_tips": [
+        "Choose Squirtle or Bulbasaur as starter for easy victory", 
+        "Level up to at least level 12 before challenging",
+        "Stock up on Potions before the battle"
+      ]
+    },
+    "Misty": {
+      "type_specialization": "water",
+      "weaknesses": ["electric", "grass"],
+      "resistances": ["fire", "water", "ice", "steel"],
+      "recommended_pokemon": [
+        {"name": "pikachu", "reason": "Electric type deals super effective damage"},
+        {"name": "oddish", "reason": "Grass type deals super effective damage"},
+        {"name": "bellsprout", "reason": "Grass type with good special attack"}
+      ],
+      "recommended_moves": [
+        {"move": "thundershock", "reason": "Super effective electric-type move"},
+        {"move": "razor-leaf", "reason": "Super effective grass-type move"},
+        {"move": "absorb", "reason": "Super effective and heals user"}
+      ],
+      "battle_tips": [
+        "Water types have balanced stats but strong special attacks",
+        "Electric moves are highly effective and often decisive",
+        "Grass types resist water moves while dealing super effective damage",
+        "Watch out for powerful special attacks like Water Pulse"
+      ],
+      "signature_strategy": "Balanced offense with special water attacks",
+      "difficulty_rating": 2,
+      "beginner_tips": [
+        "Catch Pikachu in Viridian Forest for easy victory",
+        "Oddish can be found on Route 24 north of Cerulean City",
+        "Level Pokemon to at least level 15 for safety"
+      ]
+    },
+    "Lt. Surge": {
+      "type_specialization": "electric",
+      "weaknesses": ["ground"],
+      "resistances": ["flying", "steel", "electric"],
+      "recommended_pokemon": [
+        {"name": "diglett", "reason": "Ground type is immune to electric attacks"},
+        {"name": "sandshrew", "reason": "Ground type with good defense"},
+        {"name": "onix", "reason": "Rock/Ground type resists electric moves"}
+      ],
+      "recommended_moves": [
+        {"move": "dig", "reason": "Super effective ground-type move"},
+        {"move": "earthquake", "reason": "Powerful ground-type attack"},
+        {"move": "mud-slap", "reason": "Ground-type move that lowers accuracy"}
+      ],
+      "battle_tips": [
+        "Ground types are completely immune to electric attacks",
+        "Lt. Surge's Raichu is fast and hits hard with electric moves",
+        "Use the Trash Can puzzle solution: First can is random, second is adjacent",
+        "Stock up on Paralyze Heals in case of Thunder Wave"
+      ],
+      "signature_strategy": "High speed electric attacks with paralysis support",
+      "difficulty_rating": 4,
+      "beginner_tips": [
+        "Diglett's Cave between Vermilion City and Route 2 has easy ground types",
+        "Level ground types to at least level 20",
+        "Bring multiple Pokemon as backup in case of critical hits"
+      ]
+    },
+    "Erika": {
+      "type_specialization": "grass",
+      "weaknesses": ["fire", "ice", "poison", "flying", "bug"],
+      "resistances": ["water", "electric", "grass", "ground"],
+      "recommended_pokemon": [
+        {"name": "charmander", "reason": "Fire type deals super effective damage"},
+        {"name": "pidgey", "reason": "Flying type deals super effective damage"},
+        {"name": "weedle", "reason": "Bug/Poison type deals super effective damage"}
+      ],
+      "recommended_moves": [
+        {"move": "ember", "reason": "Super effective fire-type move"},
+        {"move": "gust", "reason": "Super effective flying-type move"},
+        {"move": "poison-sting", "reason": "Super effective poison-type move"}
+      ],
+      "battle_tips": [
+        "Grass types often use status moves like Sleep Powder and Poison Powder",
+        "Fire types are extremely effective against grass specialists",
+        "Flying types resist grass moves and deal super effective damage",
+        "Bring Antidotes and Awakenings for status conditions"
+      ],
+      "signature_strategy": "Status effects with grass-type recovery moves",
+      "difficulty_rating": 3,
+      "beginner_tips": [
+        "Charmander line is excellent for this gym",
+        "Catch flying types on routes around Celadon City",
+        "Level Pokemon to at least level 22 before challenging"
+      ]
+    },
+    "Koga": {
+      "type_specialization": "poison",
+      "weaknesses": ["ground", "psychic"],
+      "resistances": ["grass", "fighting", "poison", "bug", "fairy"],
+      "recommended_pokemon": [
+        {"name": "abra", "reason": "Psychic type deals super effective damage"},
+        {"name": "kadabra", "reason": "Fast psychic type with powerful special attacks"},
+        {"name": "dugtrio", "reason": "Ground type deals super effective damage"}
+      ],
+      "recommended_moves": [
+        {"move": "psychic", "reason": "Super effective psychic-type move"},
+        {"move": "confusion", "reason": "Psychic move that may cause confusion"},
+        {"move": "earthquake", "reason": "Powerful ground-type attack"}
+      ],
+      "battle_tips": [
+        "Poison types love to inflict status conditions",
+        "Psychic types are fast and deal heavy damage to poison types",
+        "Ground types provide good neutral coverage",
+        "Bring lots of healing items for poison damage over time"
+      ],
+      "signature_strategy": "Status condition stalling with Toxic and recovery",
+      "difficulty_rating": 6,
+      "beginner_tips": [
+        "Evolve Abra to Kadabra for much better stats",
+        "Psychic-type moves are very effective here",
+        "Level Pokemon to at least level 35 before attempting"
+      ]
+    },
+    "Sabrina": {
+      "type_specialization": "psychic",
+      "weaknesses": ["bug", "ghost", "dark"],
+      "resistances": ["fighting", "psychic"],
+      "recommended_pokemon": [
+        {"name": "scyther", "reason": "Bug type deals super effective damage"},
+        {"name": "gastly", "reason": "Ghost type deals super effective damage and resists psychic"},
+        {"name": "haunter", "reason": "Ghost type with good special attack"}
+      ],
+      "recommended_moves": [
+        {"move": "pin-missile", "reason": "Multi-hit bug-type move"},
+        {"move": "lick", "reason": "Ghost-type move that may cause paralysis"},
+        {"move": "night-shade", "reason": "Ghost-type move with fixed damage"}
+      ],
+      "battle_tips": [
+        "Psychic types have high special attack and special defense",
+        "Ghost types are immune to psychic moves and deal super effective damage",
+        "Bug types are fast and can overwhelm with multi-hit moves",
+        "Physical attacks may be more effective than special attacks"
+      ],
+      "signature_strategy": "Powerful psychic attacks with teleportation tactics",
+      "difficulty_rating": 7,
+      "beginner_tips": [
+        "Catch Gastly in Pokemon Tower for type advantage",
+        "Bug types can be found in Safari Zone",
+        "Level Pokemon to at least level 38 before challenging"
+      ]
+    },
+    "Blaine": {
+      "type_specialization": "fire", 
+      "weaknesses": ["water", "ground", "rock"],
+      "resistances": ["fire", "grass", "ice", "bug", "steel", "fairy"],
+      "recommended_pokemon": [
+        {"name": "starmie", "reason": "Water type with high speed and special attack"},
+        {"name": "golem", "reason": "Rock/Ground type resists fire and deals super effective damage"},
+        {"name": "rhydon", "reason": "Ground/Rock type with high attack"}
+      ],
+      "recommended_moves": [
+        {"move": "surf", "reason": "Powerful water-type move"},
+        {"move": "rock-slide", "reason": "Super effective rock-type move"},
+        {"move": "earthquake", "reason": "Powerful ground-type attack"}
+      ],
+      "battle_tips": [
+        "Fire types have high attack and special attack",
+        "Water types are extremely effective and often one-shot fire Pokemon",
+        "Rock and Ground types resist fire moves while dealing super effective damage",
+        "Speed is important as fire types can be fast"
+      ],
+      "signature_strategy": "High-power fire attacks with sun-boosted damage",
+      "difficulty_rating": 6,
+      "beginner_tips": [
+        "Teach Surf to a water Pokemon for easy victories",
+        "Rock/Ground types provide excellent defensive coverage",
+        "Level Pokemon to at least level 42 before challenging"
+      ]
+    },
+    "Giovanni": {
+      "type_specialization": "ground",
+      "weaknesses": ["water", "grass", "ice"],
+      "resistances": ["poison", "rock", "electric"],
+      "recommended_pokemon": [
+        {"name": "lapras", "reason": "Water/Ice type deals double super effective damage"},
+        {"name": "venusaur", "reason": "Grass/Poison type deals super effective damage"},
+        {"name": "articuno", "reason": "Ice/Flying type deals super effective ice damage"}
+      ],
+      "recommended_moves": [
+        {"move": "ice-beam", "reason": "Super effective ice-type move"},
+        {"move": "surf", "reason": "Super effective water-type move"},
+        {"move": "petal-dance", "reason": "Powerful grass-type attack"}
+      ],
+      "battle_tips": [
+        "Ground types have high attack and defense",
+        "Ice moves are extremely effective against ground types",
+        "Water and Grass types provide consistent super effective damage",
+        "This is the hardest gym - come prepared with a full team"
+      ],
+      "signature_strategy": "Earthquake spam with high physical attack stats",
+      "difficulty_rating": 8,
+      "beginner_tips": [
+        "This is the final gym - have a full team of level 45+ Pokemon",
+        "Ice types are your best bet for quick victories",
+        "Bring lots of healing items and save before the battle"
+      ]
+    }
+  },
+  "general_tips": {
+    "team_building": [
+      "Diversify your team types to handle different gym specializations",
+      "Keep at least one Pokemon that's strong against each gym type",
+      "Level your Pokemon evenly - don't rely on just one strong Pokemon",
+      "Teach your Pokemon moves that cover their type weaknesses"
+    ],
+    "battle_preparation": [
+      "Stock up on healing items before each gym battle",
+      "Save your game before challenging any gym leader",
+      "Make sure your Pokemon are at appropriate levels for each gym",
+      "Consider the gym's field effects and plan accordingly"
+    ],
+    "progression_strategy": [
+      "Complete gyms in order for optimal level progression",
+      "Train between gyms to maintain appropriate level curves",
+      "Use gym rewards to unlock new areas and catch better Pokemon",
+      "Build your team with the Elite Four in mind - they use diverse types"
+    ]
+  }
+}
