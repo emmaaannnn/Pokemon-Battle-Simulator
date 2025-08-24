@@ -3,9 +3,18 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/5kng/Pokemon-Battle-Simulator)  
 <sup>Click for interactive docs powered by DeepWiki</sup>
 
-A **comprehensive C++ implementation** of a Pokémon battle system that simulates turn-based combat with **authentic game mechanics**. Experience strategic battles with advanced features like status conditions, STAB bonuses, critical hits, and full type effectiveness!
+A **comprehensive C++ implementation** of a Pokémon battle system featuring authentic turn-based combat mechanics and a complete **Championship Tournament System**. Experience the full journey from Gym Leader battles to Elite Four and Champion challenges!
 
 ## ⚡ Latest Features
+
+### 🏆 **Championship Tournament System** ⭐ *NEW*
+- **Complete Tournament Mode**: 8 Gym Leaders → Elite Four → Champion progression
+- **Type-Specialized Gym Leaders**: Each with thematic teams and strategies
+- **Badge Collection System**: Track your tournament progress and achievements  
+- **Elite Four Gauntlet**: Face four consecutive Champion-tier battles
+- **Championship Battle**: Final showdown against the ultimate opponent
+- **Tournament Statistics**: Detailed performance tracking and leaderboards
+- **Custom Team Builder**: Create specialized teams for tournament challenges
 
 ### 🔥 **Advanced Battle Mechanics**
 - **STAB (Same Type Attack Bonus)**: 1.5x damage when Pokémon type matches move type
@@ -14,46 +23,65 @@ A **comprehensive C++ implementation** of a Pokémon battle system that simulate
 - **Turn-based Status Processing**: Damage over time, action restrictions, and automatic recovery
 - **Effective Stat Calculations**: Burn halves Attack, Paralysis halves Speed
 - **🌤️ Weather System**: Rain, Sun, Sandstorm, and Hail with authentic type interactions and damage
-- **🧠 AI Difficulty System**: Easy, Medium, and Hard AI opponents with strategic decision making
+- **🧠 4-Tier AI System**: Easy, Medium, Hard, and Expert AI with sophisticated strategies
 
 ### 💎 **Professional Code Quality**
 - **Modern C++17**: Clean, object-oriented design with auto type deduction
 - **Zero Namespace Pollution**: Removed `using namespace std;` throughout codebase
 - **Type Safety**: Strategic use of `auto` for better maintainability
 - **Enhanced Error Handling**: Robust JSON parsing and file operations
+- **Comprehensive Testing**: Full test suite ensuring reliability
 
 ## 🎯 Core Features
 
-- **🏟️ Complete Battle System**: Turn-based combat with move priority, type effectiveness, and authentic damage calculation
-- **📚 Extensive Database**: 300+ moves and 150+ Pokémon with accurate stats from Generation I
-- **⚔️ Strategic Combat**: Status conditions, stat modifications, and multi-turn effects
-- **👥 Team Management**: Create and manage teams of up to 6 Pokémon with pre-built configurations
-- **🤖 Strategic AI System**: Four difficulty levels with sophisticated decision-making and opponent modeling
-- **🎨 Enhanced UI**: Visual health bars, status condition indicators, and detailed battle feedback
-- **📁 JSON Data Storage**: Modular, expandable data structure for easy customisation
+- **🏆 Championship Tournament**: Complete progression system with 8 Gym Leaders, Elite Four, and Champion battles
+- **🏟️ Advanced Battle System**: Turn-based combat with move priority, type effectiveness, and authentic damage calculation
+- **📚 Extensive Database**: 300+ moves and 151 Generation I Pokémon with accurate stats
+- **⚔️ Strategic Combat**: Status conditions, stat modifications, weather effects, and multi-turn mechanics
+- **👥 Team Management**: Create and manage teams with sophisticated team builder and pre-built configurations
+- **🤖 4-Tier AI System**: Easy, Medium, Hard, and Expert AI with sophisticated decision-making and opponent modeling
+- **🎨 Enhanced UI**: Animated health bars, status condition indicators, and comprehensive battle feedback
+- **📁 JSON Data Storage**: Modular, expandable data structure for easy customization
 
 ## 📁 Project Structure
 
 ```
 Pokemon-Battle-Simulator/
-├── src/                    # Core battle system
-│   ├── main.cpp           # Main application entry point
-│   ├── battle.cpp/h       # Battle system with status conditions
-│   ├── pokemon.cpp/h      # Pokémon class with status tracking
-│   ├── move.cpp/h         # Move system with ailment support
-│   ├── team.cpp/h         # Team management
-│   ├── weather.cpp/h      # Weather system implementation
-│   └── type_effectiveness.cpp/h  # Complete type chart implementation
-├── include/               # External libraries
-│   └── json.hpp          # nlohmann/json library
-├── data/                  # Comprehensive game data
-│   ├── moves/            # 300+ move definitions with status effects
-│   ├── pokemon/          # 150+ Pokémon with authentic stats
-│   └── teams/            # Pre-built team configurations
-├── examples/             # (Empty - demos removed for streamlined experience)
-├── build/                # Build artefacts (CMake generated)
-├── CMakeLists.txt        # Build configuration
-└── README.md            # This documentation
+├── src/                                    # Core implementation
+│   ├── main.cpp                           # Tournament & battle menu system
+│   ├── core/                              # Battle engine
+│   │   ├── battle.cpp/h                   # Enhanced battle system with health bars
+│   │   ├── tournament_manager.cpp/h       # Tournament progression & badge tracking
+│   │   ├── championship_system.cpp/h      # Elite Four & Champion battles
+│   │   ├── gym_leader.cpp/h               # Type-specialized gym battles
+│   │   ├── pokemon.cpp/h & pokemon_data.cpp # Pokémon with full status support
+│   │   ├── team.cpp/h & team_builder.cpp/h # Advanced team management
+│   │   ├── weather.cpp/h                  # Weather system implementation
+│   │   └── move.cpp/h                     # Move system with status effects
+│   ├── ai/                                # 4-tier AI system
+│   │   ├── expert_ai.cpp/h                # Advanced predictive AI
+│   │   ├── hard_ai.cpp/h, medium_ai.cpp/h # Strategic AI variations
+│   │   └── easy_ai.cpp/h, ai_factory.cpp/h # AI difficulty system
+│   └── utils/                             # Support systems
+│       ├── health_bar_animator.cpp/h      # Visual health bar system
+│       ├── type_effectiveness.cpp/h       # Complete type chart
+│       └── input_validator.cpp/h          # Robust input handling
+├── include/                               # Headers & external libraries
+│   ├── core/, ai/, utils/                 # System headers
+│   └── json.hpp                           # nlohmann/json library
+├── data/                                  # Game content
+│   ├── pokemon/          # 151 Gen I Pokémon with authentic stats
+│   ├── moves/            # 300+ moves with status effects & animations  
+│   ├── tournaments/      # Tournament configs & gym strategies
+│   ├── teams/            # Pre-built & custom team configurations
+│   └── team_templates/   # Themed team archetypes
+├── tests/                                 # Comprehensive test suite
+│   ├── unit/             # Pokemon, AI, battle, weather system tests
+│   ├── integration/      # Full battle & status interaction tests
+│   └── utils/            # Testing utilities and helpers
+├── build/                # CMake build artifacts
+├── CMakeLists.txt        # Modern C++17 build configuration
+└── README.md            # This comprehensive documentation
 ```
 
 ## 🚀 Quick Start
@@ -82,13 +110,21 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build . --config Release
 
 # Run the game (IMPORTANT: Run from project root directory!)
-cd ..                    # Go back to project root
-./bin/pokemon_battle     # OR use the launcher script
+cd ..                           # Go back to project root
+./build/bin/pokemon_battle      # Main tournament & battle system
 # OR
-./run_game.sh           # Launcher script (recommended)
+./run_game.sh                   # Launcher script (recommended)
 ```
 
 **⚠️ Important**: The game must be run from the project root directory where the `data/` folder is located, not from the `build/` directory. The executable looks for data files relative to the current working directory.
+
+### 🎮 **Tournament Mode Quick Start**
+```bash
+# Experience the full championship journey:
+./build/bin/pokemon_battle
+# Select: [7] 🏆 Tournament Mode
+# Choose: [1] 🥇 Gym Leader Challenge  
+# Build your team and start your championship run!
 ```
 
 ## ⚔️ Battle System Deep Dive
@@ -132,24 +168,40 @@ Dynamic weather conditions that affect battle strategy:
 - **Enhanced Feedback**: "Charizard gets STAB!" and "A critical hit!" messages
 - **Proper Stacking**: All multipliers combine correctly (Type × STAB × Critical × Weather)
 
+### 🏆 **Tournament Championship System**
+Experience the complete journey from rookie trainer to Champion:
+
+| Stage | Requirement | Challenge Level | Rewards |
+|-------|-------------|-----------------|---------|
+| **🥇 Gym Leaders** | Win 8/8 Gym Battles | Type-specialized teams | Gym Badges |
+| **👑 Elite Four** | All 8 badges earned | 4 consecutive battles | Elite Four completion |
+| **🎖️ Champion Battle** | Elite Four defeated | Ultimate challenge | Championship title |
+
+**Tournament Features**:
+- ✅ **Progressive Difficulty**: Each gym leader has unique strategies and team themes
+- ✅ **Badge Collection**: Visual progress tracking with badge requirements
+- ✅ **Team Customization**: Build specialized teams for different gym types
+- ✅ **Tournament Statistics**: Track wins, losses, and performance metrics
+- ✅ **Championship Leaderboard**: Compare your achievements with others
+
 ### 🧠 **AI Difficulty System**
 Choose your challenge level with progressively smarter opponents:
 
-| Difficulty | Strategy | Switching | Decision Making |
-|------------|----------|-----------|-----------------|
-| **🟢 Easy** | Random moves only | Never switches | Pure randomness |
-| **🟡 Medium** | Basic type effectiveness | Switches when low HP | Considers move power + type |
-| **🔴 Hard** | Advanced strategy | Strategic switching | Multi-factor analysis |
-| **⭐ Expert** | Predictive analysis | Multi-turn planning | Opponent modeling & counter-strategy |
+| Difficulty | Strategy | Switching | Decision Making | Used In |
+|------------|----------|-----------|-----------------|---------|
+| **🟢 Easy** | Random moves only | Never switches | Pure randomness | Practice battles |
+| **🟡 Medium** | Basic type effectiveness | Switches when low HP | Considers move power + type | Early gym leaders |
+| **🔴 Hard** | Advanced strategy | Strategic switching | Multi-factor analysis | Later gyms & Elite Four |
+| **⭐ Expert** | Predictive analysis | Multi-turn planning | Opponent modeling | Champion battle |
 
 **Expert AI Features**:
-- ✅ **Multi-turn Planning**: Analyzes 2+ turns ahead with turn plan generation
-- ✅ **Opponent Modeling**: Tracks opponent patterns, move probabilities, and play style
+- ✅ **Multi-turn Planning**: Analyzes 2+ turns ahead with comprehensive strategy trees
+- ✅ **Opponent Modeling**: Tracks patterns, predicts moves, adapts to player style
 - ✅ **Predictive Analysis**: Forecasts opponent actions with confidence scoring
-- ✅ **Setup Detection**: Recognizes and disrupts opponent setup attempts
-- ✅ **Win Condition Analysis**: Evaluates long-term advantage and positioning
+- ✅ **Setup Detection**: Recognizes and disrupts stat-boosting strategies
+- ✅ **Win Condition Analysis**: Evaluates long-term positioning and victory paths
 - ✅ **Risk Assessment**: Models outcome probabilities and expected utility
-- ✅ **Counter-strategy Recognition**: Adapts to opponent tactics and playstyles
+- ✅ **Counter-strategy Recognition**: Adapts tactics mid-battle based on player behavior
 
 ### 🎯 **Type Effectiveness System**
 Complete implementation with authentic Pokémon type chart:
@@ -332,13 +384,20 @@ echo "1\n1\n3\n3\n3\n3\n3" | ./bin/pokemon_battle  # Hard AI
 
 ## 🎮 Gameplay Modes
 
-### **Main Battle Mode** (`pokemon_battle`)
-Full-featured battle system with:
-- Team selection from 3 pre-built teams
-- 8 Gym Leader opponents with themed teams
+### **🏆 Tournament Mode** (Main Feature)
+Complete championship experience featuring:
+- **8 Gym Leader Challenges**: Type-specialized battles (Fire, Water, Electric, etc.)
+- **Elite Four Gauntlet**: 4 consecutive champion-tier battles
+- **Champion Showdown**: Ultimate test against the strongest opponent
+- **Custom Team Builder**: Create specialized teams for different challenges
+- **Progress Tracking**: Badge collection, statistics, and leaderboards
+
+### **⚔️ Quick Battle Mode**
+Traditional battle system with:
+- Team selection from pre-built configurations
 - AI difficulty selection (Easy, Medium, Hard, Expert)
-- Complete status condition mechanics
-- Enhanced visual feedback
+- Complete status condition and weather mechanics
+- Enhanced visual feedback with animated health bars
 
 
 ## 🧪 Testing & Quality
@@ -373,15 +432,16 @@ ctest -j4
 
 ### Planned Features
 - **🎨 Battle Animations**: ASCII art and enhanced visual effects
-- **🏆 Tournament Mode**: Elite Four progression and championship battles
 - **🔄 Multi-turn Moves**: Hyper Beam recharge, Solar Beam charging mechanics
+- **💎 Generation II**: Johto Pokémon, Steel/Dark types, breeding system
+- **🌍 Battle Frontier**: Additional challenge modes beyond the Elite Four
 
-### Technical Improvements
-- **💾 Save System**: Team persistence and battle history
-- **🤖 Expert AI**: Advanced difficulty level with prediction and strategy
-- **🎵 Audio**: Sound effects and battle music integration
-- **📊 Enhanced Statistics**: Detailed battle analytics and performance metrics
-- **🌐 Multiplayer**: Network battles and online tournaments
+### Technical Improvements  
+- **💾 Enhanced Save System**: Tournament progress persistence across sessions
+- **🎵 Audio Integration**: Sound effects and battle music
+- **📊 Advanced Analytics**: Detailed battle statistics and AI performance metrics
+- **🌐 Multiplayer Support**: Network battles and online tournaments
+- **🎯 Battle Replay System**: Record and review championship battles
 
 ## 🤝 Contributing
 
@@ -430,7 +490,10 @@ mkdir build && cd build && cmake .. && make -j4
 ./bin/pokemon_battle
 ```
 
-*Experience the thrill of strategic Pokémon battles with authentic mechanics!* 🎮✨
-
 ---
-*Last updated: August 13, 2025* 
+
+*Experience the complete Pokémon championship journey with tournament battles!* 🏆⚡
+
+*Last updated: August 24, 2025*
+
+ 
